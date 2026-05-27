@@ -1,0 +1,103 @@
+import { spawn, spawnSync } from "node:child_process";
+import process from "node:process";
+
+import { binaryAvailable } from "./process.mjs";
+
+export function getAgyAvailability(cwd) {
+  const result = binaryAvailable("agy", ["--version"], { cwd });
+  if (result.available) {
+    return { available: true, detail: `agy ${result.detail}` };
+  }
+  return result;
+}
+
+export function getAgyAuthStatus(cwd) {
+  const avail = getAgyAvailability(cwd);
+  if (!avail.available) {
+    return { loggedIn: false, detail: "agy not installed" };
+  }
+  return { loggedIn: true, detail: "agy is available (auth managed by agy itself)" };
+}
+
+export function buildAgyArgs(prompt, options = {}) {
+  const args = [];
+
+  if (options.resumeLast) {
+    args.push("--continue");
+  }
+
+  if (options.sandbox) {
+    args.push("--sandbox");
+  }
+
+  const effectivePrompt = prompt || (options.resumeLast ? "Continue." : "");
+  if (effectivePrompt) {
+    args.push("--print", effectivePrompt);
+  }
+
+  return args;
+}
+
+export async function runAgyTask(cwd, prompt, options = {}) {
+  const args = buildAgyArgs(prompt, options);
+
+  if (!args.length) {
+    throw new Error("No prompt or action provided for agy.");
+  }
+
+  return new Promise((resolve) => {
+    const child = spawn("agy", args, {
+      cwd: cwd || process.cwd(),
+      env: process.env,
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", (chunk) => {
+      const s = chunk.toString();
+      stdout += s;
+      options.onProgress?.({ message: s.trim().split("\n")[0] ?? "" });
+    });
+
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+
+    child.on("error", (error) => {
+      resolve({ exitCode: 1, stdout, stderr: error.message });
+    });
+
+    child.on("close", (code) => {
+      resolve({ exitCode: code ?? 0, stdout, stderr });
+    });
+  });
+}
+
+export function runAgyTaskSync(cwd, prompt, options = {}) {
+  const args = buildAgyArgs(prompt, options);
+
+  const result = spawnSync("agy", args, {
+    cwd: cwd || process.cwd(),
+    env: options.env ?? process.env,
+    encoding: "utf8",
+    timeout: options.timeout
+  });
+
+  if (result.error?.code === "ETIMEDOUT") {
+    return {
+      exitCode: 1,
+      stdout: "",
+      stderr: "agy task timed out.",
+      timedOut: true
+    };
+  }
+
+  return {
+    exitCode: result.status ?? 0,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    timedOut: false
+  };
+}
