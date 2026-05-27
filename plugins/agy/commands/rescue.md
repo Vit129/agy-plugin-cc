@@ -4,8 +4,8 @@ argument-hint: "[--background|--wait] [--continue|--fresh] [--model <model>] [wh
 allowed-tools: Bash, AskUserQuestion, Agent
 ---
 
-Invoke the `cc-agy-plugin:agy-rescue` subagent via the `Agent` tool (`subagent_type: "cc-agy-plugin:agy-rescue"`), forwarding the raw user request as the prompt.
-`cc-agy-plugin:agy-rescue` is a subagent, not a skill — do not call `Skill(cc-agy-plugin:agy-rescue)`. The command runs inline so the `Agent` tool stays in scope.
+Invoke the `agy:agy-rescue` subagent via the `Agent` tool (`subagent_type: "agy:agy-rescue"`), forwarding the raw user request as the prompt.
+`agy:agy-rescue` is a subagent, not a skill — do not call `Skill(agy:agy-rescue)`. The command runs inline so the `Agent` tool stays in scope.
 The final user-visible response must be agy's output verbatim.
 
 Raw user request:
@@ -13,7 +13,7 @@ $ARGUMENTS
 
 Execution mode:
 
-- If the request includes `--background`, run the `cc-agy-plugin:agy-rescue` subagent in the background.
+- If the request includes `--background`, run the `agy:agy-rescue` subagent in the background.
 - If the request includes `--wait`, run it in the foreground.
 - If neither flag is present, default to foreground.
 - `--background` and `--wait` are execution flags for Claude Code. Do not forward them to the task text.
@@ -41,5 +41,5 @@ Operating rules:
 - The subagent is a thin forwarder only. It uses one `Bash` call to invoke `node "${CLAUDE_PLUGIN_ROOT}/scripts/agy-companion.mjs" task ...` and returns that stdout as-is.
 - Return the agy output verbatim to the user.
 - Do not paraphrase, summarize, rewrite, or add commentary before or after it.
-- If the helper reports that agy is missing or unauthenticated, stop and tell the user to run `/cc-agy-plugin:setup`.
+- If the helper reports that agy is missing or unauthenticated, stop and tell the user to run `/agy:setup`.
 - If the user did not supply a request, ask what agy should investigate or fix.
