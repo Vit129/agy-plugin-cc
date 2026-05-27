@@ -1,7 +1,7 @@
 {
   "name": "agy",
-  "version": "1.0.0",
-  "description": "Delegate coding tasks to Antigravity (agy) CLI from Claude Code \u2014 full rescue, resume, and background execution.",
+  "version": "2.0.0",
+  "description": "Delegate coding tasks to Antigravity (agy) CLI from Claude Code \u2014 full rescue, resume, background execution, review, status tracking, and stop-time review gate.",
   "author": {
     "name": "Antigravity"
   }
