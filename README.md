@@ -8,11 +8,22 @@ This plugin follows the same design patterns as `codex-plugin-cc` and `gemini-pl
 
 The Antigravity CLI must be installed on your system and authenticated before using this plugin.
 
-1. **Install agy CLI globally:**
+1. **Install agy CLI:**
+
+   **Mac/Linux:**
    ```bash
-   npm install -g @google/agy
+   curl -fsSL https://antigravity.google/cli/install.sh | bash
    ```
-   *(Alternatively, run via `npx @google/agy`)*
+
+   **Windows PowerShell:**
+   ```powershell
+   irm https://antigravity.google/cli/install.ps1 | iex
+   ```
+
+   **Windows CMD:**
+   ```cmd
+   curl -fsSL https://antigravity.google/cli/install.cmd -o install.cmd && install.cmd && del install.cmd
+   ```
 
 2. **Authenticate with your Google account:**
    ```bash
