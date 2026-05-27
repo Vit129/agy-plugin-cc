@@ -54,7 +54,7 @@ Runs a one-shot `agy` task directly.
 
 **Example:**
 ```text
-/agy:agy "List all active projects in the current GCP organization"
+/agy:agy "Explain how the authentication flow works in this repo"
 ```
 
 ### `/agy:rescue [task]`
