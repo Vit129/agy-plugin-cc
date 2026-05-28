@@ -227,7 +227,7 @@ plugins/agy/
 
 ### v1.0.0
 
-- Initial release: `/agy:agy`, `/agy:rescue`, `/agy:setup`
+- Initial release: `/agy:agy`, `/agy:rescue`, `/agy:setup` — basic task delegation and resume
 
 ---
 
