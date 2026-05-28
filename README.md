@@ -208,6 +208,29 @@ plugins/agy/
     └── gemini-3-prompting/SKILL.md  # prompt composition guidance
 ```
 
+## Changelog
+
+### v1.1.0 (2026-05-28)
+
+- **Background execution** — all task and review commands support `--background`; track progress with `/agy:status`
+- **Job tracking** — persistent job state (queued / running / completed / failed / cancelled) per repository
+- **`/agy:status`** — list active and recent jobs; `--wait` polls until done; `--all` shows full history
+- **`/agy:result`** — retrieve stored output for any finished job
+- **`/agy:cancel`** — cancel a running background job
+- **`/agy:review`** — agy reads the repo and reports findings on working-tree or branch changes (`--scope`, `--base`, `--wait`, `--background`)
+- **`/agy:adversarial-review`** — adversarial review mode; agy argues the strongest case against shipping the change
+- **Stop-time review gate** — optional Stop hook that blocks session end when agy finds issues (`/agy:setup --enable-review-gate`)
+- **Session lifecycle hooks** — SessionStart injects session ID; SessionEnd cleans up orphaned jobs
+- **`--resume` / `--fresh` flags** on `/agy:rescue` and `/agy:agy` — resume most-recent conversation or force a new one
+- **`--sandbox` flag** — run agy in read-only restricted mode on any command
+- Modular library: `agy.mjs`, `args.mjs`, `fs.mjs`, `git.mjs`, `job-control.mjs`, `process.mjs`, `render.mjs`, `state.mjs`, `tracked-jobs.mjs`, `workspace.mjs`
+
+### v1.0.0
+
+- Initial release: `/agy:agy`, `/agy:rescue`, `/agy:setup`
+
+---
+
 ## Differences from codex-plugin-cc
 
 | Feature | codex-plugin-cc | agy-plugin-cc |
