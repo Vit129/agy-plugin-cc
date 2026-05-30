@@ -1,0 +1,22 @@
+{
+  "name": "@vit129/agy-plugin-cc",
+  "version": "1.2.0",
+  "description": "Claude Code plugin installer and updater for the Antigravity agy companion.",
+  "type": "module",
+  "bin": {
+    "agy-plugin-cc": "scripts/install.mjs"
+  },
+  "files": [
+    ".claude-plugin/marketplace.json",
+    ".claude-plugin/plugin.json",
+    "plugins/agy",
+    "scripts/install.mjs"
+  ],
+  "scripts": {
+    "check": "node --check scripts/install.mjs && node --check plugins/agy/scripts/agy-companion.mjs && node --check plugins/agy/scripts/lib/update-check.mjs"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "license": "MIT"
+}
