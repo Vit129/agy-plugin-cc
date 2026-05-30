@@ -39,6 +39,7 @@ import {
   runTrackedJob,
   SESSION_ID_ENV
 } from "./lib/tracked-jobs.mjs";
+import { checkForPluginUpdate } from "./lib/update-check.mjs";
 import { resolveWorkspaceRoot } from "./lib/workspace.mjs";
 import {
   renderCancelReport,
@@ -60,7 +61,7 @@ function printUsage() {
   console.log(
     [
       "Usage:",
-      "  node scripts/agy-companion.mjs setup [--enable-review-gate|--disable-review-gate] [--json]",
+      "  node scripts/agy-companion.mjs setup [--enable-review-gate|--disable-review-gate] [--enable-auto-update|--disable-auto-update] [--json]",
       "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>]",
       "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [focus text]",
       "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--resume-last|--resume|--fresh] [prompt]",
@@ -169,6 +170,10 @@ async function buildSetupReport(cwd, actionsTaken = []) {
   const agyStatus = getAgyAvailability(cwd);
   const authStatus = getAgyAuthStatus(cwd);
   const config = getConfig(workspaceRoot);
+  const update = checkForPluginUpdate(config);
+  if (update.checkedAt) {
+    setConfig(workspaceRoot, "lastUpdateCheckAt", update.checkedAt);
+  }
 
   const nextSteps = [];
   if (!agyStatus.available) {
@@ -181,12 +186,27 @@ async function buildSetupReport(cwd, actionsTaken = []) {
       "Optional: run `/agy:setup --enable-review-gate` to require a fresh review before stop."
     );
   }
+  if (update.updateAvailable && !update.autoUpdate) {
+    nextSteps.push(
+      `Agy plugin update available: ${update.currentVersion} -> ${update.latestVersion}. Run: npx -y @vit129/agy-plugin-cc@latest install`
+    );
+  }
+  if (update.autoUpdateAttempted && update.autoUpdateSucceeded) {
+    nextSteps.push("Agy plugin updated. Run `/reload-plugins` to load the update.");
+  }
+  if (update.autoUpdateAttempted && !update.autoUpdateSucceeded) {
+    nextSteps.push(
+      "Agy plugin auto-update failed. Run manually: npx -y @vit129/agy-plugin-cc@latest install"
+    );
+  }
 
   return {
     ready: agyStatus.available,
     agy: agyStatus,
     auth: authStatus,
     reviewGateEnabled: Boolean(config.stopReviewGate),
+    autoUpdateEnabled: Boolean(update.autoUpdate),
+    update,
     actionsTaken,
     nextSteps
   };
@@ -195,11 +215,20 @@ async function buildSetupReport(cwd, actionsTaken = []) {
 async function handleSetup(argv) {
   const { options } = parseCommandInput(argv, {
     valueOptions: ["cwd"],
-    booleanOptions: ["json", "enable-review-gate", "disable-review-gate"]
+    booleanOptions: [
+      "json",
+      "enable-review-gate",
+      "disable-review-gate",
+      "enable-auto-update",
+      "disable-auto-update"
+    ]
   });
 
   if (options["enable-review-gate"] && options["disable-review-gate"]) {
     throw new Error("Choose either --enable-review-gate or --disable-review-gate.");
+  }
+  if (options["enable-auto-update"] && options["disable-auto-update"]) {
+    throw new Error("Choose either --enable-auto-update or --disable-auto-update.");
   }
 
   const cwd = resolveCommandCwd(options);
@@ -212,6 +241,14 @@ async function handleSetup(argv) {
   } else if (options["disable-review-gate"]) {
     setConfig(workspaceRoot, "stopReviewGate", false);
     actionsTaken.push(`Disabled the stop-time review gate for ${workspaceRoot}.`);
+  }
+  if (options["enable-auto-update"]) {
+    setConfig(workspaceRoot, "autoUpdate", true);
+    setConfig(workspaceRoot, "lastUpdateCheckAt", null);
+    actionsTaken.push("Enabled opt-in plugin auto-update for this workspace.");
+  } else if (options["disable-auto-update"]) {
+    setConfig(workspaceRoot, "autoUpdate", false);
+    actionsTaken.push("Disabled plugin auto-update for this workspace.");
   }
 
   const finalReport = await buildSetupReport(cwd, actionsTaken);

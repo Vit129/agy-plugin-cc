@@ -71,8 +71,26 @@ export function renderSetupReport(report) {
     "Checks:",
     `- agy: ${report.agy.detail}`,
     `- review gate: ${report.reviewGateEnabled ? "enabled" : "disabled"}`,
+    `- auto-update: ${report.autoUpdateEnabled ? "enabled" : "disabled"}`,
     ""
   ];
+
+  if (report.update?.checked) {
+    if (report.update.updateAvailable) {
+      lines.push(
+        `Update: ${report.update.currentVersion} -> ${report.update.latestVersion}${
+          report.update.autoUpdateAttempted
+            ? report.update.autoUpdateSucceeded
+              ? " (installed)"
+              : " (install failed)"
+            : " (available)"
+        }`,
+        ""
+      );
+    } else if (report.update.latestVersion) {
+      lines.push(`Update: current (${report.update.currentVersion})`, "");
+    }
+  }
 
   if (report.actionsTaken.length > 0) {
     lines.push("Actions taken:");

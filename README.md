@@ -39,6 +39,20 @@ Install the plugin from within Claude Code:
 /reload-plugins
 ```
 
+Or install/update the marketplace through npm:
+
+```bash
+npx -y @vit129/agy-plugin-cc@latest install
+```
+
+Opt in to automatic npm updates:
+
+```bash
+npx -y @vit129/agy-plugin-cc@latest install --auto-update
+```
+
+With auto-update enabled, `/agy:setup` checks npm at most once every 24 hours. If a newer version exists, it reinstalls the marketplace package and asks you to run `/reload-plugins`. Without auto-update, `/agy:setup` only prints the update command.
+
 ## Commands & Usage
 
 ### `/agy:setup`
