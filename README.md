@@ -1,8 +1,8 @@
 # agy-plugin-cc
 
-A Claude Code plugin that integrates the Antigravity (`agy`) CLI — Google's successor to the Gemini CLI — into Claude Code.
+A Claude Code plugin that integrates **Google's Antigravity (agy) CLI** and **Antigravity IDE** developer tools into Claude Code.
 
-This plugin follows the same design patterns as [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc), providing full job tracking, background execution, code review, and a session-aware stop-time review gate.
+This companion extension (also known as **Google Agy Plugin** or **Antigravity Plugin**) follows the same design patterns as [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc), providing full job tracking, background execution, code review, and a session-aware stop-time review gate for **Google Antigravity** workflows.
 
 ## Prerequisites
 
