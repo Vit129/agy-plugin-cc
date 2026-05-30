@@ -224,6 +224,13 @@ plugins/agy/
 
 ## Changelog
 
+### v1.2.0 (2026-05-30)
+
+- Added npm package metadata and `agy-plugin-cc` installer CLI.
+- Added `npx -y @vit129/agy-plugin-cc@latest install` for repeatable install/update.
+- Added opt-in auto-update with `install --auto-update` or `/agy:setup --enable-auto-update`.
+- `/agy:setup` now checks npm for newer plugin versions and notifies by default.
+
 ### v1.1.0 (2026-05-28)
 
 - **Background execution** — all task and review commands support `--background`; track progress with `/agy:status`
