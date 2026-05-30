@@ -250,15 +250,3 @@ plugins/agy/
 
 - Initial release: `/agy:agy`, `/agy:rescue`, `/agy:setup` — basic task delegation and resume
 
----
-
-## Differences from codex-plugin-cc
-
-| Feature | codex-plugin-cc | agy-plugin-cc |
-|---------|----------------|---------------|
-| Model selection | `--model` / `--effort` | Not supported (agy manages model internally) |
-| Thread tracking | UUID via app server | Not available (`--print` doesn't return IDs) |
-| Resume | `--resume-last` (by thread ID) | `--resume` (most recent conversation via `--continue`) |
-| Write mode | `--write` (explicit opt-in) | Default (full access unless `--sandbox`) |
-| Read-only mode | `sandbox: read-only` | `--sandbox` flag |
-| Review output | Structured JSON schema | Free-text (agy reads the repo directly) |
