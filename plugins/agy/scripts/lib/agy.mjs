@@ -26,8 +26,28 @@ export function buildAgyArgs(prompt, options = {}) {
     args.push("--continue");
   }
 
+  if (options.conversation) {
+    args.push("--conversation", options.conversation);
+  }
+
   if (options.sandbox) {
     args.push("--sandbox");
+  }
+
+  if (options.model) {
+    args.push("--model", options.model);
+  }
+
+  for (const dir of options.addDirs ?? []) {
+    args.push("--add-dir", dir);
+  }
+
+  if (options.logFile) {
+    args.push("--log-file", options.logFile);
+  }
+
+  if (options.printTimeout) {
+    args.push("--print-timeout", options.printTimeout);
   }
 
   const effectivePrompt = prompt || (options.resumeLast ? "Continue." : "");
@@ -46,11 +66,11 @@ export async function runAgyTask(cwd, prompt, options = {}) {
   }
 
   return new Promise((resolve) => {
-    const child = spawn("agy", args, {
-      cwd: cwd || process.cwd(),
-      env: process.env,
-      stdio: ["ignore", "pipe", "pipe"]
-    });
+      const child = spawn("agy", args, {
+        cwd: cwd || process.cwd(),
+        env: options.env ?? process.env,
+        stdio: ["ignore", "pipe", "pipe"]
+      });
 
     let stdout = "";
     let stderr = "";
@@ -99,5 +119,21 @@ export function runAgyTaskSync(cwd, prompt, options = {}) {
     stdout: result.stdout ?? "",
     stderr: result.stderr ?? "",
     timedOut: false
+  };
+}
+
+export function runAgyModels(cwd, options = {}) {
+  const result = spawnSync("agy", ["models"], {
+    cwd: cwd || process.cwd(),
+    env: options.env ?? process.env,
+    encoding: "utf8",
+    timeout: options.timeout
+  });
+
+  return {
+    exitCode: result.status ?? 0,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    error: result.error ?? null
   };
 }
