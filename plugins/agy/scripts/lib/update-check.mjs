@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -8,7 +8,9 @@ import { fileURLToPath } from "node:url";
 const PACKAGE_NAME = "@vit129/agy-plugin-cc";
 const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
 const NPM_TIMEOUT_MS = 3500;
-const GLOBAL_CONFIG_PATH = path.join(os.homedir(), ".config", "agy-plugin-cc", "config.json");
+const CONFIG_DIR = path.join(os.homedir(), ".config", "agy-plugin-cc");
+const GLOBAL_CONFIG_PATH = path.join(CONFIG_DIR, "config.json");
+const INSTALL_LOG_PATH = path.join(CONFIG_DIR, "update-install.log");
 
 const ROOT_DIR = path.resolve(fileURLToPath(new URL("../..", import.meta.url)));
 
@@ -77,7 +79,11 @@ function resolveAutoUpdate(config) {
   if (typeof config.autoUpdate === "boolean") {
     return config.autoUpdate;
   }
-  return Boolean(readGlobalConfig().autoUpdate);
+  const globalConfig = readGlobalConfig();
+  if (typeof globalConfig.autoUpdate === "boolean") {
+    return globalConfig.autoUpdate;
+  }
+  return true;
 }
 
 function viewLatestVersion() {
@@ -94,26 +100,36 @@ function viewLatestVersion() {
   };
 }
 
-function runAutoInstall() {
-  const result = run(
+// ponytail: fire-and-forget, not awaited — a SessionStart hook gets ~5s total,
+// far less than npx needs to download and install. The install runs detached
+// in the background; the running session keeps the old version until the next
+// reload, and a later /agy:setup or doctor run can inspect INSTALL_LOG_PATH.
+function runAutoInstallInBackground() {
+  fs.mkdirSync(CONFIG_DIR, { recursive: true });
+  const logFd = fs.openSync(INSTALL_LOG_PATH, "a");
+  const child = spawn(
     "npx",
     ["-y", `${PACKAGE_NAME}@latest`, "install", "--auto-update"],
     {
-      timeout: 120000,
-      stdio: "pipe"
+      detached: true,
+      stdio: ["ignore", logFd, logFd]
     }
   );
-
-  return {
-    ok: result.status === 0 && !result.error,
-    output: String(result.stdout || result.stderr || "").trim(),
-    reason: result.error?.message || String(result.stderr || "").trim()
-  };
+  child.unref();
+  fs.closeSync(logFd);
 }
 
 export function checkForPluginUpdate(config = {}, options = {}) {
   const currentVersion = readCurrentVersion();
   const autoUpdate = resolveAutoUpdate(config);
+  if (process.env.CI) {
+    return {
+      checked: false,
+      currentVersion,
+      autoUpdate,
+      skippedReason: "ci"
+    };
+  }
   if (!shouldCheck(config, Boolean(options.force))) {
     return {
       checked: false,
@@ -146,13 +162,11 @@ export function checkForPluginUpdate(config = {}, options = {}) {
   };
 
   if (updateAvailable && autoUpdate) {
-    const installed = runAutoInstall();
+    runAutoInstallInBackground();
     return {
       ...report,
-      autoUpdateAttempted: true,
-      autoUpdateSucceeded: installed.ok,
-      installOutput: installed.output,
-      error: installed.ok ? null : installed.reason
+      autoUpdateStarted: true,
+      installLogPath: INSTALL_LOG_PATH
     };
   }
 

@@ -4,9 +4,10 @@ import fs from "node:fs";
 import process from "node:process";
 
 import { terminateProcessTree } from "./lib/process.mjs";
-import { loadState, resolveStateFile, saveState } from "./lib/state.mjs";
+import { getConfig, loadState, resolveStateFile, saveState, setConfig } from "./lib/state.mjs";
 import { SESSION_ID_ENV } from "./lib/tracked-jobs.mjs";
 import { resolveWorkspaceRoot } from "./lib/workspace.mjs";
+import { checkForPluginUpdate } from "./lib/update-check.mjs";
 
 const PLUGIN_DATA_ENV = "CLAUDE_PLUGIN_DATA";
 
@@ -68,9 +69,36 @@ function cleanupSessionJobs(cwd, sessionId) {
   });
 }
 
+function reportPluginUpdate(cwd) {
+  // ponytail: best-effort only — a hook failure here must never block session
+  // start, so every error is swallowed after the stderr note.
+  try {
+    const workspaceRoot = resolveWorkspaceRoot(cwd);
+    const config = getConfig(workspaceRoot);
+    const update = checkForPluginUpdate(config);
+    if (update.checkedAt) {
+      setConfig(workspaceRoot, "lastUpdateCheckAt", update.checkedAt);
+    }
+    if (update.autoUpdateStarted) {
+      console.log(
+        `agy plugin update installing in background (${update.currentVersion} -> ${update.latestVersion}). Run /reload-plugins next session to pick it up.`
+      );
+    } else if (update.updateAvailable && !update.autoUpdate) {
+      console.log(
+        `agy plugin update available: ${update.currentVersion} -> ${update.latestVersion}. Run: npx -y @vit129/agy-plugin-cc@latest install`
+      );
+    }
+  } catch (error) {
+    process.stderr.write(
+      `agy plugin update check failed: ${error instanceof Error ? error.message : String(error)}\n`
+    );
+  }
+}
+
 function handleSessionStart(input) {
   appendEnvVar(SESSION_ID_ENV, input.session_id);
   appendEnvVar(PLUGIN_DATA_ENV, process.env[PLUGIN_DATA_ENV]);
+  reportPluginUpdate(input.cwd || process.cwd());
 }
 
 function handleSessionEnd(input) {
