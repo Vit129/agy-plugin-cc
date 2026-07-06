@@ -1,6 +1,6 @@
 {
   "name": "agy",
-  "version": "1.2.0",
+  "version": "1.4.0",
   "description": "Delegate coding tasks to Google's Antigravity (agy) CLI / Antigravity IDE from Claude Code (Google Agy) — full rescue, resume, background execution, review, status tracking, and stop-time review gate.",
   "author": {
     "name": "Antigravity"

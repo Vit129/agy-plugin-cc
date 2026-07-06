@@ -185,12 +185,17 @@ When a session ends with the gate enabled:
 
 ```
 plugins/agy/
-├── .claude-plugin/plugin.json       # plugin metadata (v1.1.0)
+├── .claude-plugin/plugin.json       # plugin metadata (v1.4.0)
 ├── agents/agy-rescue.md             # agy:agy-rescue subagent
 ├── commands/                        # slash commands
 │   ├── agy.md                       # /agy:agy
 │   ├── rescue.md                    # /agy:rescue
+│   ├── goal.md                      # /agy:goal
 │   ├── setup.md                     # /agy:setup
+│   ├── models.md                    # /agy:models
+│   ├── doctor.md                    # /agy:doctor
+│   ├── changelog.md                 # /agy:changelog
+│   ├── plugins.md                   # /agy:plugins
 │   ├── review.md                    # /agy:review
 │   ├── adversarial-review.md        # /agy:adversarial-review
 │   ├── status.md                    # /agy:status
@@ -202,7 +207,7 @@ plugins/agy/
 │   ├── adversarial-review.md
 │   └── stop-review-gate.md
 ├── scripts/
-│   ├── agy-companion.mjs            # main runtime (9 subcommands)
+│   ├── agy-companion.mjs            # main runtime (14 subcommands)
 │   ├── session-lifecycle-hook.mjs   # SessionStart / SessionEnd handler
 │   ├── stop-review-gate-hook.mjs    # Stop hook handler
 │   └── lib/                         # modular library
@@ -223,6 +228,16 @@ plugins/agy/
 ```
 
 ## Changelog
+
+### v1.4.0 (2026-07-06)
+
+- **`/agy:goal`** — delegate an autonomous, run-until-complete goal to agy; runs as a background job by default (no time cap), `--wait` blocks in the foreground
+- **`/agy:models`** — list models available to the local agy CLI
+- **`/agy:doctor`** — verify plugin manifest, host wiring, agy binary/auth, model listing, and whether the installed agy version is behind the latest changelog entry
+- **`/agy:changelog`** — print agy CLI release notes
+- **`/agy:plugins`** — list plugins imported into the local agy CLI
+- **`/agy:task` / `/agy:review` / `/agy:adversarial-review`** now accept `--model <name>`, `--conversation <id>`, `--project <id>` / `--new-project` (mutually exclusive), `--dangerously-skip-permissions`, repeatable `--add-dir <path>`, `--log-file <path>`, and `--print-timeout <duration>`
+- **`--continue`** added as an alias for `--resume` / `--resume-last` on `/agy:agy`
 
 ### v1.2.0 (2026-05-30)
 
