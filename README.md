@@ -250,3 +250,8 @@ plugins/agy/
 
 - Initial release: `/agy:agy`, `/agy:rescue`, `/agy:setup` — basic task delegation and resume
 
+## License
+
+MIT — see [LICENSE](./LICENSE). This is an original, independently authored
+project (not a fork). You're welcome to fork it, modify it, and redistribute
+it, provided the copyright notice in `LICENSE` is preserved.
