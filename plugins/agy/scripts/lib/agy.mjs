@@ -132,8 +132,8 @@ export function runAgyTaskSync(cwd, prompt, options = {}) {
   };
 }
 
-export function runAgyModels(cwd, options = {}) {
-  const result = spawnSync("agy", ["models"], {
+function runAgySubcommand(args, cwd, options = {}) {
+  const result = spawnSync("agy", args, {
     cwd: cwd || process.cwd(),
     env: options.env ?? process.env,
     encoding: "utf8",
@@ -148,18 +148,14 @@ export function runAgyModels(cwd, options = {}) {
   };
 }
 
-export function runAgyChangelog(cwd, options = {}) {
-  const result = spawnSync("agy", ["changelog"], {
-    cwd: cwd || process.cwd(),
-    env: options.env ?? process.env,
-    encoding: "utf8",
-    timeout: options.timeout
-  });
+export function runAgyModels(cwd, options = {}) {
+  return runAgySubcommand(["models"], cwd, options);
+}
 
-  return {
-    exitCode: result.status ?? 0,
-    stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
-    error: result.error ?? null
-  };
+export function runAgyChangelog(cwd, options = {}) {
+  return runAgySubcommand(["changelog"], cwd, options);
+}
+
+export function runAgyPlugins(cwd, options = {}) {
+  return runAgySubcommand(["plugin", "list"], cwd, options);
 }

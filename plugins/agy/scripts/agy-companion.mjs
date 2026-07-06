@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { parseArgs, splitRawArgumentString } from "./lib/args.mjs";
-import { getAgyAuthStatus, getAgyAvailability, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
+import { getAgyAuthStatus, getAgyAvailability, runAgyChangelog, runAgyModels, runAgyPlugins, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
 import { readStdinIfPiped } from "./lib/fs.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "./lib/git.mjs";
 import { binaryAvailable, terminateProcessTree } from "./lib/process.mjs";
@@ -66,6 +66,7 @@ function printUsage() {
       "  node scripts/agy-companion.mjs models [--json]",
       "  node scripts/agy-companion.mjs doctor [--json]",
       "  node scripts/agy-companion.mjs changelog [--json]",
+      "  node scripts/agy-companion.mjs plugins [--json]",
       "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
       "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
       "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
@@ -567,6 +568,38 @@ function parseModelLines(output) {
     .filter(Boolean);
 }
 
+function parseAgyVersion(detail) {
+  return String(detail ?? "").match(/(\d+\.\d+\.\d+)/)?.[1] ?? null;
+}
+
+function parseLatestChangelogVersion(output) {
+  return String(output ?? "").match(/^(\d+\.\d+\.\d+):/m)?.[1] ?? null;
+}
+
+function compareVersions(a, b) {
+  const partsA = a.split(".").map(Number);
+  const partsB = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {
+    const diff = (partsA[i] ?? 0) - (partsB[i] ?? 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
+function buildAgyVersionCheck(cwd, agy) {
+  const installed = parseAgyVersion(agy.detail);
+  if (!installed) {
+    return { installed: null, latest: null, upToDate: null };
+  }
+  const changelogResult = runAgyChangelog(cwd, { timeout: 10000 });
+  const latest = changelogResult.exitCode === 0 ? parseLatestChangelogVersion(changelogResult.stdout) : null;
+  return {
+    installed,
+    latest,
+    upToDate: latest ? compareVersions(installed, latest) >= 0 : null
+  };
+}
+
 function buildHostDoctor(manifestVersion) {
   const codexConfigPath = path.join(os.homedir(), ".codex", "config.toml");
   const claudeMarketplacePath = path.join(
@@ -617,6 +650,7 @@ function buildDoctorReport(cwd) {
   const modelsResult = agy.available ? runAgyModels(cwd, { timeout: 10000 }) : null;
   const models = modelsResult?.exitCode === 0 ? parseModelLines(modelsResult.stdout) : [];
   const host = buildHostDoctor(manifest?.version ?? null);
+  const versionCheck = agy.available ? buildAgyVersionCheck(cwd, agy) : { installed: null, latest: null, upToDate: null };
 
   return {
     ready: Boolean(agy.available && auth.loggedIn && manifest),
@@ -629,6 +663,7 @@ function buildDoctorReport(cwd) {
     host,
     agy,
     auth,
+    versionCheck,
     models: {
       ok: modelsResult ? modelsResult.exitCode === 0 : false,
       count: models.length,
@@ -659,6 +694,18 @@ function renderDoctorReport(report) {
     "auth: " + (report.auth.loggedIn ? "ok" : report.auth.detail),
     "models: " + (report.models.ok ? report.models.count + " available" : report.models.error ?? "not checked")
   ];
+
+  if (report.versionCheck.installed) {
+    const { installed, latest, upToDate } = report.versionCheck;
+    lines.push(
+      "agy version: " +
+        (latest
+          ? upToDate
+            ? `${installed} (up to date)`
+            : `${installed} -> ${latest} available. Run: agy update`
+          : `${installed} (latest unknown — changelog check failed)`)
+    );
+  }
 
   if (report.host.host === "codex") {
     lines.push(
@@ -727,6 +774,24 @@ function handleChangelog(argv) {
   outputCommandResult(
     payload,
     result.exitCode === 0 ? result.stdout : (result.stderr || result.stdout || "agy changelog failed\n"),
+    options.json
+  );
+  if (result.exitCode !== 0) {
+    process.exitCode = result.exitCode;
+  }
+}
+
+function handlePlugins(argv) {
+  const { options } = parseCommandInput(argv, {
+    valueOptions: ["cwd"],
+    booleanOptions: ["json"]
+  });
+  const cwd = resolveCommandCwd(options);
+  const result = runAgyPlugins(cwd, { timeout: 10000 });
+  const payload = { ok: result.exitCode === 0, text: result.stdout, exitCode: result.exitCode, stderr: result.stderr };
+  outputCommandResult(
+    payload,
+    result.exitCode === 0 ? result.stdout : (result.stderr || result.stdout || "agy plugin list failed\n"),
     options.json
   );
   if (result.exitCode !== 0) {
@@ -1161,6 +1226,9 @@ async function main() {
       break;
     case "changelog":
       handleChangelog(argv);
+      break;
+    case "plugins":
+      handlePlugins(argv);
       break;
     case "review":
       await handleReviewCommand(argv, { reviewName: "Review" });

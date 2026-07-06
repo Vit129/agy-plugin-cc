@@ -40,8 +40,9 @@ Safety rules:
 The companion also supports local agy CLI features verified against `agy 1.0.16`:
 
 - `models [--json]` lists available agy models.
-- `doctor [--json]` verifies plugin manifest, host wiring, agy binary/auth, and model listing.
+- `doctor [--json]` verifies plugin manifest, host wiring, agy binary/auth, model listing, and whether the installed agy version is behind the latest changelog entry (recommends `agy update` if so — never runs it automatically).
 - `changelog [--json]` prints agy release notes (no agy task run, just `agy changelog`).
+- `plugins [--json]` lists plugins imported into the local agy CLI (`agy plugin list`).
 - `task` accepts `--model <name>`, `--conversation <id>`, `--project <id>` or `--new-project` (mutually exclusive), `--dangerously-skip-permissions`, repeatable `--add-dir <path>`, `--log-file <path>`, and `--print-timeout <duration>`.
 - `review` and `adversarial-review` accept the same `--model`, `--project`/`--new-project`, `--dangerously-skip-permissions`, `--add-dir`, `--log-file`, and `--print-timeout` flags.
 
