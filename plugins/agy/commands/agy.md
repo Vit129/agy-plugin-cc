@@ -1,6 +1,6 @@
 ---
 description: Delegate a one-shot prompt to the Antigravity (agy) CLI agent
-argument-hint: '[--sandbox] [--continue|--resume|--fresh] [--conversation <id>] [--model <name>] [--add-dir <path>] [--print-timeout <duration>] [--background] [prompt]'
+argument-hint: '[--sandbox] [--continue|--resume|--fresh] [--conversation <id>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--print-timeout <duration>] [--background] [prompt]'
 allowed-tools: Bash(node:*)
 ---
 

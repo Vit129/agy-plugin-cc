@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { parseArgs, splitRawArgumentString } from "./lib/args.mjs";
-import { getAgyAuthStatus, getAgyAvailability, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
+import { getAgyAuthStatus, getAgyAvailability, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
 import { readStdinIfPiped } from "./lib/fs.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "./lib/git.mjs";
 import { binaryAvailable, terminateProcessTree } from "./lib/process.mjs";
@@ -65,9 +65,10 @@ function printUsage() {
       "  node scripts/agy-companion.mjs setup [--enable-review-gate|--disable-review-gate] [--enable-auto-update|--disable-auto-update] [--json]",
       "  node scripts/agy-companion.mjs models [--json]",
       "  node scripts/agy-companion.mjs doctor [--json]",
-      "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
-      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
-      "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
+      "  node scripts/agy-companion.mjs changelog [--json]",
+      "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
+      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
+      "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
       "  node scripts/agy-companion.mjs task-worker --job-id <id>",
       "  node scripts/agy-companion.mjs task-resume-candidate [--json]",
       "  node scripts/agy-companion.mjs status [job-id] [--wait] [--all] [--json]",
@@ -162,6 +163,9 @@ function buildAgyRunOptions(cwd, options = {}, config = {}) {
     resumeLast: Boolean(config.allowResume && (options["continue"] || options["resume-last"] || options.resume)),
     conversation: config.allowConversation ? options.conversation ?? null : null,
     model: options.model ?? null,
+    project: options.project ?? null,
+    newProject: Boolean(options["new-project"]),
+    dangerouslySkipPermissions: Boolean(options["dangerously-skip-permissions"]),
     addDirs,
     logFile: resolveOptionalPath(cwd, options["log-file"]),
     printTimeout: options["print-timeout"] ?? null
@@ -172,6 +176,9 @@ function describeAgyRunOptions(agyOptions = {}) {
   const parts = [];
   if (agyOptions.model) parts.push(`model: ${agyOptions.model}`);
   if (agyOptions.conversation) parts.push(`conversation: ${agyOptions.conversation}`);
+  if (agyOptions.newProject) parts.push("new project");
+  else if (agyOptions.project) parts.push(`project: ${agyOptions.project}`);
+  if (agyOptions.dangerouslySkipPermissions) parts.push("skip permissions");
   if (agyOptions.addDirs?.length) parts.push(`add dirs: ${agyOptions.addDirs.length}`);
   if (agyOptions.printTimeout) parts.push(`timeout: ${agyOptions.printTimeout}`);
   if (agyOptions.logFile) parts.push(`log: ${agyOptions.logFile}`);
@@ -709,12 +716,34 @@ function handleDoctor(argv) {
   outputCommandResult(report, renderDoctorReport(report), options.json);
 }
 
+function handleChangelog(argv) {
+  const { options } = parseCommandInput(argv, {
+    valueOptions: ["cwd"],
+    booleanOptions: ["json"]
+  });
+  const cwd = resolveCommandCwd(options);
+  const result = runAgyChangelog(cwd, { timeout: 10000 });
+  const payload = { ok: result.exitCode === 0, text: result.stdout, exitCode: result.exitCode, stderr: result.stderr };
+  outputCommandResult(
+    payload,
+    result.exitCode === 0 ? result.stdout : (result.stderr || result.stdout || "agy changelog failed\n"),
+    options.json
+  );
+  if (result.exitCode !== 0) {
+    process.exitCode = result.exitCode;
+  }
+}
+
 async function handleReviewCommand(argv, config) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["base", "scope", "cwd", "model", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["base", "scope", "cwd", "model", "project", "add-dir", "log-file", "print-timeout"],
     repeatableOptions: ["add-dir"],
-    booleanOptions: ["json", "background", "wait"]
+    booleanOptions: ["json", "background", "wait", "new-project", "dangerously-skip-permissions"]
   });
+
+  if (options.project && options["new-project"]) {
+    throw new Error("Choose either --project or --new-project.");
+  }
 
   const cwd = resolveCommandCwd(options);
   const workspaceRoot = resolveCommandWorkspace(options);
@@ -766,10 +795,25 @@ async function handleReviewCommand(argv, config) {
 
 async function handleTask(argv) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["cwd", "prompt-file", "conversation", "model", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["cwd", "prompt-file", "conversation", "model", "project", "add-dir", "log-file", "print-timeout"],
     repeatableOptions: ["add-dir"],
-    booleanOptions: ["json", "sandbox", "continue", "resume-last", "resume", "fresh", "background", "wait"]
+    booleanOptions: [
+      "json",
+      "sandbox",
+      "continue",
+      "resume-last",
+      "resume",
+      "fresh",
+      "background",
+      "wait",
+      "new-project",
+      "dangerously-skip-permissions"
+    ]
   });
+
+  if (options.project && options["new-project"]) {
+    throw new Error("Choose either --project or --new-project.");
+  }
 
   const cwd = resolveCommandCwd(options);
   const workspaceRoot = resolveCommandWorkspace(options);
@@ -1114,6 +1158,9 @@ async function main() {
       break;
     case "doctor":
       handleDoctor(argv);
+      break;
+    case "changelog":
+      handleChangelog(argv);
       break;
     case "review":
       await handleReviewCommand(argv, { reviewName: "Review" });
