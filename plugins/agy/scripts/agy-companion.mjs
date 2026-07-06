@@ -2,12 +2,13 @@
 
 import { spawn } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { parseArgs, splitRawArgumentString } from "./lib/args.mjs";
-import { getAgyAuthStatus, getAgyAvailability, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
+import { getAgyAuthStatus, getAgyAvailability, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
 import { readStdinIfPiped } from "./lib/fs.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "./lib/git.mjs";
 import { binaryAvailable, terminateProcessTree } from "./lib/process.mjs";
@@ -62,9 +63,11 @@ function printUsage() {
     [
       "Usage:",
       "  node scripts/agy-companion.mjs setup [--enable-review-gate|--disable-review-gate] [--enable-auto-update|--disable-auto-update] [--json]",
-      "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>]",
-      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [focus text]",
-      "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--resume-last|--resume|--fresh] [prompt]",
+      "  node scripts/agy-companion.mjs models [--json]",
+      "  node scripts/agy-companion.mjs doctor [--json]",
+      "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
+      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
+      "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
       "  node scripts/agy-companion.mjs task-worker --job-id <id>",
       "  node scripts/agy-companion.mjs task-resume-candidate [--json]",
       "  node scripts/agy-companion.mjs status [job-id] [--wait] [--all] [--json]",
@@ -138,6 +141,41 @@ function firstMeaningfulLine(text, fallback) {
     .map((value) => value.trim())
     .find(Boolean);
   return line ?? fallback;
+}
+
+function normalizeOptionList(value) {
+  if (value === undefined) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function resolveOptionalPath(cwd, value) {
+  return value ? path.resolve(cwd, value) : null;
+}
+
+function buildAgyRunOptions(cwd, options = {}, config = {}) {
+  const addDirs = normalizeOptionList(options["add-dir"]).map((dir) =>
+    path.resolve(cwd, dir)
+  );
+
+  return {
+    sandbox: Boolean(options.sandbox || config.forceSandbox),
+    resumeLast: Boolean(config.allowResume && (options["continue"] || options["resume-last"] || options.resume)),
+    conversation: config.allowConversation ? options.conversation ?? null : null,
+    model: options.model ?? null,
+    addDirs,
+    logFile: resolveOptionalPath(cwd, options["log-file"]),
+    printTimeout: options["print-timeout"] ?? null
+  };
+}
+
+function describeAgyRunOptions(agyOptions = {}) {
+  const parts = [];
+  if (agyOptions.model) parts.push(`model: ${agyOptions.model}`);
+  if (agyOptions.conversation) parts.push(`conversation: ${agyOptions.conversation}`);
+  if (agyOptions.addDirs?.length) parts.push(`add dirs: ${agyOptions.addDirs.length}`);
+  if (agyOptions.printTimeout) parts.push(`timeout: ${agyOptions.printTimeout}`);
+  if (agyOptions.logFile) parts.push(`log: ${agyOptions.logFile}`);
+  return parts;
 }
 
 function getCurrentClaudeSessionId() {
@@ -306,6 +344,7 @@ async function executeReviewRun(request) {
   const prompt = buildReviewPrompt(target, reviewName, focusText);
 
   const result = await runAgyTask(request.cwd, prompt, {
+    ...(request.agyOptions ?? {}),
     sandbox: true,
     onProgress: request.onProgress
   });
@@ -355,18 +394,22 @@ async function executeTaskRun(request) {
   const workspaceRoot = resolveWorkspaceRoot(request.cwd);
   ensureAgyAvailable(request.cwd);
 
+  const agyOptions = {
+    ...(request.agyOptions ?? {}),
+    resumeLast: Boolean(request.resumeLast ?? request.agyOptions?.resumeLast),
+    sandbox: Boolean(request.sandbox ?? request.agyOptions?.sandbox)
+  };
   const taskMetadata = buildTaskRunMetadata({
     prompt: request.prompt,
-    resumeLast: request.resumeLast
+    resumeLast: agyOptions.resumeLast
   });
 
-  if (!request.prompt && !request.resumeLast) {
-    throw new Error("Provide a prompt, piped stdin, or use --resume-last.");
+  if (!request.prompt && !agyOptions.resumeLast && !agyOptions.conversation) {
+    throw new Error("Provide prompt, piped stdin, or use --continue.");
   }
 
   const result = await runAgyTask(request.cwd, request.prompt || "Continue.", {
-    resumeLast: request.resumeLast,
-    sandbox: request.sandbox,
+    ...agyOptions,
     onProgress: request.onProgress
   });
 
@@ -490,15 +533,193 @@ function renderQueuedTaskLaunch(payload) {
   return `${payload.title} started in the background as ${payload.jobId}. Check /agy:status ${payload.jobId} for progress.\n`;
 }
 
+function readJsonIfExists(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function findPluginManifest() {
+  const candidates = [
+    path.join(ROOT_DIR, ".codex-plugin", "plugin.json"),
+    path.join(ROOT_DIR, ".claude-plugin", "plugin.json")
+  ];
+  const manifestPath = candidates.find((candidate) => fs.existsSync(candidate));
+  return {
+    path: manifestPath ?? null,
+    manifest: manifestPath ? readJsonIfExists(manifestPath) : null
+  };
+}
+
+function parseModelLines(output) {
+  return String(output ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function buildHostDoctor(manifestVersion) {
+  const codexConfigPath = path.join(os.homedir(), ".codex", "config.toml");
+  const claudeMarketplacePath = path.join(
+    os.homedir(),
+    ".claude",
+    "plugins",
+    "marketplaces",
+    "agy-plugin-cc.json"
+  );
+  const codexConfig = fs.existsSync(codexConfigPath)
+    ? fs.readFileSync(codexConfigPath, "utf8")
+    : "";
+  const host = fs.existsSync(path.join(ROOT_DIR, ".codex-plugin")) ? "codex" : "claude";
+
+  if (host === "codex") {
+    const skillPathMatches = [
+      ...codexConfig.matchAll(
+        /path = "([^"]*agy-plugin-codex\/agy\/([^"]+)\/skills\/[^"]+\/SKILL\.md)"/g
+      )
+    ];
+    const skillPaths = skillPathMatches.map((match) => match[1]);
+    const staleSkillPaths = skillPathMatches
+      .filter((match) => manifestVersion && match[2] !== manifestVersion)
+      .map((match) => match[1]);
+    return {
+      host,
+      configPath: codexConfigPath,
+      configExists: Boolean(codexConfig),
+      pluginEnabled: /\[plugins\."agy@agy-plugin-codex"\][\s\S]*?enabled = true/.test(codexConfig),
+      skillPaths,
+      staleSkillPaths
+    };
+  }
+
+  const pointer = readJsonIfExists(claudeMarketplacePath);
+  return {
+    host,
+    marketplacePointerPath: claudeMarketplacePath,
+    marketplacePointerExists: Boolean(pointer),
+    marketplacePointer: pointer
+  };
+}
+
+function buildDoctorReport(cwd) {
+  const { path: manifestPath, manifest } = findPluginManifest();
+  const agy = getAgyAvailability(cwd);
+  const auth = getAgyAuthStatus(cwd);
+  const modelsResult = agy.available ? runAgyModels(cwd, { timeout: 10000 }) : null;
+  const models = modelsResult?.exitCode === 0 ? parseModelLines(modelsResult.stdout) : [];
+  const host = buildHostDoctor(manifest?.version ?? null);
+
+  return {
+    ready: Boolean(agy.available && auth.loggedIn && manifest),
+    plugin: {
+      root: ROOT_DIR,
+      manifestPath,
+      version: manifest?.version ?? null,
+      name: manifest?.name ?? null
+    },
+    host,
+    agy,
+    auth,
+    models: {
+      ok: modelsResult ? modelsResult.exitCode === 0 : false,
+      count: models.length,
+      items: models,
+      error:
+        modelsResult && modelsResult.exitCode !== 0
+          ? (modelsResult.stderr || modelsResult.stdout || "agy models failed").trim()
+          : null
+    }
+  };
+}
+
+function renderModelsReport(models) {
+  if (models.length === 0) {
+    return "No agy models reported.\n";
+  }
+  return models.join("\n") + "\n";
+}
+
+function renderDoctorReport(report) {
+  const lines = [
+    "# agy Doctor",
+    "",
+    "Ready: " + (report.ready ? "yes" : "no"),
+    "Plugin: " + (report.plugin.name ?? "unknown") + " " + (report.plugin.version ?? "unknown"),
+    "Host: " + report.host.host,
+    "agy: " + (report.agy.available ? report.agy.detail : "missing (" + report.agy.detail + ")"),
+    "auth: " + (report.auth.loggedIn ? "ok" : report.auth.detail),
+    "models: " + (report.models.ok ? report.models.count + " available" : report.models.error ?? "not checked")
+  ];
+
+  if (report.host.host === "codex") {
+    lines.push(
+      "Codex config: " + (report.host.configExists ? report.host.configPath : "missing"),
+      "Codex plugin enabled: " + (report.host.pluginEnabled ? "yes" : "no"),
+      "Skill paths: " + report.host.skillPaths.length,
+      "Stale skill paths: " + report.host.staleSkillPaths.length
+    );
+    for (const stalePath of report.host.staleSkillPaths) {
+      lines.push("- stale: " + stalePath);
+    }
+  } else {
+    lines.push(
+      "Claude marketplace pointer: " +
+        (report.host.marketplacePointerExists ? report.host.marketplacePointerPath : "missing")
+    );
+  }
+
+  if (report.models.items.length > 0) {
+    lines.push("", "Models:");
+    for (const model of report.models.items) {
+      lines.push("- " + model);
+    }
+  }
+
+  return lines.join("\n").trimEnd() + "\n";
+}
+
+function handleModels(argv) {
+  const { options } = parseCommandInput(argv, {
+    valueOptions: ["cwd"],
+    booleanOptions: ["json"]
+  });
+  const cwd = resolveCommandCwd(options);
+  const result = runAgyModels(cwd, { timeout: 10000 });
+  const models = result.exitCode === 0 ? parseModelLines(result.stdout) : [];
+  const payload = { ok: result.exitCode === 0, models, exitCode: result.exitCode, stderr: result.stderr };
+  outputCommandResult(
+    payload,
+    result.exitCode === 0 ? renderModelsReport(models) : (result.stderr || result.stdout || "agy models failed\n"),
+    options.json
+  );
+  if (result.exitCode !== 0) {
+    process.exitCode = result.exitCode;
+  }
+}
+
+function handleDoctor(argv) {
+  const { options } = parseCommandInput(argv, {
+    valueOptions: ["cwd"],
+    booleanOptions: ["json"]
+  });
+  const cwd = resolveCommandCwd(options);
+  const report = buildDoctorReport(cwd);
+  outputCommandResult(report, renderDoctorReport(report), options.json);
+}
+
 async function handleReviewCommand(argv, config) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["base", "scope", "cwd"],
+    valueOptions: ["base", "scope", "cwd", "model", "add-dir", "log-file", "print-timeout"],
+    repeatableOptions: ["add-dir"],
     booleanOptions: ["json", "background", "wait"]
   });
 
   const cwd = resolveCommandCwd(options);
   const workspaceRoot = resolveCommandWorkspace(options);
   const focusText = positionals.join(" ").trim();
+  const agyOptions = buildAgyRunOptions(cwd, options, { forceSandbox: true });
 
   const job = createCompanionJob({
     prefix: "review",
@@ -509,6 +730,24 @@ async function handleReviewCommand(argv, config) {
     summary: focusText ? shorten(focusText) : config.reviewName
   });
 
+  if (options.background) {
+    ensureAgyAvailable(cwd);
+    ensureGitRepository(cwd);
+    const request = {
+      kind: "review",
+      cwd,
+      base: options.base,
+      scope: options.scope,
+      focusText,
+      reviewName: config.reviewName,
+      agyOptions,
+      jobId: job.id
+    };
+    const { payload } = enqueueBackgroundTask(cwd, job, request);
+    outputCommandResult(payload, renderQueuedTaskLaunch(payload), options.json);
+    return;
+  }
+
   await runForegroundCommand(
     job,
     (progress) =>
@@ -518,6 +757,7 @@ async function handleReviewCommand(argv, config) {
         scope: options.scope,
         focusText,
         reviewName: config.reviewName,
+        agyOptions,
         onProgress: progress
       }),
     { json: options.json }
@@ -526,8 +766,9 @@ async function handleReviewCommand(argv, config) {
 
 async function handleTask(argv) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["cwd", "prompt-file"],
-    booleanOptions: ["json", "sandbox", "resume-last", "resume", "fresh", "background"]
+    valueOptions: ["cwd", "prompt-file", "conversation", "model", "add-dir", "log-file", "print-timeout"],
+    repeatableOptions: ["add-dir"],
+    booleanOptions: ["json", "sandbox", "continue", "resume-last", "resume", "fresh", "background", "wait"]
   });
 
   const cwd = resolveCommandCwd(options);
@@ -535,32 +776,41 @@ async function handleTask(argv) {
 
   let prompt = "";
   if (options["prompt-file"]) {
-    prompt = fs.readFileSync(
-      path.resolve(cwd, options["prompt-file"]),
-      "utf8"
-    );
+    prompt = fs.readFileSync(path.resolve(cwd, options["prompt-file"]), "utf8");
   } else {
     const positionalPrompt = positionals.join(" ");
     prompt = positionalPrompt || readStdinIfPiped();
   }
 
-  const resumeLast = Boolean(options["resume-last"] || options.resume);
+  const agyOptions = buildAgyRunOptions(cwd, options, { allowResume: true, allowConversation: true });
   const fresh = Boolean(options.fresh);
-  if (resumeLast && fresh) {
-    throw new Error("Choose either --resume/--resume-last or --fresh.");
+  if (agyOptions.resumeLast && fresh) {
+    throw new Error("Choose either --continue/--resume/--resume-last or --fresh.");
   }
-  const sandbox = Boolean(options.sandbox);
-
-  if (!prompt && !resumeLast) {
-    throw new Error("Provide a prompt, a prompt file, piped stdin, or use --resume-last.");
+  if (agyOptions.resumeLast && agyOptions.conversation) {
+    throw new Error("Choose either --continue/--resume/--resume-last or --conversation.");
+  }
+  if (!prompt && !agyOptions.resumeLast && !agyOptions.conversation) {
+    throw new Error("Provide prompt, prompt file, piped stdin, --conversation, or use --continue.");
   }
 
-  const taskMetadata = buildTaskRunMetadata({ prompt, resumeLast });
+  const taskMetadata = buildTaskRunMetadata({ prompt, resumeLast: agyOptions.resumeLast });
+  const optionSummary = describeAgyRunOptions(agyOptions);
+  if (optionSummary.length > 0) {
+    taskMetadata.summary = `${taskMetadata.summary} (${optionSummary.join(", ")})`;
+  }
 
   if (options.background) {
     ensureAgyAvailable(cwd);
     const job = buildTaskJob(workspaceRoot, taskMetadata);
-    const request = { cwd, prompt, sandbox, resumeLast, jobId: job.id };
+    const request = {
+      cwd,
+      prompt,
+      agyOptions,
+      resumeLast: agyOptions.resumeLast,
+      sandbox: agyOptions.sandbox,
+      jobId: job.id
+    };
     const { payload } = enqueueBackgroundTask(cwd, job, request);
     outputCommandResult(payload, renderQueuedTaskLaunch(payload), options.json);
     return;
@@ -569,15 +819,7 @@ async function handleTask(argv) {
   const job = buildTaskJob(workspaceRoot, taskMetadata);
   await runForegroundCommand(
     job,
-    (progress) =>
-      executeTaskRun({
-        cwd,
-        prompt,
-        sandbox,
-        resumeLast,
-        jobId: job.id,
-        onProgress: progress
-      }),
+    (progress) => executeTaskRun({ cwd, prompt, agyOptions, jobId: job.id, onProgress: progress }),
     { json: options.json }
   );
 }
@@ -866,6 +1108,12 @@ async function main() {
   switch (subcommand) {
     case "setup":
       await handleSetup(argv);
+      break;
+    case "models":
+      handleModels(argv);
+      break;
+    case "doctor":
+      handleDoctor(argv);
       break;
     case "review":
       await handleReviewCommand(argv, { reviewName: "Review" });
