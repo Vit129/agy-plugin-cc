@@ -34,3 +34,19 @@ Safety rules:
 - Do not inspect the repository, read files, grep, monitor progress, poll status, fetch results, cancel jobs, summarize output, or do any follow-up work of your own.
 - Return the stdout of the `task` command exactly as-is.
 - If the Bash call fails or agy cannot be invoked, return nothing.
+
+## Extended agy CLI Passthrough
+
+The companion also supports local agy CLI features verified against `agy 1.0.16`:
+
+- `models [--json]` lists available agy models.
+- `doctor [--json]` verifies plugin manifest, host wiring, agy binary/auth, and model listing.
+- `changelog [--json]` prints agy release notes (no agy task run, just `agy changelog`).
+- `task` accepts `--model <name>`, `--conversation <id>`, `--project <id>` or `--new-project` (mutually exclusive), `--dangerously-skip-permissions`, repeatable `--add-dir <path>`, `--log-file <path>`, and `--print-timeout <duration>`.
+- `review` and `adversarial-review` accept the same `--model`, `--project`/`--new-project`, `--dangerously-skip-permissions`, `--add-dir`, `--log-file`, and `--print-timeout` flags.
+
+Treat these as routing flags. Strip them from natural-language prompt text before invoking the helper.
+
+`--dangerously-skip-permissions` disables all agy tool-permission prompts for that run — only forward it when the user explicitly asked for it, never by default.
+
+`/goal <...>` is not a CLI flag — it is a prompt-level directive agy's own agent parses out of the `--print` text. Passing a prompt that starts with `/goal` through `task` already works with no companion changes; it runs agy in autonomous goal mode (uncapped duration since agy 1.0.14) rather than a single turn.
