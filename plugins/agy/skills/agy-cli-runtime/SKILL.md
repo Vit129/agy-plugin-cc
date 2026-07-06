@@ -50,4 +50,6 @@ Treat these as routing flags. Strip them from natural-language prompt text befor
 
 `--dangerously-skip-permissions` disables all agy tool-permission prompts for that run — only forward it when the user explicitly asked for it, never by default.
 
-`/goal <...>` is not a CLI flag — it is a prompt-level directive agy's own agent parses out of the `--print` text. Passing a prompt that starts with `/goal` through `task` already works with no companion changes; it runs agy in autonomous goal mode (uncapped duration since agy 1.0.14) rather than a single turn.
+`/goal <...>` is a prompt-level directive agy's own agent parses out of the `--print` text, not a CLI flag. There are two ways to trigger it:
+- `task "/goal ..."` — works with no companion changes, runs in the foreground/background modes `task` already supports.
+- `goal "..."` — a dedicated command that auto-prepends `/goal ` if missing and, since goal mode has no time cap (uncapped duration since agy 1.0.14), defaults to a **background job** unless `--wait` is passed. Poll it the same way as `task --background`: `/agy:status <job-id>`, `/agy:result <job-id>`, `/agy:cancel <job-id>`.

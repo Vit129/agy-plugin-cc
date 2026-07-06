@@ -70,6 +70,7 @@ function printUsage() {
       "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
       "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
       "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
+      "  node scripts/agy-companion.mjs goal [--wait] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [goal text]",
       "  node scripts/agy-companion.mjs task-worker --job-id <id>",
       "  node scripts/agy-companion.mjs task-resume-candidate [--json]",
       "  node scripts/agy-companion.mjs status [job-id] [--wait] [--all] [--json]",
@@ -933,6 +934,92 @@ async function handleTask(argv) {
   );
 }
 
+function withGoalDirective(prompt) {
+  const trimmed = String(prompt ?? "").trimStart();
+  if (/^\/goal\b/i.test(trimmed)) {
+    return prompt;
+  }
+  return `/goal ${prompt}`;
+}
+
+async function handleGoal(argv) {
+  const { options, positionals } = parseCommandInput(argv, {
+    valueOptions: ["cwd", "prompt-file", "conversation", "model", "project", "add-dir", "log-file", "print-timeout"],
+    repeatableOptions: ["add-dir"],
+    booleanOptions: [
+      "json",
+      "sandbox",
+      "continue",
+      "resume-last",
+      "resume",
+      "fresh",
+      "wait",
+      "new-project",
+      "dangerously-skip-permissions"
+    ]
+  });
+
+  if (options.project && options["new-project"]) {
+    throw new Error("Choose either --project or --new-project.");
+  }
+
+  const cwd = resolveCommandCwd(options);
+  const workspaceRoot = resolveCommandWorkspace(options);
+
+  let prompt = "";
+  if (options["prompt-file"]) {
+    prompt = fs.readFileSync(path.resolve(cwd, options["prompt-file"]), "utf8");
+  } else {
+    const positionalPrompt = positionals.join(" ");
+    prompt = positionalPrompt || readStdinIfPiped();
+  }
+
+  const agyOptions = buildAgyRunOptions(cwd, options, { allowResume: true, allowConversation: true });
+  const fresh = Boolean(options.fresh);
+  if (agyOptions.resumeLast && fresh) {
+    throw new Error("Choose either --continue/--resume/--resume-last or --fresh.");
+  }
+  if (agyOptions.resumeLast && agyOptions.conversation) {
+    throw new Error("Choose either --continue/--resume/--resume-last or --conversation.");
+  }
+  if (!prompt && !agyOptions.resumeLast && !agyOptions.conversation) {
+    throw new Error("Provide a goal, prompt file, piped stdin, --conversation, or use --continue.");
+  }
+
+  const goalPrompt = prompt ? withGoalDirective(prompt) : prompt;
+  const taskMetadata = buildTaskRunMetadata({ prompt: goalPrompt, resumeLast: agyOptions.resumeLast });
+  taskMetadata.title = agyOptions.resumeLast ? "agy Goal Resume" : "agy Goal";
+  const optionSummary = describeAgyRunOptions(agyOptions);
+  if (optionSummary.length > 0) {
+    taskMetadata.summary = `${taskMetadata.summary} (${optionSummary.join(", ")})`;
+  }
+
+  // Goal mode runs until completion with no time cap, so it runs in the
+  // background by default; --wait blocks in the foreground instead.
+  if (!options.wait) {
+    ensureAgyAvailable(cwd);
+    const job = buildTaskJob(workspaceRoot, taskMetadata);
+    const request = {
+      cwd,
+      prompt: goalPrompt,
+      agyOptions,
+      resumeLast: agyOptions.resumeLast,
+      sandbox: agyOptions.sandbox,
+      jobId: job.id
+    };
+    const { payload } = enqueueBackgroundTask(cwd, job, request);
+    outputCommandResult(payload, renderQueuedTaskLaunch(payload), options.json);
+    return;
+  }
+
+  const job = buildTaskJob(workspaceRoot, taskMetadata);
+  await runForegroundCommand(
+    job,
+    (progress) => executeTaskRun({ cwd, prompt: goalPrompt, agyOptions, jobId: job.id, onProgress: progress }),
+    { json: options.json }
+  );
+}
+
 async function handleTaskWorker(argv) {
   const { options } = parseCommandInput(argv, {
     valueOptions: ["cwd", "job-id"]
@@ -1238,6 +1325,9 @@ async function main() {
       break;
     case "task":
       await handleTask(argv);
+      break;
+    case "goal":
+      await handleGoal(argv);
       break;
     case "task-worker":
       await handleTaskWorker(argv);
