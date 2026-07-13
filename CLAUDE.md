@@ -2,7 +2,7 @@
 
 ## Global-First Rule
 
-Global instructions are authoritative:
+Global instructions authoritative:
 - `~/.claude/rules/` — behavior, routing, skill map
 - `~/.claude/skills/` — global skills
 
@@ -14,11 +14,11 @@ Global instructions are authoritative:
 
 ## Project Summary
 
-Claude Code plugin for the **Agy (Antigravity CLI)** ecosystem. Plugin system mirrors `~/.claude/` structure — skills, commands, agents, hooks.
+Claude Code plugin, **Agy (Antigravity CLI)** ecosystem. Plugin system mirror `~/.claude/` structure — skills, commands, agents, hooks.
 
 ## Skill Routing (domain-based, not keyword-based)
 
-For ANY work in this project, invoke skill based on domain — do not wait for keyword:
+Any work this project: invoke skill by domain, don't wait for keyword:
 
 | Domain | Skill |
 |--------|-------|
@@ -30,5 +30,5 @@ For ANY work in this project, invoke skill based on domain — do not wait for k
 
 ## Session Start
 
-1. Check `agent-memory/CONTEXT.md` → derive active work domain → invoke matching skill above.
-2. If task is done from previous session: update CONTEXT.md (status → idle) + append to MEMORY.md first.
+1. Check `agent-memory/CONTEXT.md`, derive active work domain, invoke matching skill above.
+2. If task done from previous session: update CONTEXT.md (status: idle), append to MEMORY.md first.
