@@ -8,6 +8,7 @@ import { getConfig, loadState, resolveStateFile, saveState, setConfig } from "./
 import { SESSION_ID_ENV } from "./lib/tracked-jobs.mjs";
 import { resolveWorkspaceRoot } from "./lib/workspace.mjs";
 import { checkForPluginUpdate } from "./lib/update-check.mjs";
+import { checkGitCloneUpdate, formatUpdateNotice } from "./lib/git-update-check.mjs";
 
 const PLUGIN_DATA_ENV = "CLAUDE_PLUGIN_DATA";
 
@@ -95,10 +96,29 @@ function reportPluginUpdate(cwd) {
   }
 }
 
-function handleSessionStart(input) {
+async function reportGitCloneUpdate(cwd) {
+  // ponytail: best-effort only, same as reportPluginUpdate above — this only
+  // matters for users who cloned the repo directly instead of installing via
+  // npm, so a fetch failure or non-git checkout is silently a no-op.
+  try {
+    const report = await checkGitCloneUpdate(cwd);
+    const notice = formatUpdateNotice(report);
+    if (notice) {
+      console.log(notice);
+    }
+  } catch (error) {
+    process.stderr.write(
+      `agy git update check failed: ${error instanceof Error ? error.message : String(error)}\n`
+    );
+  }
+}
+
+async function handleSessionStart(input) {
   appendEnvVar(SESSION_ID_ENV, input.session_id);
   appendEnvVar(PLUGIN_DATA_ENV, process.env[PLUGIN_DATA_ENV]);
-  reportPluginUpdate(input.cwd || process.cwd());
+  const cwd = input.cwd || process.cwd();
+  reportPluginUpdate(cwd);
+  await reportGitCloneUpdate(cwd);
 }
 
 function handleSessionEnd(input) {
@@ -111,7 +131,7 @@ async function main() {
   const eventName = process.argv[2] ?? input.hook_event_name ?? "";
 
   if (eventName === "SessionStart") {
-    handleSessionStart(input);
+    await handleSessionStart(input);
     return;
   }
 
