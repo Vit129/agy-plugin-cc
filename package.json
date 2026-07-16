@@ -13,7 +13,7 @@
     "scripts/install.mjs"
   ],
   "scripts": {
-    "check": "node --check scripts/install.mjs && node --check plugins/agy/scripts/agy-companion.mjs && node --check plugins/agy/scripts/lib/update-check.mjs"
+    "check": "node --check scripts/install.mjs && node --check plugins/agy/scripts/agy-companion.mjs && node --check plugins/agy/scripts/lib/update-check.mjs && node --check plugins/agy/scripts/lib/git-update-check.mjs && node --check plugins/agy/scripts/session-lifecycle-hook.mjs"
   },
   "engines": {
     "node": ">=18.18.0"
