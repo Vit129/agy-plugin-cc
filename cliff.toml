@@ -1,0 +1,51 @@
+[changelog]
+header = """
+# Changelog
+
+All notable changes to agy-plugin-cc are documented here. The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+"""
+body = """
+{% if version %}\
+## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+### {{ group }}
+{% for commit in commits %}\
+- {{ commit.message | upper_first }} ([`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/Vit129/agy-plugin-cc/commit/{{ commit.id }}))\
+{% if commit.breaking %} ⚠️ BREAKING{% endif %}
+{% endfor %}\
+{% endfor %}\n
+"""
+trim = true
+
+[git]
+conventional_commits = true
+filter_unconventional = true
+split_commits = false
+commit_preprocessors = [
+  { pattern = "\\(#([0-9]+)\\)", replace = "([#$1](https://github.com/Vit129/agy-plugin-cc/pull/$1))" },
+]
+commit_parsers = [
+  { message = "^feat", group = "Added" },
+  { message = "^fix", group = "Fixed" },
+  { message = "^refactor", group = "Changed" },
+  { message = "^perf", group = "Changed" },
+  { message = "^docs", group = "Documentation" },
+  { message = "^test", skip = true },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore", skip = true },
+  { message = "^build", skip = true },
+  { message = "^ci", skip = true },
+  { message = "^style", skip = true },
+]
+protect_breaking_commits = true
+filter_commits = true
+tag_pattern = "v[0-9].*"
+skip_tags = ""
+ignore_tags = ""
+topo_order = false
+sort_commits = "oldest"
