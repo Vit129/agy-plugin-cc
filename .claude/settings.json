@@ -1,0 +1,35 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))\" 2>/dev/null || true); case \"$CMD\" in *grep*|*rg\\ *|*ripgrep*|*find\\ *|*fd\\ *|*ack\\ *|*ag\\ *)   [ -f graphify-out/graph.json ] &&   echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"MANDATORY: graphify-out/graph.json exists. You MUST run `graphify query \\\"<question>\\\"` before grepping raw files. Only grep after graphify has oriented you, or to modify/debug specific lines.\"}}'   || true ;; esac"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "HIT=$(python3 -c \"import json,sys;d=json.load(sys.stdin);t=d.get('tool_input',d);exts=('.py','.js','.ts','.tsx','.jsx','.astro','.vue','.svelte','.go','.rs','.java','.rb','.c','.h','.cpp','.hpp','.cc','.cs','.kt','.swift','.php','.scala','.lua','.sh','.md','.rst','.txt','.mdx');vals=[str(t.get('file_path') or ''),str(t.get('pattern') or ''),str(t.get('path') or '')];j=' '.join(vals).lower().replace(chr(92),'/');tails=[('.'+x.rsplit('.',1)[-1]) for v in vals if v for x in [v.lower().replace(chr(92),'/').rsplit('/',1)[-1]] if '.' in x];sys.stdout.write('1' if 'graphify-out/' not in j and any(tl in exts for tl in tails) else '')\" 2>/dev/null || true); if [ \"$HIT\" = 1 ] && [ -f graphify-out/graph.json ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"MANDATORY: graphify-out/graph.json exists. You MUST run graphify before reading source files. Use: `graphify query \\\"<question>\\\"` (scoped subgraph), `graphify explain \\\"<concept>\\\"`, or `graphify path \\\"<A>\\\" \\\"<B>\\\"`. Only read raw files after graphify has oriented you, or to modify/debug specific lines. This rule applies to subagents too \u2014 include it in every subagent prompt involving code exploration.\"}}'; fi || true"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"\nimport json, os, sys, subprocess\nfrom pathlib import Path\ntry:\n    from graphify.watch import _WATCHED_EXTENSIONS\n    d = json.load(sys.stdin)\n    t = d.get('tool_input', d)\n    fp = t.get('file_path') or t.get('path') or t.get('target_file') or t.get('TargetFile')\n    if fp:\n        p = Path(fp)\n        try:\n            p = p.resolve().relative_to(Path.cwd().resolve())\n        except Exception:\n            pass\n        if p.suffix.lower() in _WATCHED_EXTENSIONS:\n            parts = p.parts\n            if not (any(part.startswith('.') for part in parts) or 'graphify-out' in parts):\n                if os.path.exists('graphify-out/graph.json'):\n                    cmd = [sys.executable, '-m', 'graphify.watch', '--trigger', '.']\n                    kw = dict(stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL, close_fds=True)\n                    if os.name == 'nt':\n                        flags = 0x00000008 | 0x00000200\n                        try:\n                            subprocess.Popen(cmd, creationflags=flags | 0x01000000, **kw)\n                        except OSError:\n                            subprocess.Popen(cmd, creationflags=flags, **kw)\n                    else:\n                        subprocess.Popen(cmd, start_new_session=True, **kw)\nexcept Exception:\n    pass\n\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
