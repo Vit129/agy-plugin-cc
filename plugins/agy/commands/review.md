@@ -1,6 +1,6 @@
 ---
 description: Run an agy code review against local git state
-argument-hint: '[--wait|--background] [--base <ref>] [--scope auto|working-tree|branch]'
+argument-hint: '[--wait|--background] [--dry-run] [--base <ref>] [--scope auto|working-tree|branch] [--model <name>] [--effort <low|medium|high>]'
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(node:*), Bash(git:*), AskUserQuestion
 ---
@@ -16,6 +16,7 @@ Core constraint:
 - Your only job is to run the review and return agy's output verbatim to the user.
 
 Execution mode rules:
+- If the raw arguments include `--dry-run`, do not ask. Run in the foreground — it only prints the resolved options and available models, no review is performed.
 - If the raw arguments include `--wait`, do not ask. Run the review in the foreground.
 - If the raw arguments include `--background`, do not ask. Run the review in a Claude background task.
 - Otherwise, estimate the review size before asking:

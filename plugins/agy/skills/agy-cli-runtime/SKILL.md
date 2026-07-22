@@ -40,10 +40,15 @@ Safety rules:
 The companion also supports local agy CLI features verified against `agy 1.0.16`:
 
 - `models [--json]` lists available agy models.
+- `agents [--json]` lists available agy agents (raw `agy agents` passthrough).
 - `doctor [--json]` verifies plugin manifest, host wiring, agy binary/auth, and model listing.
 - `changelog [--json]` prints agy release notes (no agy task run, just `agy changelog`).
-- `task` accepts `--model <name>`, `--conversation <id>`, `--project <id>` or `--new-project` (mutually exclusive), `--dangerously-skip-permissions`, repeatable `--add-dir <path>`, `--log-file <path>`, and `--print-timeout <duration>`.
-- `review` and `adversarial-review` accept the same `--model`, `--project`/`--new-project`, `--dangerously-skip-permissions`, `--add-dir`, `--log-file`, and `--print-timeout` flags.
+- `task` accepts `--model <name>`, `--effort <low|medium|high>`, `--conversation <id>`, `--project <id>` or `--new-project` (mutually exclusive), `--dangerously-skip-permissions`, repeatable `--add-dir <path>`, `--log-file <path>`, and `--print-timeout <duration>`.
+- `review` and `adversarial-review` accept the same `--model`, `--effort`, `--project`/`--new-project`, `--dangerously-skip-permissions`, `--add-dir`, `--log-file`, and `--print-timeout` flags.
+- `--model` is validated against a live `agy models` call before the run starts — an unrecognized name fails fast with the current model list instead of reaching agy.
+- `--effort` is validated against the static `low|medium|high` enum agy itself defines — no CLI call needed for this one.
+- `task`/`review`/`adversarial-review` accept `--dry-run`: prints the resolved options, the live `agy models` list (selected model marked), and current Antigravity quota (5-hour + weekly, Gemini and Claude/GPT pools) — then exits without calling agy. Use it to pick a model and confirm there's enough quota before committing to a real run.
+- Quota comes from the separately-installed `codexbar` CLI (`codexbar usage --provider antigravity --json`), not from `agy` itself — `agy`'s own `/usage`/`/quota` are TUI-only and error under `--print`/non-interactive mode. If `codexbar` isn't installed, `--dry-run` shows an install hint instead of quota and everything else still works.
 
 Treat these as routing flags. Strip them from natural-language prompt text before invoking the helper.
 

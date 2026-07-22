@@ -8,7 +8,8 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { parseArgs, splitRawArgumentString } from "./lib/args.mjs";
-import { getAgyAuthStatus, getAgyAvailability, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
+import { getAgyAuthStatus, getAgyAvailability, runAgyAgents, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
+import { getCodexBarAvailability, runCodexBarAntigravityQuota } from "./lib/codexbar.mjs";
 import { readStdinIfPiped } from "./lib/fs.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "./lib/git.mjs";
 import { binaryAvailable, terminateProcessTree } from "./lib/process.mjs";
@@ -64,11 +65,12 @@ function printUsage() {
       "Usage:",
       "  node scripts/agy-companion.mjs setup [--enable-review-gate|--disable-review-gate] [--enable-auto-update|--disable-auto-update] [--json]",
       "  node scripts/agy-companion.mjs models [--json]",
+      "  node scripts/agy-companion.mjs agents [--json]",
       "  node scripts/agy-companion.mjs doctor [--json]",
       "  node scripts/agy-companion.mjs changelog [--json]",
-      "  node scripts/agy-companion.mjs review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
-      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
-      "  node scripts/agy-companion.mjs task [--background] [--sandbox] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
+      "  node scripts/agy-companion.mjs review [--wait|--background] [--dry-run] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
+      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--dry-run] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
+      "  node scripts/agy-companion.mjs task [--background] [--dry-run] [--sandbox] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
       "  node scripts/agy-companion.mjs task-worker --job-id <id>",
       "  node scripts/agy-companion.mjs task-resume-candidate [--json]",
       "  node scripts/agy-companion.mjs status [job-id] [--wait] [--all] [--json]",
@@ -163,6 +165,7 @@ function buildAgyRunOptions(cwd, options = {}, config = {}) {
     resumeLast: Boolean(config.allowResume && (options["continue"] || options["resume-last"] || options.resume)),
     conversation: config.allowConversation ? options.conversation ?? null : null,
     model: options.model ?? null,
+    effort: options.effort ?? null,
     project: options.project ?? null,
     newProject: Boolean(options["new-project"]),
     dangerouslySkipPermissions: Boolean(options["dangerously-skip-permissions"]),
@@ -175,6 +178,7 @@ function buildAgyRunOptions(cwd, options = {}, config = {}) {
 function describeAgyRunOptions(agyOptions = {}) {
   const parts = [];
   if (agyOptions.model) parts.push(`model: ${agyOptions.model}`);
+  if (agyOptions.effort) parts.push(`effort: ${agyOptions.effort}`);
   if (agyOptions.conversation) parts.push(`conversation: ${agyOptions.conversation}`);
   if (agyOptions.newProject) parts.push("new project");
   else if (agyOptions.project) parts.push(`project: ${agyOptions.project}`);
@@ -208,6 +212,37 @@ function ensureAgyAvailable(cwd) {
       "agy CLI is not installed. Install it with: curl -fsSL https://antigravity.google/cli/install.sh | bash"
     );
   }
+}
+
+function ensureValidModel(cwd, agyOptions) {
+  if (!agyOptions.model) {
+    return;
+  }
+  const result = runAgyModels(cwd, { timeout: 10000 });
+  if (result.exitCode !== 0) {
+    return;
+  }
+  const models = parseModelLines(result.stdout);
+  if (models.length === 0 || models.includes(agyOptions.model)) {
+    return;
+  }
+  throw new Error(
+    `Unknown --model "${agyOptions.model}". Available models:\n${models.map((model) => `- ${model}`).join("\n")}`
+  );
+}
+
+const VALID_EFFORT_VALUES = ["low", "medium", "high"];
+
+function ensureValidEffort(agyOptions) {
+  if (!agyOptions.effort) {
+    return;
+  }
+  if (VALID_EFFORT_VALUES.includes(agyOptions.effort)) {
+    return;
+  }
+  throw new Error(
+    `Unknown --effort "${agyOptions.effort}". Valid values: ${VALID_EFFORT_VALUES.join(", ")}`
+  );
 }
 
 async function buildSetupReport(cwd, actionsTaken = []) {
@@ -540,6 +575,72 @@ function renderQueuedTaskLaunch(payload) {
   return `${payload.title} started in the background as ${payload.jobId}. Check /agy:status ${payload.jobId} for progress.\n`;
 }
 
+function buildQuotaLines(cwd) {
+  const avail = getCodexBarAvailability(cwd);
+  if (!avail.available) {
+    return ["codexbar not installed — run `brew install --cask codexbar` to see Antigravity quota here."];
+  }
+
+  const result = runCodexBarAntigravityQuota(cwd, { timeout: 10000 });
+  if (result.exitCode !== 0) {
+    return ["codexbar usage check failed (not logged in, or the antigravity provider is disabled in codexbar)."];
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(result.stdout);
+  } catch {
+    return ["Could not parse codexbar output."];
+  }
+
+  const usage = Array.isArray(parsed) ? parsed[0]?.usage : null;
+  const windows = usage?.extraRateWindows ?? [];
+  if (windows.length === 0) {
+    return ["No Antigravity usage data returned by codexbar."];
+  }
+
+  const lines = usage.accountEmail ? [`Account: ${usage.accountEmail}`] : [];
+  for (const w of windows) {
+    const pct = typeof w.window?.usedPercent === "number" ? `${w.window.usedPercent.toFixed(1)}% used` : "unknown";
+    const resets = w.window?.resetsAt ? ` (resets ${w.window.resetsAt})` : "";
+    lines.push(`- ${w.title}: ${pct}${resets}`);
+  }
+  return lines;
+}
+
+function buildDryRunReport(cwd, title, agyOptions, details = []) {
+  const modelsResult = runAgyModels(cwd, { timeout: 10000 });
+  const models = modelsResult.exitCode === 0 ? parseModelLines(modelsResult.stdout) : [];
+  return {
+    ok: true,
+    dryRun: true,
+    title,
+    details,
+    options: describeAgyRunOptions(agyOptions),
+    model: agyOptions.model,
+    models,
+    quota: buildQuotaLines(cwd)
+  };
+}
+
+function renderDryRunReport(report) {
+  const lines = [`# ${report.title} (dry run)`, ""];
+  lines.push(...report.details);
+  if (report.options.length > 0) {
+    lines.push(`Options: ${report.options.join(", ")}`);
+  }
+  lines.push(
+    "",
+    report.models.length > 0 ? "Available models:" : "Available models: (agy models unavailable)"
+  );
+  for (const model of report.models) {
+    lines.push(model === report.model ? `- ${model} (selected)` : `- ${model}`);
+  }
+  lines.push("", "Antigravity quota:", ...report.quota);
+  lines.push("", "No agy run performed.");
+  return lines.join("\n") + "\n";
+}
+
 function readJsonIfExists(filePath) {
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
@@ -734,11 +835,29 @@ function handleChangelog(argv) {
   }
 }
 
+function handleAgents(argv) {
+  const { options } = parseCommandInput(argv, {
+    valueOptions: ["cwd"],
+    booleanOptions: ["json"]
+  });
+  const cwd = resolveCommandCwd(options);
+  const result = runAgyAgents(cwd, { timeout: 10000 });
+  const payload = { ok: result.exitCode === 0, text: result.stdout, exitCode: result.exitCode, stderr: result.stderr };
+  outputCommandResult(
+    payload,
+    result.exitCode === 0 ? result.stdout : (result.stderr || result.stdout || "agy agents failed\n"),
+    options.json
+  );
+  if (result.exitCode !== 0) {
+    process.exitCode = result.exitCode;
+  }
+}
+
 async function handleReviewCommand(argv, config) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["base", "scope", "cwd", "model", "project", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["base", "scope", "cwd", "model", "effort", "project", "add-dir", "log-file", "print-timeout"],
     repeatableOptions: ["add-dir"],
-    booleanOptions: ["json", "background", "wait", "new-project", "dangerously-skip-permissions"]
+    booleanOptions: ["json", "background", "wait", "new-project", "dangerously-skip-permissions", "dry-run"]
   });
 
   if (options.project && options["new-project"]) {
@@ -749,6 +868,18 @@ async function handleReviewCommand(argv, config) {
   const workspaceRoot = resolveCommandWorkspace(options);
   const focusText = positionals.join(" ").trim();
   const agyOptions = buildAgyRunOptions(cwd, options, { forceSandbox: true });
+  ensureValidModel(cwd, agyOptions);
+  ensureValidEffort(agyOptions);
+
+  if (options["dry-run"]) {
+    const report = buildDryRunReport(cwd, `agy ${config.reviewName}`, agyOptions, [
+      `Base: ${options.base ?? "auto"}`,
+      `Scope: ${options.scope ?? "auto"}`,
+      focusText ? `Focus: ${shorten(focusText)}` : "Focus: (none)"
+    ]);
+    outputCommandResult(report, renderDryRunReport(report), options.json);
+    return;
+  }
 
   const job = createCompanionJob({
     prefix: "review",
@@ -795,7 +926,7 @@ async function handleReviewCommand(argv, config) {
 
 async function handleTask(argv) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["cwd", "prompt-file", "conversation", "model", "project", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["cwd", "prompt-file", "conversation", "model", "effort", "project", "add-dir", "log-file", "print-timeout"],
     repeatableOptions: ["add-dir"],
     booleanOptions: [
       "json",
@@ -807,7 +938,8 @@ async function handleTask(argv) {
       "background",
       "wait",
       "new-project",
-      "dangerously-skip-permissions"
+      "dangerously-skip-permissions",
+      "dry-run"
     ]
   });
 
@@ -827,6 +959,8 @@ async function handleTask(argv) {
   }
 
   const agyOptions = buildAgyRunOptions(cwd, options, { allowResume: true, allowConversation: true });
+  ensureValidModel(cwd, agyOptions);
+  ensureValidEffort(agyOptions);
   const fresh = Boolean(options.fresh);
   if (agyOptions.resumeLast && fresh) {
     throw new Error("Choose either --continue/--resume/--resume-last or --fresh.");
@@ -836,6 +970,16 @@ async function handleTask(argv) {
   }
   if (!prompt && !agyOptions.resumeLast && !agyOptions.conversation) {
     throw new Error("Provide prompt, prompt file, piped stdin, --conversation, or use --continue.");
+  }
+
+  if (options["dry-run"]) {
+    const report = buildDryRunReport(cwd, "agy Task", agyOptions, [
+      `Prompt: ${prompt ? shorten(prompt, 240) : "(none)"}`,
+      `Resume last: ${agyOptions.resumeLast ? "yes" : "no"}`,
+      `Conversation: ${agyOptions.conversation ?? "(none)"}`
+    ]);
+    outputCommandResult(report, renderDryRunReport(report), options.json);
+    return;
   }
 
   const taskMetadata = buildTaskRunMetadata({ prompt, resumeLast: agyOptions.resumeLast });
@@ -895,7 +1039,10 @@ async function handleTaskWorker(argv) {
   );
   await runTrackedJob(
     { ...storedJob, workspaceRoot, logFile },
-    () => executeTaskRun({ ...request, onProgress: progress }),
+    () =>
+      request.kind === "review"
+        ? executeReviewRun({ ...request, onProgress: progress })
+        : executeTaskRun({ ...request, onProgress: progress }),
     { logFile }
   );
 }
@@ -1161,6 +1308,9 @@ async function main() {
       break;
     case "changelog":
       handleChangelog(argv);
+      break;
+    case "agents":
+      handleAgents(argv);
       break;
     case "review":
       await handleReviewCommand(argv, { reviewName: "Review" });
