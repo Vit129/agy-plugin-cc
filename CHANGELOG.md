@@ -3,7 +3,7 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-## [1.2.0] - 2026-07-19
+## [1.4.0] - 2026-07-22
 
 ### Added
 - Add Claude Code context layer (CLAUDE.md, .ai/, agent-memory/) ([`1fedaa8`](https://github.com/Vit129/agy-plugin-cc/commit/1fedaa885aeda9fb77ac3ac8ae40c54ff53ee0b2))
@@ -11,6 +11,7 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 - Add agy doctor/models commands and extend task/review passthrough ([`a4bd31f`](https://github.com/Vit129/agy-plugin-cc/commit/a4bd31f462ffc233912024f13afd43e41d30d643))
 - Add --project/--new-project/--dangerously-skip-permissions passthrough and changelog command ([`4efdb57`](https://github.com/Vit129/agy-plugin-cc/commit/4efdb57ecfe7fedddcfa3feea9c78db552aadbda))
 - Check for newer git-clone version at session start, confirm before pull ([#3](https://github.com/Vit129/agy-plugin-cc/pull/3)) ([`4e9f59c`](https://github.com/Vit129/agy-plugin-cc/commit/4e9f59ce54ac058f957382cafcd7824617d83925))
+- Add --model/--effort validation, --dry-run quota preview, agents/changelog commands to agy plugin ([`34cc2a5`](https://github.com/Vit129/agy-plugin-cc/commit/34cc2a5205c8100780e5a8ff7a94431432d45d1b))
 
 ### Documentation
 - Add Antigravity keywords and variations for search ([`0b6b863`](https://github.com/Vit129/agy-plugin-cc/commit/0b6b8638c4ce3fff68acd77b61f2108588a14578))
