@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "start": "bash scripts/release.sh",
-    "check": "node --check scripts/install.mjs && node --check plugins/agy/scripts/agy-companion.mjs && node --check plugins/agy/scripts/lib/update-check.mjs && node --check plugins/agy/scripts/lib/git-update-check.mjs && node --check plugins/agy/scripts/session-lifecycle-hook.mjs"
+    "check": "node --check scripts/install.mjs && node --check plugins/agy/scripts/agy-companion.mjs && node --check plugins/agy/scripts/lib/update-check.mjs && node --check plugins/agy/scripts/lib/git-update-check.mjs && node --check plugins/agy/scripts/session-lifecycle-hook.mjs",
+    "test": "node --test tests/*.test.mjs"
   },
   "engines": {
     "node": ">=18.18.0"

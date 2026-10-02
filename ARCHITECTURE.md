@@ -21,3 +21,7 @@
 
 - CLI binary detection must check `command -v agy` before attempting invocation.
 - Subprocess exit codes must be captured and parsed; nonzero exits must output formatted stderr diagnostics.
+
+## Structure deviations
+
+- §1 one dir = one role (MUST) — `plugins/agy/` is the Claude Code plugin layout (commands, agents, hooks, prompts, scripts, skills) mandated by the plugin system, not the role layout — revisit only if the plugin spec changes.
