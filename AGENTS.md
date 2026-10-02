@@ -39,6 +39,10 @@ Any work this project: invoke skill by domain, don't wait for keyword:
 | Any new feature / code implementation | `aidlc` |
 | Code review | `review-personas` |
 
+## Tests
+
+`npm test` — `node:test` over `tests/*.test.mjs` (arg parsing and state store; no dependencies). `npm run check` is the syntax check.
+
 ## Session Start
 
 1. Check `agent-memory/CONTEXT.md`, derive active work domain, invoke matching skill above.
