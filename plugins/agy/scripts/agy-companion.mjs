@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { parseArgs, splitRawArgumentString } from "./lib/args.mjs";
-import { getAgyAuthStatus, getAgyAvailability, runAgyAgents, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
+import { getAgyAuthStatus, getAgyAvailability, installHint, runAgyAgents, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
 import { getCodexBarAvailability, runCodexBarAntigravityQuota } from "./lib/codexbar.mjs";
 import { readStdinIfPiped } from "./lib/fs.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "./lib/git.mjs";
@@ -209,7 +209,7 @@ function ensureAgyAvailable(cwd) {
   const availability = getAgyAvailability(cwd);
   if (!availability.available) {
     throw new Error(
-      "agy CLI is not installed. Install it with: curl -fsSL https://antigravity.google/cli/install.sh | bash"
+      `agy CLI is not installed. Install it with: ${installHint()}`
     );
   }
 }
@@ -262,7 +262,7 @@ async function buildSetupReport(cwd, actionsTaken = []) {
   const nextSteps = [];
   if (!agyStatus.available) {
     nextSteps.push(
-      "Install agy with: curl -fsSL https://antigravity.google/cli/install.sh | bash"
+      `Install agy with: ${installHint()}`
     );
   }
   if (!config.stopReviewGate) {

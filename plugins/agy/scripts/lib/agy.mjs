@@ -1,10 +1,50 @@
 import { spawn, spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
 
 import { binaryAvailable } from "./process.mjs";
 
+const HOMEBREW_PREFIXES = ["/opt/homebrew/bin", "/usr/local/bin"];
+
+// Resolve agy from PATH first, then from the places package managers link it.
+// Hook and IDE processes often run with a trimmed PATH; treating that as
+// "not installed" sent assistants to the vendor installer on machines where
+// the CLI was already present.
+export function resolveAgyBinary() {
+  const dirs = [
+    ...(process.env.PATH || "").split(path.delimiter),
+    ...HOMEBREW_PREFIXES,
+    path.join(os.homedir(), ".local", "bin")
+  ];
+  for (const dir of dirs) {
+    if (!dir) continue;
+    const candidate = path.join(dir, "agy");
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      if (fs.statSync(candidate).isFile()) return candidate;
+    } catch {
+      // not here
+    }
+  }
+  return null;
+}
+
+// agy updates itself in the background (no setting disables it) and the
+// vendor installer puts it in ~/.local/bin, where that updater owns it. A
+// Homebrew cask fights the updater: each self-update replaces the cask's
+// symlink with a plain binary and the next `brew upgrade` fails to link.
+export function installHint() {
+  return "curl -fsSL https://antigravity.google/cli/install.sh | bash";
+}
+
+function agyCommand() {
+  return resolveAgyBinary() ?? "agy";
+}
+
 export function getAgyAvailability(cwd) {
-  const result = binaryAvailable("agy", ["--version"], { cwd });
+  const result = binaryAvailable(agyCommand(), ["--version"], { cwd });
   if (result.available) {
     return { available: true, detail: `agy ${result.detail}` };
   }
@@ -80,7 +120,7 @@ export async function runAgyTask(cwd, prompt, options = {}) {
   }
 
   return new Promise((resolve) => {
-      const child = spawn("agy", args, {
+      const child = spawn(agyCommand(), args, {
         cwd: cwd || process.cwd(),
         env: options.env ?? process.env,
         stdio: ["ignore", "pipe", "pipe"]
@@ -112,7 +152,7 @@ export async function runAgyTask(cwd, prompt, options = {}) {
 export function runAgyTaskSync(cwd, prompt, options = {}) {
   const args = buildAgyArgs(prompt, options);
 
-  const result = spawnSync("agy", args, {
+  const result = spawnSync(agyCommand(), args, {
     cwd: cwd || process.cwd(),
     env: options.env ?? process.env,
     encoding: "utf8",
@@ -137,7 +177,7 @@ export function runAgyTaskSync(cwd, prompt, options = {}) {
 }
 
 export function runAgyModels(cwd, options = {}) {
-  const result = spawnSync("agy", ["models"], {
+  const result = spawnSync(agyCommand(), ["models"], {
     cwd: cwd || process.cwd(),
     env: options.env ?? process.env,
     encoding: "utf8",
@@ -153,7 +193,7 @@ export function runAgyModels(cwd, options = {}) {
 }
 
 export function runAgyAgents(cwd, options = {}) {
-  const result = spawnSync("agy", ["agents"], {
+  const result = spawnSync(agyCommand(), ["agents"], {
     cwd: cwd || process.cwd(),
     env: options.env ?? process.env,
     encoding: "utf8",
@@ -169,7 +209,7 @@ export function runAgyAgents(cwd, options = {}) {
 }
 
 export function runAgyChangelog(cwd, options = {}) {
-  const result = spawnSync("agy", ["changelog"], {
+  const result = spawnSync(agyCommand(), ["changelog"], {
     cwd: cwd || process.cwd(),
     env: options.env ?? process.env,
     encoding: "utf8",
