@@ -32,26 +32,16 @@ The Antigravity CLI must be installed and authenticated before using this plugin
 
 ## Installation
 
-Install the plugin from within Claude Code:
+In Claude Code:
 
 ```text
+/plugin marketplace add Vit129/agy-plugin-cc
 /plugin install agy@agy-plugin-cc
 /reload-plugins
 ```
 
-Or install/update the marketplace through npm:
-
-```bash
-npx -y @vit129/agy-plugin-cc@latest install
-```
-
-Opt in to automatic npm updates:
-
-```bash
-npx -y @vit129/agy-plugin-cc@latest install --auto-update
-```
-
-With auto-update enabled, `/agy:setup` checks npm at most once every 24 hours. If a newer version exists, it reinstalls the marketplace package and asks you to run `/reload-plugins`. Without auto-update, `/agy:setup` only prints the update command.
+Updates: open `/plugin` → Marketplaces → `agy-plugin-cc` and turn on auto-update; new versions arrive when a session starts.
+Manual update: `/plugin marketplace update agy-plugin-cc`, then `/reload-plugins`.
 
 ## Commands & Usage
 
