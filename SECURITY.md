@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Only the latest published version on npm (`@vit129/agy-plugin-cc`) receives
+Only the latest version on the Claude Code marketplace / GitHub `main` receives
 security fixes. There is no long-term support branch.
 
 | Version | Supported |
