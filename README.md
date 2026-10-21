@@ -5,6 +5,7 @@
 A Claude Code plugin that integrates **Google's Antigravity (agy) CLI** and **Antigravity IDE** developer tools into Claude Code.
 
 This companion extension follows the same design patterns as [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc), providing full job tracking, background execution, code review, and a session-aware stop-time review gate for **Google Antigravity** workflows.
+(For OpenAI Codex CLI, see the counterpart: [`agy-plugin-codex`](https://github.com/Vit129/agy-plugin-codex)).
 
 ## Prerequisites
 
