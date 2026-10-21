@@ -252,6 +252,8 @@ plugins/agy/
 
 ## License
 
-MIT — see [LICENSE](./LICENSE). This is an original, independently authored
-project (not a fork). You're welcome to fork it, modify it, and redistribute
-it, provided the copyright notice in `LICENSE` is preserved.
+Apache License 2.0 — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE). Parts of the design
+and scripts are derived from [`codex-plugin-cc`](https://github.com/openai/codex-plugin-cc) (Copyright 2026 OpenAI,
+Apache-2.0), credited in `NOTICE`. Releases up to
+v1.5.1 were published under MIT and remain available under those terms (`LICENSE-MIT`). Keep
+`LICENSE` and `NOTICE` when you redistribute, and mark the files you change.

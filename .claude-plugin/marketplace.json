@@ -16,7 +16,8 @@
       "author": {
         "name": "Supavit Cho"
       },
-      "source": "./plugins/agy"
+      "source": "./plugins/agy",
+      "license": "Apache-2.0"
     }
   ]
 }
