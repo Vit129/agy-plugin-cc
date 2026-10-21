@@ -250,6 +250,10 @@ plugins/agy/
 
 - Initial release: `/agy:agy`, `/agy:rescue`, `/agy:setup` — basic task delegation and resume
 
+## Contributors
+
+Developed and maintained by **Vit129** and **Claude** (Anthropic).
+
 ## License
 
 Apache License 2.0 — see [LICENSE](./LICENSE) and [NOTICE](./NOTICE). Parts of the design
