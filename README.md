@@ -221,7 +221,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## Development and delivery
 
-This is a Claude Code plugin package, not a local web application. `npm start` / `make start` runs the isolated preview gate: syntax checks, unit tests, and `npm pack --dry-run`. There is no local GUI dev server; review runtime behavior by installing into a separate test Claude Code profile. `npm run release` repeats the build gate before invoking the release script. CI runs tests, syntax checks, and the package dry run on pull requests and pushes to `main`.
+This is a Claude Code plugin package, not a local web application. `npm start` / `make start` runs the isolated package preview gate: syntax checks, unit tests, and `npm pack --dry-run`. There is no local GUI dev server; review runtime behavior by installing into a separate test Claude Code profile. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
 
 ## Contributors
 

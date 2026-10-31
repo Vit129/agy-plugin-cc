@@ -1,4 +1,4 @@
-.PHONY: start preview test build
+.PHONY: start preview test build release-check
 
 start: preview
 
@@ -10,3 +10,6 @@ test:
 
 build:
 	npm run build
+
+release-check:
+	npm run release:check

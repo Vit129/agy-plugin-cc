@@ -11,9 +11,10 @@
   "scripts": {
     "start": "npm run preview",
     "preview": "npm run build",
-    "build": "npm run check && npm test && npm pack --dry-run",
-    "release": "npm run build && bash scripts/release.sh",
-    "check": "node --check plugins/agy/scripts/agy-companion.mjs && node --check plugins/agy/scripts/lib/git-update-check.mjs && node --check plugins/agy/scripts/session-lifecycle-hook.mjs",
+    "build": "npm run release:check",
+    "release:check": "npm run check && npm test && npm pack --dry-run",
+    "release": "bash scripts/release.sh",
+    "check": "node --check plugins/agy/scripts/agy-companion.mjs && node --check plugins/agy/scripts/lib/git-update-check.mjs && node --check plugins/agy/scripts/session-lifecycle-hook.mjs && node --check scripts/set-release-version.mjs && node scripts/check-version.mjs",
     "test": "node --test tests/*.test.mjs"
   },
   "engines": {
