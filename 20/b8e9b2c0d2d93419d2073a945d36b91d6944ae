@@ -1,0 +1,38 @@
+package.json
+  s_53ad839a68fb1c::t_435e0a2f1e6e9e 17
+  s_53ad839a68fb1c::t_6e0451f96edf91 14-16
+.gitignore
+  s_53ad839a68fb1c::t_bfb73242196229 2
+scripts/check-version.mjs
+  s_53ad839a68fb1c::t_6e0451f96edf91 1-38
+.github/workflows/check.yml
+  s_53ad839a68fb1c::t_cc9e83d68fbff9 19
+scripts/set-release-version.mjs
+  s_53ad839a68fb1c::t_6e0451f96edf91 1-4,6-8,10-12,41-42
+  s_53ad839a68fb1c::t_1d4e72923d0e48 5,9,13-40,43-46
+tests/release-version.test.mjs
+  s_53ad839a68fb1c::t_1d4e72923d0e48 1-7,11-31
+  s_53ad839a68fb1c::t_bfb73242196229 8-10
+scripts/release.sh
+  s_53ad839a68fb1c::t_2c1290a92b0844 14-18,39,43,45,47
+Makefile
+  s_53ad839a68fb1c::t_6e0451f96edf91 1,13-15
+README.md
+  s_53ad839a68fb1c::t_cc9e83d68fbff9 224
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.3",
+  "base_commit_sha": "20b8e9b2c0d2d93419d2073a945d36b91d6944ae",
+  "prompts": {},
+  "sessions": {
+    "s_53ad839a68fb1c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fb7-5316-7db2-acef-76f7f2031027",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
