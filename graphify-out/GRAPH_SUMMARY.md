@@ -1,15 +1,15 @@
-# Graph Summary — graphify-refresh
+# Graph Summary — delivery-workflow-completion
 _Auto-generated from GRAPH_REPORT.md · do not edit manually_
 _Regen: `graphify update .`_
 
 ## Summary
-- 417 nodes · 815 edges · 52 communities (42 shown, 10 thin omitted)
+- 438 nodes · 833 edges · 55 communities (45 shown, 10 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 
 ## Graph Freshness
-- Built from commit: `45b6a9e1`
+- Built from commit: `44ce73c2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,27 +32,27 @@ A high-degree node isn't always architecturally central - a widely-used
 utility/config file can rack up more edges than a real coupler while only
 ever touching one area. This ranks by how many DIFFERENT communities a
 node's neighbors span, not by raw edge count.
-1. `resolveWorkspaceRoot()` - bridges 4 areas (17 edges)
-2. `executeTaskRun()` - bridges 4 areas (9 edges)
-3. `getConfig()` - bridges 4 areas (8 edges)
-4. `handleCancel()` - bridges 3 areas (13 edges)
-5. `listJobs()` - bridges 3 areas (11 edges)
-6. `executeReviewRun()` - bridges 3 areas (10 edges)
-7. `handleTaskWorker()` - bridges 3 areas (10 edges)
-8. `getAgyAvailability()` - bridges 3 areas (10 edges)
-9. `handleReviewCommand()` - bridges 2 areas (19 edges)
+1. `handleReviewCommand()` - bridges 3 areas (19 edges)
+2. `resolveWorkspaceRoot()` - bridges 3 areas (17 edges)
+3. `handleCancel()` - bridges 3 areas (13 edges)
+4. `handleTaskWorker()` - bridges 3 areas (10 edges)
+5. `getAgyAvailability()` - bridges 3 areas (10 edges)
+6. `getConfig()` - bridges 3 areas (8 edges)
+7. `buildSetupReport()` - bridges 3 areas (7 edges)
+8. `handleTask()` - bridges 2 areas (21 edges)
+9. `listJobs()` - bridges 2 areas (11 edges)
 
 ## Surprising Connections (you probably didn't know these)
 - `resolveCommandWorkspace()` --calls--> `resolveWorkspaceRoot()`  [EXTRACTED]
   plugins/agy/scripts/agy-companion.mjs → plugins/agy/scripts/lib/workspace.mjs
-- `ensureAgyAvailable()` --calls--> `getAgyAvailability()`  [EXTRACTED]
-  plugins/agy/scripts/agy-companion.mjs → plugins/agy/scripts/lib/agy.mjs
-- `ensureAgyAvailable()` --calls--> `installHint()`  [EXTRACTED]
+- `ensureValidModel()` --calls--> `runAgyModels()`  [EXTRACTED]
   plugins/agy/scripts/agy-companion.mjs → plugins/agy/scripts/lib/agy.mjs
 - `buildSetupReport()` --calls--> `getConfig()`  [EXTRACTED]
   plugins/agy/scripts/agy-companion.mjs → plugins/agy/scripts/lib/state.mjs
 - `buildSetupReport()` --calls--> `resolveWorkspaceRoot()`  [EXTRACTED]
   plugins/agy/scripts/agy-companion.mjs → plugins/agy/scripts/lib/workspace.mjs
+- `handleSetup()` --calls--> `setConfig()`  [EXTRACTED]
+  plugins/agy/scripts/agy-companion.mjs → plugins/agy/scripts/lib/state.mjs
 
 
 _Full map → GRAPH_REPORT.md · query: `graphify query "..."`_

@@ -25,8 +25,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1793423218.7639153,
-    "ast_hash": "708fb4d3ce0d43f09cc4f7345374253c",
+    "mtime": 1793424074.6268132,
+    "ast_hash": "8bee111f9b2e8f835344e931c377a4d1",
     "semantic_hash": ""
   },
   "plugins/agy/.claude-plugin/plugin.json": {
@@ -120,8 +120,8 @@
     "semantic_hash": ""
   },
   "scripts/release.sh": {
-    "mtime": 1793423218.7813344,
-    "ast_hash": "112d7a51878bbc4dde183e6e46e0b3fc",
+    "mtime": 1793424092.5420933,
+    "ast_hash": "f7d4be08da304b5456e1bf012f762467",
     "semantic_hash": ""
   },
   "tests/lib.test.mjs": {
@@ -205,8 +205,8 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793423218.7548456,
-    "ast_hash": "09a1c12125ed07050071c8558d2c8759",
+    "mtime": 1793424092.5428922,
+    "ast_hash": "e7a27b534d4ce34ff835ba0d298a61bf",
     "semantic_hash": ""
   },
   "SECURITY.md": {
@@ -342,6 +342,21 @@
   "skills/gemini-3-prompting/SKILL.md": {
     "mtime": 1793423218.7821035,
     "ast_hash": "1f4ddf97e2f843905fa7b09f0db5d016",
+    "semantic_hash": ""
+  },
+  ".github/workflows/check.yml": {
+    "mtime": 1793424074.6290321,
+    "ast_hash": "571667b9d54cc30869c86d6bcfad84d0",
+    "semantic_hash": ""
+  },
+  "DESIGN.md": {
+    "mtime": 1793424092.544264,
+    "ast_hash": "c71f69ec077eed2bd5650160ec40481e",
+    "semantic_hash": ""
+  },
+  "PRODUCT.md": {
+    "mtime": 1793424092.5439608,
+    "ast_hash": "be2ecd57350b6706a1fe98b69c4942f8",
     "semantic_hash": ""
   }
 }
