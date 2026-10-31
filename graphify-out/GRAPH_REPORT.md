@@ -5,12 +5,12 @@
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 438 nodes · 833 edges · 55 communities (45 shown, 10 thin omitted)
+- 438 nodes · 832 edges · 56 communities (46 shown, 10 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `44ce73c2`
+- Built from commit: `d1bae01d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -57,7 +57,7 @@ node's neighbors span, not by raw edge count.
 ## Import Cycles
 - None detected.
 
-## Communities (55 total, 10 thin omitted)
+## Communities (56 total, 10 thin omitted)
 
 ### Community 0 - "agy-companion.mjs"
 Cohesion: 0.08
@@ -68,8 +68,8 @@ Cohesion: 0.13
 Nodes (26): buildQuotaLines(), executeReviewRun(), getCodexBarAvailability(), runCodexBarAntigravityQuota(), detectDefaultBranch(), ensureGitRepository(), getCurrentBranch(), git() (+18 more)
 
 ### Community 2 - "agy-plugin-cc"
-Cohesion: 0.05
-Nodes (37): [1.0.0] - 2026-05-27, [1.1.0] - 2026-05-28, [1.4.0] - 2026-07-22, [1.5.0] - 2026-08-23, [1.5.1] - 2026-09-15, Added, Added, Added (+29 more)
+Cohesion: 0.10
+Nodes (19): [1.0.0] - 2026-05-27, [1.1.0] - 2026-05-28, [1.4.0] - 2026-07-22, [1.5.0] - 2026-08-23, [1.5.1] - 2026-09-15, Added, Added, Added (+11 more)
 
 ### Community 3 - "job-control.mjs"
 Cohesion: 0.15
@@ -151,6 +151,10 @@ Nodes (3): Design, Interaction model, Principles
 Cohesion: 0.50
 Nodes (3): Delivery, Product, Users and interface
 
+### Community 55 - "agy-plugin-cc"
+Cohesion: 0.11
+Nodes (18): `/agy:adversarial-review [focus]`, `/agy:agy [prompt]`, `/agy:cancel [job-id]`, agy-plugin-cc, `/agy:rescue [task]`, `/agy:result [job-id]`, `/agy:review`, `/agy:setup` (+10 more)
+
 ## Knowledge Gaps
 - **148 isolated node(s):** `name`, `pull_request`, `push`, `contents`, `check` (+143 more)
   These have ≤1 connection - possible missing edges or undocumented components.
@@ -172,4 +176,4 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `git-update-check.mjs` be split into smaller, more focused modules?**
   _Cohesion score 0.13333333333333333 - nodes in this community are weakly interconnected._
 - **Should `agy-plugin-cc` be split into smaller, more focused modules?**
-  _Cohesion score 0.05128205128205128 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1 - nodes in this community are weakly interconnected._
