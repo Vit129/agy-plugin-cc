@@ -4,6 +4,96 @@
   "graph": {},
   "nodes": [
     {
+      "label": "check.yml",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "github_workflows_check",
+      "community": 52,
+      "norm_label": "check.yml"
+    },
+    {
+      "label": "name",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "github_workflows_check_name",
+      "community": 52,
+      "norm_label": "name"
+    },
+    {
+      "label": "on",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "github_workflows_check_on",
+      "community": 52,
+      "norm_label": "on"
+    },
+    {
+      "label": "pull_request",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L4",
+      "_origin": "ast",
+      "id": "github_workflows_check_on_pull_request",
+      "community": 52,
+      "norm_label": "pull_request"
+    },
+    {
+      "label": "push",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "github_workflows_check_on_push",
+      "community": 52,
+      "norm_label": "push"
+    },
+    {
+      "label": "permissions",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "github_workflows_check_permissions",
+      "community": 52,
+      "norm_label": "permissions"
+    },
+    {
+      "label": "contents",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "github_workflows_check_permissions_contents",
+      "community": 52,
+      "norm_label": "contents"
+    },
+    {
+      "label": "jobs",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "github_workflows_check_jobs",
+      "community": 52,
+      "norm_label": "jobs"
+    },
+    {
+      "label": "check",
+      "file_type": "code",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "github_workflows_check_jobs_check",
+      "community": 52,
+      "norm_label": "check"
+    },
+    {
       "label": "cliff.toml",
       "file_type": "code",
       "source_file": "cliff.toml",
@@ -134,10 +224,50 @@
       "norm_label": "start"
     },
     {
-      "label": "check",
+      "label": "preview",
       "file_type": "code",
       "source_file": "package.json",
       "source_location": "L13",
+      "_origin": "ast",
+      "id": "package_scripts_preview",
+      "community": 8,
+      "norm_label": "preview"
+    },
+    {
+      "label": "build",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "package_scripts_build",
+      "community": 8,
+      "norm_label": "build"
+    },
+    {
+      "label": "release:check",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "package_scripts_release_check",
+      "community": 8,
+      "norm_label": "release:check"
+    },
+    {
+      "label": "release",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "package_scripts_release",
+      "community": 8,
+      "norm_label": "release"
+    },
+    {
+      "label": "check",
+      "file_type": "code",
+      "source_file": "package.json",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "package_scripts_check",
       "community": 8,
@@ -147,7 +277,7 @@
       "label": "test",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L14",
+      "source_location": "L18",
       "_origin": "ast",
       "id": "package_scripts_test",
       "community": 8,
@@ -157,7 +287,7 @@
       "label": "engines",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L16",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "package_engines",
       "community": 8,
@@ -167,7 +297,7 @@
       "label": "node",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L21",
       "_origin": "ast",
       "id": "package_engines_node",
       "community": 8,
@@ -177,7 +307,7 @@
       "label": "license",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L23",
       "_origin": "ast",
       "id": "package_license",
       "community": 8,
@@ -187,7 +317,7 @@
       "label": "private",
       "file_type": "code",
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "package_private",
       "community": 8,
@@ -321,7 +451,7 @@
       "end_line": 146,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_firstmeaningfulline",
-      "community": 1,
+      "community": 6,
       "norm_label": "firstmeaningfulline()"
     },
     {
@@ -409,7 +539,7 @@
       "end_line": 214,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_ensureagyavailable",
-      "community": 0,
+      "community": 6,
       "norm_label": "ensureagyavailable()"
     },
     {
@@ -474,7 +604,7 @@
       "end_line": 315,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_loadprompttemplate",
-      "community": 6,
+      "community": 0,
       "norm_label": "loadprompttemplate()"
     },
     {
@@ -485,7 +615,7 @@
       "end_line": 323,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_interpolatetemplate",
-      "community": 6,
+      "community": 0,
       "norm_label": "interpolatetemplate()"
     },
     {
@@ -496,7 +626,7 @@
       "end_line": 348,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_buildreviewprompt",
-      "community": 6,
+      "community": 0,
       "norm_label": "buildreviewprompt()"
     },
     {
@@ -529,7 +659,7 @@
       "end_line": 452,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_executetaskrun",
-      "community": 0,
+      "community": 6,
       "norm_label": "executetaskrun()"
     },
     {
@@ -584,7 +714,7 @@
       "end_line": 518,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_spawndetachedtaskworker",
-      "community": 0,
+      "community": 4,
       "norm_label": "spawndetachedtaskworker()"
     },
     {
@@ -859,7 +989,7 @@
       "end_line": 1201,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_buildstopgateprompt",
-      "community": 6,
+      "community": 0,
       "norm_label": "buildstopgateprompt()"
     },
     {
@@ -870,7 +1000,7 @@
       "end_line": 1230,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_parsestopreviewoutput",
-      "community": 6,
+      "community": 0,
       "norm_label": "parsestopreviewoutput()"
     },
     {
@@ -881,7 +1011,7 @@
       "end_line": 1264,
       "_origin": "ast",
       "id": "plugins_agy_scripts_agy_companion_runstopgatereview",
-      "community": 6,
+      "community": 0,
       "norm_label": "runstopgatereview()"
     },
     {
@@ -1241,7 +1371,7 @@
       "end_line": 126,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_git_update_check_formatupdatenotice",
-      "community": 1,
+      "community": 4,
       "norm_label": "formatupdatenotice()"
     },
     {
@@ -1615,7 +1745,7 @@
       "end_line": 231,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render",
-      "community": 0,
+      "community": 55,
       "norm_label": "render.mjs"
     },
     {
@@ -1626,7 +1756,7 @@
       "end_line": 6,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_escapemarkdowncell",
-      "community": 0,
+      "community": 55,
       "norm_label": "escapemarkdowncell()"
     },
     {
@@ -1637,7 +1767,7 @@
       "end_line": 17,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_formatjobline",
-      "community": 0,
+      "community": 55,
       "norm_label": "formatjobline()"
     },
     {
@@ -1648,7 +1778,7 @@
       "end_line": 32,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_appendactivejobstable",
-      "community": 0,
+      "community": 55,
       "norm_label": "appendactivejobstable()"
     },
     {
@@ -1659,7 +1789,7 @@
       "end_line": 63,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_pushjobdetails",
-      "community": 0,
+      "community": 55,
       "norm_label": "pushjobdetails()"
     },
     {
@@ -1670,7 +1800,7 @@
       "end_line": 93,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_rendersetupreport",
-      "community": 0,
+      "community": 55,
       "norm_label": "rendersetupreport()"
     },
     {
@@ -1681,7 +1811,7 @@
       "end_line": 106,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_rendertaskresult",
-      "community": 0,
+      "community": 6,
       "norm_label": "rendertaskresult()"
     },
     {
@@ -1692,7 +1822,7 @@
       "end_line": 119,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_renderreviewresult",
-      "community": 0,
+      "community": 55,
       "norm_label": "renderreviewresult()"
     },
     {
@@ -1703,7 +1833,7 @@
       "end_line": 172,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_renderstatusreport",
-      "community": 0,
+      "community": 55,
       "norm_label": "renderstatusreport()"
     },
     {
@@ -1714,7 +1844,7 @@
       "end_line": 184,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_renderjobstatusreport",
-      "community": 0,
+      "community": 55,
       "norm_label": "renderjobstatusreport()"
     },
     {
@@ -1736,7 +1866,7 @@
       "end_line": 230,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_render_rendercancelreport",
-      "community": 0,
+      "community": 55,
       "norm_label": "rendercancelreport()"
     },
     {
@@ -1801,7 +1931,7 @@
       "end_line": 51,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_state_resolvestatefile",
-      "community": 1,
+      "community": 4,
       "norm_label": "resolvestatefile()"
     },
     {
@@ -1834,7 +1964,7 @@
       "end_line": 81,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_state_loadstate",
-      "community": 1,
+      "community": 4,
       "norm_label": "loadstate()"
     },
     {
@@ -2109,7 +2239,7 @@
       "end_line": 13,
       "_origin": "ast",
       "id": "plugins_agy_scripts_lib_workspace",
-      "community": 3,
+      "community": 4,
       "norm_label": "workspace.mjs"
     },
     {
@@ -2131,7 +2261,7 @@
       "end_line": 118,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook",
-      "community": 1,
+      "community": 4,
       "norm_label": "session-lifecycle-hook.mjs"
     },
     {
@@ -2142,7 +2272,7 @@
       "end_line": 20,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_readhookinput",
-      "community": 1,
+      "community": 4,
       "norm_label": "readhookinput()"
     },
     {
@@ -2153,7 +2283,7 @@
       "end_line": 24,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_shellescape",
-      "community": 1,
+      "community": 4,
       "norm_label": "shellescape()"
     },
     {
@@ -2164,7 +2294,7 @@
       "end_line": 35,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_appendenvvar",
-      "community": 1,
+      "community": 4,
       "norm_label": "appendenvvar()"
     },
     {
@@ -2175,7 +2305,7 @@
       "end_line": 70,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_cleanupsessionjobs",
-      "community": 1,
+      "community": 4,
       "norm_label": "cleanupsessionjobs()"
     },
     {
@@ -2186,7 +2316,7 @@
       "end_line": 86,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_reportgitcloneupdate",
-      "community": 1,
+      "community": 4,
       "norm_label": "reportgitcloneupdate()"
     },
     {
@@ -2197,7 +2327,7 @@
       "end_line": 93,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_handlesessionstart",
-      "community": 1,
+      "community": 4,
       "norm_label": "handlesessionstart()"
     },
     {
@@ -2208,7 +2338,7 @@
       "end_line": 98,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_handlesessionend",
-      "community": 1,
+      "community": 4,
       "norm_label": "handlesessionend()"
     },
     {
@@ -2219,7 +2349,7 @@
       "end_line": 112,
       "_origin": "ast",
       "id": "plugins_agy_scripts_session_lifecycle_hook_main",
-      "community": 1,
+      "community": 4,
       "norm_label": "main()"
     },
     {
@@ -2581,6 +2711,68 @@
       "norm_label": "main()"
     },
     {
+      "label": "check-version.mjs",
+      "file_type": "code",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L1",
+      "end_line": 39,
+      "_origin": "ast",
+      "id": "scripts_check_version",
+      "community": 56,
+      "norm_label": "check-version.mjs"
+    },
+    {
+      "label": "root",
+      "file_type": "code",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "scripts_check_version_root",
+      "community": 56,
+      "norm_label": "root"
+    },
+    {
+      "label": "readJson()",
+      "file_type": "code",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "scripts_check_version_readjson",
+      "community": 56,
+      "norm_label": "readjson()"
+    },
+    {
+      "label": "collectVersions()",
+      "file_type": "code",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L11",
+      "end_line": 18,
+      "_origin": "ast",
+      "id": "scripts_check_version_collectversions",
+      "community": 56,
+      "norm_label": "collectversions()"
+    },
+    {
+      "label": "changelog",
+      "file_type": "code",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "scripts_check_version_changelog",
+      "community": 56,
+      "norm_label": "changelog"
+    },
+    {
+      "label": "updater",
+      "file_type": "code",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "scripts_check_version_updater",
+      "community": 56,
+      "norm_label": "updater"
+    },
+    {
       "label": "release.sh",
       "file_type": "code",
       "source_file": "scripts/release.sh",
@@ -2607,6 +2799,49 @@
       "id": "scripts_release_sh__entry",
       "community": 28,
       "norm_label": "release.sh script"
+    },
+    {
+      "label": "set-release-version.mjs",
+      "file_type": "code",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L1",
+      "end_line": 47,
+      "_origin": "ast",
+      "id": "scripts_set_release_version",
+      "community": 57,
+      "norm_label": "set-release-version.mjs"
+    },
+    {
+      "label": "setVersion()",
+      "file_type": "code",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L5",
+      "end_line": 11,
+      "_origin": "ast",
+      "id": "scripts_set_release_version_setversion",
+      "community": 57,
+      "norm_label": "setversion()"
+    },
+    {
+      "label": "updateReleaseVersion()",
+      "file_type": "code",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L13",
+      "end_line": 41,
+      "_origin": "ast",
+      "id": "scripts_set_release_version_updatereleaseversion",
+      "community": 57,
+      "norm_label": "updatereleaseversion()"
+    },
+    {
+      "label": "scriptPath",
+      "file_type": "code",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L43",
+      "_origin": "ast",
+      "id": "scripts_set_release_version_scriptpath",
+      "community": 57,
+      "norm_label": "scriptpath"
     },
     {
       "label": "lib.test.mjs",
@@ -2739,6 +2974,27 @@
       "id": "tests_lib_test_generatejobid_carries_the_prefix_and_is_unique_106",
       "community": 9,
       "norm_label": "generatejobid: carries the prefix and is unique"
+    },
+    {
+      "label": "release-version.test.mjs",
+      "file_type": "code",
+      "source_file": "tests/release-version.test.mjs",
+      "source_location": "L1",
+      "end_line": 32,
+      "_origin": "ast",
+      "id": "tests_release_version_test",
+      "community": 57,
+      "norm_label": "release-version.test.mjs"
+    },
+    {
+      "label": "release metadata updates semver and build surfaces together",
+      "file_type": "code",
+      "source_file": "tests/release-version.test.mjs",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "tests_release_version_test_release_metadata_updates_semver_and_build_surfaces_together_7",
+      "community": 57,
+      "norm_label": "release metadata updates semver and build surfaces together"
     },
     {
       "label": "SKILL.md",
@@ -3745,6 +4001,86 @@
       "norm_label": "agy-plugin-cc \u2014 context"
     },
     {
+      "label": "DESIGN.md",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "design",
+      "community": 53,
+      "norm_label": "design.md"
+    },
+    {
+      "label": "Design",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "design_design",
+      "community": 53,
+      "norm_label": "design"
+    },
+    {
+      "label": "Interaction model",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "design_interaction_model",
+      "community": 53,
+      "norm_label": "interaction model"
+    },
+    {
+      "label": "Principles",
+      "file_type": "document",
+      "source_file": "DESIGN.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "design_principles",
+      "community": 53,
+      "norm_label": "principles"
+    },
+    {
+      "label": "PRODUCT.md",
+      "file_type": "document",
+      "source_file": "PRODUCT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "product",
+      "community": 54,
+      "norm_label": "product.md"
+    },
+    {
+      "label": "Product",
+      "file_type": "document",
+      "source_file": "PRODUCT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "product_product",
+      "community": 54,
+      "norm_label": "product"
+    },
+    {
+      "label": "Users and interface",
+      "file_type": "document",
+      "source_file": "PRODUCT.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "product_users_and_interface",
+      "community": 54,
+      "norm_label": "users and interface"
+    },
+    {
+      "label": "Delivery",
+      "file_type": "document",
+      "source_file": "PRODUCT.md",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "product_delivery",
+      "community": 54,
+      "norm_label": "delivery"
+    },
+    {
       "label": "README.md",
       "file_type": "document",
       "source_file": "README.md",
@@ -3905,10 +4241,20 @@
       "norm_label": "changelog"
     },
     {
-      "label": "Contributors",
+      "label": "Development and delivery",
       "file_type": "document",
       "source_file": "README.md",
       "source_location": "L222",
+      "_origin": "ast",
+      "id": "readme_development_and_delivery",
+      "community": 2,
+      "norm_label": "development and delivery"
+    },
+    {
+      "label": "Contributors",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L226",
       "_origin": "ast",
       "id": "readme_contributors",
       "community": 2,
@@ -3918,7 +4264,7 @@
       "label": "License",
       "file_type": "document",
       "source_file": "README.md",
-      "source_location": "L226",
+      "source_location": "L230",
       "_origin": "ast",
       "id": "readme_license",
       "community": 2,
@@ -4528,6 +4874,94 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check",
+      "target": "github_workflows_check_jobs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check",
+      "target": "github_workflows_check_name",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check",
+      "target": "github_workflows_check_on",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check",
+      "target": "github_workflows_check_permissions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L4",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check_on",
+      "target": "github_workflows_check_on_pull_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check_on",
+      "target": "github_workflows_check_on_push",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check_permissions",
+      "target": "github_workflows_check_permissions_contents",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/workflows/check.yml",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_workflows_check_jobs",
+      "target": "github_workflows_check_jobs_check",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "cliff.toml",
       "source_location": "L1",
       "weight": 1.0,
@@ -4573,7 +5007,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L16",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package",
@@ -4595,7 +5029,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L19",
+      "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package",
@@ -4617,7 +5051,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L20",
+      "source_location": "L24",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package",
@@ -4661,11 +5095,55 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L13",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "package_scripts",
+      "target": "package_scripts_build",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L17",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
       "target": "package_scripts_check",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "package_scripts",
+      "target": "package_scripts_preview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "package_scripts",
+      "target": "package_scripts_release",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "package.json",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "package_scripts",
+      "target": "package_scripts_release_check",
       "confidence_score": 1.0
     },
     {
@@ -4683,7 +5161,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L14",
+      "source_location": "L18",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_scripts",
@@ -4694,7 +5172,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "package.json",
-      "source_location": "L17",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "package_engines",
@@ -12446,12 +12924,136 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_version",
+      "target": "scripts_check_version_changelog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_version",
+      "target": "scripts_check_version_collectversions",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_version",
+      "target": "scripts_check_version_readjson",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_version",
+      "target": "scripts_check_version_root",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/check-version.mjs",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_check_version",
+      "target": "scripts_check_version_updater",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "scripts/release.sh",
       "source_location": "L1",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_release",
       "target": "scripts_release_sh__entry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L43",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_set_release_version",
+      "target": "scripts_set_release_version_scriptpath",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_set_release_version",
+      "target": "scripts_set_release_version_setversion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_set_release_version",
+      "target": "scripts_set_release_version_updatereleaseversion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/release-version.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_release_version_test",
+      "target": "scripts_set_release_version",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/set-release-version.mjs",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_set_release_version_updatereleaseversion",
+      "target": "scripts_set_release_version_setversion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/release-version.test.mjs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_release_version_test",
+      "target": "scripts_set_release_version_updatereleaseversion",
       "confidence_score": 1.0
     },
     {
@@ -12584,6 +13186,17 @@
       "_origin": "ast",
       "source": "tests_lib_test",
       "target": "tests_lib_test_withtempstate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/release-version.test.mjs",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "tests_release_version_test",
+      "target": "tests_release_version_test_release_metadata_updates_semver_and_build_surfaces_together_7",
       "confidence_score": 1.0
     },
     {
@@ -13546,6 +14159,72 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design",
+      "target": "design_design",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_design",
+      "target": "design_interaction_model",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "design_design",
+      "target": "design_principles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRODUCT.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "product",
+      "target": "product_product",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRODUCT.md",
+      "source_location": "L9",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "product_product",
+      "target": "product_delivery",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "PRODUCT.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "product_product",
+      "target": "product_users_and_interface",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -13591,11 +14270,22 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L222",
+      "source_location": "L226",
       "weight": 1.0,
       "_origin": "ast",
       "source": "readme_agy_plugin_cc",
       "target": "readme_contributors",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L222",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "readme_agy_plugin_cc",
+      "target": "readme_development_and_delivery",
       "confidence_score": 1.0
     },
     {
@@ -13613,7 +14303,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "README.md",
-      "source_location": "L226",
+      "source_location": "L230",
       "weight": 1.0,
       "_origin": "ast",
       "source": "readme_agy_plugin_cc",
@@ -13952,5 +14642,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "45b6a9e1db672706dec101f728141e8216278dab"
+  "built_at_commit": "bcf85513bf95c0744ebb3ed326d2cf7ba18e0690"
 }
