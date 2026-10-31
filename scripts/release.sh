@@ -11,6 +11,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+npm run build
+
 if ! command -v git-cliff &>/dev/null; then
   echo "git-cliff not found. Install with: brew install git-cliff" >&2
   exit 1
