@@ -1,362 +1,377 @@
 {
   ".claude-plugin/marketplace.json": {
-    "mtime": 1793423218.7433164,
+    "mtime": 1793427308.4059737,
     "ast_hash": "f4cdf9e04277482c9ce989b1bb405bed",
     "semantic_hash": ""
   },
   ".claude-plugin/plugin.json": {
-    "mtime": 1793423218.743861,
+    "mtime": 1793427308.4064412,
     "ast_hash": "3692e1ee062eabd5f20015b6de59f1fc",
     "semantic_hash": ""
   },
   ".claude/settings.json": {
-    "mtime": 1793423218.7443347,
+    "mtime": 1793427308.4068563,
     "ast_hash": "99914b932bd37a50b983c5e7c90ae93b",
     "semantic_hash": ""
   },
   "cliff.toml": {
-    "mtime": 1793423218.7572627,
+    "mtime": 1793427308.420436,
     "ast_hash": "6df9156e5039c387fba0d3413689fa98",
     "semantic_hash": ""
   },
   "graphify.toml": {
-    "mtime": 1793423218.7635195,
+    "mtime": 1793427308.425411,
     "ast_hash": "463036a9e20dfba8be29d02ae8dcd232",
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1793424074.6268132,
-    "ast_hash": "8bee111f9b2e8f835344e931c377a4d1",
+    "mtime": 1793427487.8751209,
+    "ast_hash": "f565a6ed88df1d0293deca2200130aee",
     "semantic_hash": ""
   },
   "plugins/agy/.claude-plugin/plugin.json": {
-    "mtime": 1793423218.7648087,
+    "mtime": 1793427308.4266188,
     "ast_hash": "624a8190f9492ad70108d4c207197031",
     "semantic_hash": ""
   },
   "plugins/agy/hooks/hooks.json": {
-    "mtime": 1793423218.770705,
+    "mtime": 1793427308.4325142,
     "ast_hash": "72a733c425080bddb8f3d0ff32efab98",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/agy-companion.mjs": {
-    "mtime": 1793423218.7720442,
+    "mtime": 1793427308.4337955,
     "ast_hash": "13c6556d1713424134781c191bacdee4",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/agy.mjs": {
-    "mtime": 1793423218.773849,
+    "mtime": 1793427308.4348912,
     "ast_hash": "c2f1e9eeb450777c0038894cccc08355",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/args.mjs": {
-    "mtime": 1793423218.7743409,
+    "mtime": 1793427308.4354455,
     "ast_hash": "5aff89f5b7044bfad08d55c8b110b489",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/codexbar.mjs": {
-    "mtime": 1793423218.7747204,
+    "mtime": 1793427308.4356868,
     "ast_hash": "d10065dcb2beef1af35295f3d7481ca9",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/fs.mjs": {
-    "mtime": 1793423218.7749262,
+    "mtime": 1793427308.4358494,
     "ast_hash": "49b900a6752e4b77119be298319738f5",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/git-update-check.mjs": {
-    "mtime": 1793423218.7754834,
+    "mtime": 1793427308.4362676,
     "ast_hash": "91727fd5568ca01eda37bb05387c776f",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/git.mjs": {
-    "mtime": 1793423218.776002,
+    "mtime": 1793427308.4367127,
     "ast_hash": "19ce424df15b254b1740b8b788c5ef00",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/job-control.mjs": {
-    "mtime": 1793423218.776268,
+    "mtime": 1793427308.4369183,
     "ast_hash": "53fac335cee1dc1fafbdbd4708e6a600",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/process.mjs": {
-    "mtime": 1793423218.77662,
+    "mtime": 1793427308.4372373,
     "ast_hash": "bddb29573a675192ed803e9f57567091",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/render.mjs": {
-    "mtime": 1793423218.7768135,
+    "mtime": 1793427308.4373941,
     "ast_hash": "a1db96de5b3abd28b800e0dc6432fc78",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/state.mjs": {
-    "mtime": 1793423218.7770023,
+    "mtime": 1793427308.4375415,
     "ast_hash": "edfba9aa7f8496d30e6971482f269c2b",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/tracked-jobs.mjs": {
-    "mtime": 1793423218.7771962,
+    "mtime": 1793427308.4376886,
     "ast_hash": "a4c32638befd5a56fd12d09eb2eb1d1c",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/lib/workspace.mjs": {
-    "mtime": 1793423218.7773843,
+    "mtime": 1793427308.4378455,
     "ast_hash": "d167b7c097a29f1e448b61a4fece47ab",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/session-lifecycle-hook.mjs": {
-    "mtime": 1793423218.777812,
+    "mtime": 1793427308.4380991,
     "ast_hash": "e9a564282983ff9ed700182321b70aeb",
     "semantic_hash": ""
   },
   "plugins/agy/scripts/stop-review-gate-hook.mjs": {
-    "mtime": 1793423218.7780871,
+    "mtime": 1793427308.4383056,
     "ast_hash": "88c8f64485b1dba256cfb43c30299d3d",
     "semantic_hash": ""
   },
   "scripts/agy-companion.mjs": {
-    "mtime": 1793423218.7808766,
+    "mtime": 1793427308.4398577,
     "ast_hash": "10d8e4cc5aadde91b840fc6a52336213",
     "semantic_hash": ""
   },
   "scripts/release.sh": {
-    "mtime": 1793424092.5420933,
-    "ast_hash": "f7d4be08da304b5456e1bf012f762467",
+    "mtime": 1793427435.7085755,
+    "ast_hash": "c0715381999ebb33ddbc96e0e7f4246c",
     "semantic_hash": ""
   },
   "tests/lib.test.mjs": {
-    "mtime": 1793423218.7826474,
+    "mtime": 1793427308.4418836,
     "ast_hash": "9e8c665dbfbe2299b9a54f5c25c8fdd0",
     "semantic_hash": ""
   },
   "version.json": {
-    "mtime": 1793423218.7830613,
+    "mtime": 1793427308.4422028,
     "ast_hash": "89d36925d40930a78ced7b4861d494d0",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/SKILL.md": {
-    "mtime": 1793423218.7457674,
+    "mtime": 1793427308.408079,
     "ast_hash": "3f174d22ffe091b3fa486d5ba18bb6af",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/add-watch.md": {
-    "mtime": 1793423218.746402,
+    "mtime": 1793427308.4087002,
     "ast_hash": "d59d027fe449f06aa03905a01184e779",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/exports.md": {
-    "mtime": 1793423218.7471972,
+    "mtime": 1793427308.4093487,
     "ast_hash": "9da2a2152e60a22f07f05fed5158f287",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/extraction-spec.md": {
-    "mtime": 1793423218.747683,
+    "mtime": 1793427308.4097965,
     "ast_hash": "42fef56a01698118f7fd722acdadea34",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/github-and-merge.md": {
-    "mtime": 1793423218.7481163,
+    "mtime": 1793427308.410221,
     "ast_hash": "cde13df085e4c492aeb7ba298a996d0d",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/hooks.md": {
-    "mtime": 1793423218.7485569,
+    "mtime": 1793427308.4105003,
     "ast_hash": "3f545db6ce646650bb9de588f5512a27",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/query.md": {
-    "mtime": 1793423218.7492115,
+    "mtime": 1793427308.4109743,
     "ast_hash": "3c46f8ad006874260614ed8657d02307",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/transcribe.md": {
-    "mtime": 1793423218.7496588,
+    "mtime": 1793427308.411486,
     "ast_hash": "67b6a5fa6c0974e18f60db9f8932fbd8",
     "semantic_hash": ""
   },
   ".claude/skills/graphify/references/update.md": {
-    "mtime": 1793423218.7500434,
+    "mtime": 1793427308.4120166,
     "ast_hash": "c698309979460d0f02ba616417844399",
     "semantic_hash": ""
   },
   "AGENTS.md": {
-    "mtime": 1793423218.7509682,
+    "mtime": 1793427308.4139073,
     "ast_hash": "b9f8362a90ce606296347d51493319fd",
     "semantic_hash": ""
   },
   "ARCHITECTURE.md": {
-    "mtime": 1793423218.7515447,
+    "mtime": 1793427308.414388,
     "ast_hash": "4fc8a441330574e9c42c04379b626872",
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1793423218.7520022,
+    "mtime": 1793427308.414763,
     "ast_hash": "f89bdc6b81f6665701e47e311c44703d",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793423218.752651,
+    "mtime": 1793427308.4151525,
     "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
     "semantic_hash": ""
   },
   "CONTEXT.md": {
-    "mtime": 1793423218.7530556,
+    "mtime": 1793427308.4155877,
     "ast_hash": "7c42b3d973c690f36b877a3fa9afdd11",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1793424092.5428922,
-    "ast_hash": "e7a27b534d4ce34ff835ba0d298a61bf",
+    "mtime": 1793427435.7092628,
+    "ast_hash": "1b36b59b4a8016efb9d484e37c2073e0",
     "semantic_hash": ""
   },
   "SECURITY.md": {
-    "mtime": 1793423218.755822,
+    "mtime": 1793427308.419507,
     "ast_hash": "239497d805801f191cea675afd1442c3",
     "semantic_hash": ""
   },
   "agents/agy-rescue.md": {
-    "mtime": 1793423218.756677,
+    "mtime": 1793427308.419986,
     "ast_hash": "3b39e250ab99392954fa4e58dbfc218c",
     "semantic_hash": ""
   },
   "commands/agy-update.md": {
-    "mtime": 1793423218.7578242,
+    "mtime": 1793427308.4208655,
     "ast_hash": "7844941d588f2518330f2af860275af1",
     "semantic_hash": ""
   },
   "commands/agy.md": {
-    "mtime": 1793423218.7580426,
+    "mtime": 1793427308.4210413,
     "ast_hash": "35013ef7dbc87564ec5099022c0b4d9d",
     "semantic_hash": ""
   },
   "commands/rescue.md": {
-    "mtime": 1793423218.7584324,
+    "mtime": 1793427308.4216664,
     "ast_hash": "9ddec58f1ba6919386dce47ef51012d2",
     "semantic_hash": ""
   },
   "commands/setup.md": {
-    "mtime": 1793423218.7588332,
+    "mtime": 1793427308.4220533,
     "ast_hash": "eff609a3204e263e245ac7ca6a7b88da",
     "semantic_hash": ""
   },
   "plugins/agy/agents/agy-rescue.md": {
-    "mtime": 1793423218.7653513,
+    "mtime": 1793427308.427392,
     "ast_hash": "1ea04ebb26588e79657cd03c7c0e2c20",
     "semantic_hash": ""
   },
   "plugins/agy/commands/adversarial-review.md": {
-    "mtime": 1793423218.7660408,
+    "mtime": 1793427308.427941,
     "ast_hash": "a04c1b1b950b7fbeadf5078fd90b2254",
     "semantic_hash": ""
   },
   "plugins/agy/commands/agents.md": {
-    "mtime": 1793423218.766721,
+    "mtime": 1793427308.428321,
     "ast_hash": "7d3a9a748a37820540ea2f4cf00483d2",
     "semantic_hash": ""
   },
   "plugins/agy/commands/agy.md": {
-    "mtime": 1793423218.7670634,
+    "mtime": 1793427308.4288337,
     "ast_hash": "7b68922ec9f3061806be492ae3fb82d4",
     "semantic_hash": ""
   },
   "plugins/agy/commands/cancel.md": {
-    "mtime": 1793423218.7672782,
+    "mtime": 1793427308.4289665,
     "ast_hash": "7b5b0318dfa99de5f1cdac32506e0c37",
     "semantic_hash": ""
   },
   "plugins/agy/commands/changelog.md": {
-    "mtime": 1793423218.7678068,
+    "mtime": 1793427308.4295928,
     "ast_hash": "8751873c1de441445b45d5ef92c3e4f5",
     "semantic_hash": ""
   },
   "plugins/agy/commands/doctor.md": {
-    "mtime": 1793423218.7681713,
+    "mtime": 1793427308.4299529,
     "ast_hash": "7182e7dab12548ccec2e50a66fd2faf6",
     "semantic_hash": ""
   },
   "plugins/agy/commands/models.md": {
-    "mtime": 1793423218.7685149,
+    "mtime": 1793427308.4303675,
     "ast_hash": "5b62a24b82f8d55742365b125d904dfa",
     "semantic_hash": ""
   },
   "plugins/agy/commands/rescue.md": {
-    "mtime": 1793423218.769113,
+    "mtime": 1793427308.430714,
     "ast_hash": "278cfba496f59624b2cde0738062a1bf",
     "semantic_hash": ""
   },
   "plugins/agy/commands/result.md": {
-    "mtime": 1793423218.769316,
+    "mtime": 1793427308.4309814,
     "ast_hash": "ab56fed7dd2b60e68bad760f6e7028fb",
     "semantic_hash": ""
   },
   "plugins/agy/commands/review.md": {
-    "mtime": 1793423218.7696548,
+    "mtime": 1793427308.431267,
     "ast_hash": "e706a172677f8996539378bf3f7ecf82",
     "semantic_hash": ""
   },
   "plugins/agy/commands/setup.md": {
-    "mtime": 1793423218.7700005,
+    "mtime": 1793427308.4314404,
     "ast_hash": "e20efa6fdea9bcf377c5fbd3d5a59fb0",
     "semantic_hash": ""
   },
   "plugins/agy/commands/status.md": {
-    "mtime": 1793423218.7703655,
+    "mtime": 1793427308.431988,
     "ast_hash": "d8ff31aef2c119ddb949a5f5d2ee12c5",
     "semantic_hash": ""
   },
   "plugins/agy/prompts/adversarial-review.md": {
-    "mtime": 1793423218.7710233,
+    "mtime": 1793427308.43287,
     "ast_hash": "0b3eb1de42d22979d6614733a27509ea",
     "semantic_hash": ""
   },
   "plugins/agy/prompts/review.md": {
-    "mtime": 1793423218.7712023,
+    "mtime": 1793427308.4330237,
     "ast_hash": "f8894adc6c24dfe7679611d41373ac58",
     "semantic_hash": ""
   },
   "plugins/agy/prompts/stop-review-gate.md": {
-    "mtime": 1793423218.7713883,
+    "mtime": 1793427308.4331663,
     "ast_hash": "93914b8085c318e0fd137220652130f2",
     "semantic_hash": ""
   },
   "plugins/agy/skills/agy-cli-runtime/SKILL.md": {
-    "mtime": 1793423218.7786305,
+    "mtime": 1793427308.4387064,
     "ast_hash": "b61eae1e51821116fedd28170bec6ddc",
     "semantic_hash": ""
   },
   "plugins/agy/skills/agy-result-handling/SKILL.md": {
-    "mtime": 1793423218.7791464,
+    "mtime": 1793427308.4389403,
     "ast_hash": "3445ef399c98950db054ee6a309059bf",
     "semantic_hash": ""
   },
   "plugins/agy/skills/gemini-3-prompting/SKILL.md": {
-    "mtime": 1793423218.7802117,
+    "mtime": 1793427308.4393337,
     "ast_hash": "5c209432a935364b6f32085787e678c6",
     "semantic_hash": ""
   },
   "skills/agy-cli-runtime/SKILL.md": {
-    "mtime": 1793423218.7817986,
+    "mtime": 1793427308.4405594,
     "ast_hash": "32ec353f7b7776ff73338e545a493e82",
     "semantic_hash": ""
   },
   "skills/gemini-3-prompting/SKILL.md": {
-    "mtime": 1793423218.7821035,
+    "mtime": 1793427308.4410732,
     "ast_hash": "1f4ddf97e2f843905fa7b09f0db5d016",
     "semantic_hash": ""
   },
   ".github/workflows/check.yml": {
-    "mtime": 1793424074.6290321,
-    "ast_hash": "571667b9d54cc30869c86d6bcfad84d0",
+    "mtime": 1793427435.7089558,
+    "ast_hash": "0590c597fb0d52ca1ae15da80eaa3427",
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1793424092.544264,
+    "mtime": 1793427308.416065,
     "ast_hash": "c71f69ec077eed2bd5650160ec40481e",
     "semantic_hash": ""
   },
   "PRODUCT.md": {
-    "mtime": 1793424092.5439608,
+    "mtime": 1793427308.4182842,
     "ast_hash": "be2ecd57350b6706a1fe98b69c4942f8",
+    "semantic_hash": ""
+  },
+  "scripts/check-version.mjs": {
+    "mtime": 1793427423.705728,
+    "ast_hash": "4cd3b4444fe6e7c4a26cfe3d7b74feb8",
+    "semantic_hash": ""
+  },
+  "scripts/set-release-version.mjs": {
+    "mtime": 1793427505.4344325,
+    "ast_hash": "6dde193c0ad208e1bc5024dc0809d99e",
+    "semantic_hash": ""
+  },
+  "tests/release-version.test.mjs": {
+    "mtime": 1793427533.158469,
+    "ast_hash": "00a742469f51fc86c046abcf1fd3a738",
     "semantic_hash": ""
   }
 }
