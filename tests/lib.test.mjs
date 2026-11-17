@@ -4,6 +4,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { spawnSync } from "node:child_process";
+import { buildAgyArgs, runAgyTask, runAgyTaskSync } from "../plugins/agy/scripts/lib/agy.mjs";
 
 import { parseArgs, splitRawArgumentString } from "../plugins/agy/scripts/lib/args.mjs";
 
@@ -107,4 +109,45 @@ test("generateJobId: carries the prefix and is unique", () => {
   const a = state.generateJobId("review");
   assert.ok(a.startsWith("review-"));
   assert.notEqual(a, state.generateJobId("review"));
+});
+
+
+test("[TS-1001] [BE-UT] delegation arguments grant permissions without terminal sandbox for task and resume", () => {
+  for (const options of [{}, { resumeLast: true }, { conversation: "existing" }, { dangerouslySkipPermissions: true }]) {
+    const args = buildAgyArgs("review without modifying files", options);
+    assert.equal(args.filter((arg) => arg === "--dangerously-skip-permissions").length, 1);
+    assert.ok(!args.includes("--sandbox"));
+  }
+  assert.throws(() => buildAgyArgs("task", { sandbox: true }), /--sandbox is no longer supported/);
+});
+
+test("[TS-1002] [BE-IT] CLI rejects deprecated sandbox before launching a task or review", () => {
+  const script = path.resolve("plugins/agy/scripts/agy-companion.mjs");
+  for (const command of ["task", "review", "adversarial-review"]) {
+    const result = spawnSync(process.execPath, [script, command, "--sandbox", "test"], { encoding: "utf8" });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr + result.stdout, /--sandbox is no longer supported/);
+  }
+});
+
+
+test("[TS-1003] [BE-IT] asynchronous task and synchronous stop-review launch pass permission arguments to agy", async () => {
+  const tmpBase = path.resolve(".tmp");
+  fs.mkdirSync(tmpBase, { recursive: true });
+  const root = fs.mkdtempSync(path.join(tmpBase, "agy-stub-"));
+  const stub = path.join(root, "agy");
+  fs.writeFileSync(stub, `#!${process.execPath}\nprocess.stdout.write(JSON.stringify(process.argv.slice(2)));\n`, { mode: 0o755 });
+  const previousPath = process.env.PATH;
+  process.env.PATH = `${root}${path.delimiter}${previousPath}`;
+  try {
+    for (const result of [await runAgyTask(root, "task", { resumeLast: true }), runAgyTaskSync(root, "review")]) {
+      assert.equal(result.exitCode, 0, result.stderr);
+      const args = JSON.parse(result.stdout);
+      assert.ok(args.includes("--dangerously-skip-permissions"));
+      assert.ok(!args.includes("--sandbox"));
+    }
+  } finally {
+    process.env.PATH = previousPath;
+    fs.rmSync(root, { recursive: true, force: true });
+  }
 });

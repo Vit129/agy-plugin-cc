@@ -1,15 +1,15 @@
-# Graph Summary — delivery-workflow-completion
+# Graph Summary — agy-plugin-cc
 _Auto-generated from GRAPH_REPORT.md · do not edit manually_
 _Regen: `graphify update .`_
 
 ## Summary
-- 451 nodes · 846 edges · 58 communities (48 shown, 10 thin omitted)
+- 460 nodes · 857 edges · 59 communities (48 shown, 11 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 
 ## Graph Freshness
-- Built from commit: `bcf85513`
+- Built from commit: `10a98972`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -33,14 +33,14 @@ utility/config file can rack up more edges than a real coupler while only
 ever touching one area. This ranks by how many DIFFERENT communities a
 node's neighbors span, not by raw edge count.
 1. `handleCancel()` - bridges 4 areas (13 edges)
-2. `executeReviewRun()` - bridges 4 areas (10 edges)
-3. `handleTaskWorker()` - bridges 4 areas (10 edges)
-4. `handleReviewCommand()` - bridges 3 areas (19 edges)
-5. `resolveWorkspaceRoot()` - bridges 3 areas (17 edges)
-6. `getAgyAvailability()` - bridges 3 areas (10 edges)
-7. `handleSetup()` - bridges 3 areas (9 edges)
-8. `executeTaskRun()` - bridges 3 areas (9 edges)
-9. `getConfig()` - bridges 3 areas (8 edges)
+2. `executeTaskRun()` - bridges 4 areas (9 edges)
+3. `resolveWorkspaceRoot()` - bridges 3 areas (17 edges)
+4. `executeReviewRun()` - bridges 3 areas (10 edges)
+5. `getAgyAvailability()` - bridges 3 areas (10 edges)
+6. `handleReviewCommand()` - bridges 2 areas (19 edges)
+7. `handleStatus()` - bridges 2 areas (11 edges)
+8. `listJobs()` - bridges 2 areas (11 edges)
+9. `handleTaskWorker()` - bridges 2 areas (10 edges)
 
 ## Surprising Connections (you probably didn't know these)
 - `resolveCommandWorkspace()` --calls--> `resolveWorkspaceRoot()`  [EXTRACTED]

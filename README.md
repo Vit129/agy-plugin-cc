@@ -67,7 +67,7 @@ Run a one-shot `agy` task directly.
 ```text
 /agy:agy "Explain how the authentication flow works in this repo"
 /agy:agy --resume "Keep going"
-/agy:agy --sandbox "What files changed in the last commit?"
+/agy:agy "What files changed in the last commit?"
 ```
 
 ---
@@ -81,7 +81,7 @@ Delegate investigation, fixes, or follow-up work to `agy`. Checks for a resumabl
 /agy:rescue "Triage the slow query logs" --background
 /agy:rescue "Keep going" --resume
 /agy:rescue "Start over from scratch" --fresh
-/agy:rescue "Read-only audit of the auth module" --sandbox
+/agy:rescue "Read-only audit of the auth module"
 ```
 
 **Flags:**
@@ -91,7 +91,6 @@ Delegate investigation, fixes, or follow-up work to `agy`. Checks for a resumabl
 | `--background` | Run in the background; check progress with `/agy:status` |
 | `--resume` | Continue the most recent agy conversation |
 | `--fresh` | Force a new conversation, ignoring previous context |
-| `--sandbox` | Run agy with terminal restrictions (read-only mode) |
 
 ---
 
@@ -234,3 +233,5 @@ and scripts are derived from [`codex-plugin-cc`](https://github.com/openai/codex
 Apache-2.0), credited in `NOTICE`. Releases up to
 v1.5.1 were published under MIT and remain available under those terms (`LICENSE-MIT`). Keep
 `LICENSE` and `NOTICE` when you redistribute, and mark the files you change.
+
+Delegated agy runs use `--dangerously-skip-permissions` without agy terminal sandboxing. Parent environment restrictions still apply. For read-only reviews, state that constraint in the prompt. The `--sandbox` option is rejected.

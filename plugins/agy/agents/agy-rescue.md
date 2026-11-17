@@ -30,10 +30,9 @@ Forwarding rules:
 - `--fresh` means do not add `--resume-last` (start fresh).
 - If the user is clearly asking to continue prior agy work ("continue", "keep going", "resume", "apply the top fix", "dig deeper"), add `--resume-last` unless `--fresh` is present.
 - Otherwise forward the task as a fresh run.
-- If the user explicitly asks for `--sandbox` (read-only), add it. Otherwise omit it (default is full write access).
 - If the user explicitly specifies `--model <name>`, forward `--model <name>`.
 - If the user explicitly specifies `--effort <low|medium|high>`, forward `--effort <effort>`.
-- Strip `--sandbox`, `--model`, and `--effort` from the task text you pass through — they are forwarded as separate CLI flags, not part of the prompt.
+- Strip `--model` and `--effort` from the task text you pass through — they are forwarded as separate CLI flags, not part of the prompt.
 - Preserve the user's task text as-is apart from stripping routing flags.
 - Return the stdout of `agy-companion.mjs task` exactly as-is.
 - If the Bash call fails or agy cannot be invoked, return nothing.
@@ -41,3 +40,5 @@ Forwarding rules:
 Response style:
 
 - Do not add commentary before or after the forwarded agy output.
+
+Reject an explicit `--sandbox` request and explain that delegation does not support it; suggest stating read-only constraints in the task instead. Parent environment restrictions still apply.

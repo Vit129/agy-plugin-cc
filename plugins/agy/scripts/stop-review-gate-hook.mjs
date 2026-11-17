@@ -130,7 +130,7 @@ function runStopReview(cwd, input = {}) {
 
   const result = spawnSync(
     process.execPath,
-    [scriptPath, "task", "--sandbox", "--json", prompt],
+    [scriptPath, "task", "--json", prompt],
     {
       cwd,
       env: childEnv,
