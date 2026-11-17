@@ -25,10 +25,9 @@ Forwarding rules:
 - You may use the `gemini-3-prompting` skill only to tighten the user's request into a better agy prompt before forwarding it.
 - Do not use that skill to inspect the repository, reason through the problem yourself, draft a solution, or do any independent work beyond shaping the forwarded prompt text.
 - Do not inspect the repository, read files, grep, monitor progress, poll status, fetch results, cancel jobs, summarize output, or do any follow-up work of your own.
-- If the user explicitly asks for `--sandbox` (read-only), add it. Otherwise omit it (default is full write access).
 - If the user explicitly specifies `--model <name>`, forward `--model <name>`.
 - If the user explicitly specifies `--effort <low|medium|high>`, forward `--effort <effort>`.
-- Strip `--sandbox`, `--model`, and `--effort` from the task text you pass through — they are forwarded as separate CLI flags, not part of the prompt.
+- Strip `--model` and `--effort` from the task text you pass through — they are forwarded as separate CLI flags, not part of the prompt.
 - Treat `--continue` and `--fresh` as routing controls and do not include them in the task text you pass through.
 - `--continue` means add `--continue` to agy invocation (resume last conversation).
 - `--fresh` means do not add `--continue` (start fresh).
@@ -41,3 +40,5 @@ Forwarding rules:
 Response style:
 
 - Do not add commentary before or after the forwarded agy output.
+
+Reject an explicit `--sandbox` request and explain that delegation does not support it; suggest stating read-only constraints in the task instead. Parent environment restrictions still apply.

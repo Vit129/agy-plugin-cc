@@ -1,6 +1,6 @@
 ---
 description: Delegate investigation, an explicit fix request, or follow-up rescue work to the agy (Antigravity) agent
-argument-hint: "[--background|--wait] [--continue|--fresh] [--sandbox] [--model <model>] [--effort <low|medium|high>] [what agy should investigate, solve, or continue]"
+argument-hint: "[--background|--wait] [--continue|--fresh] [--model <model>] [--effort <low|medium|high>] [what agy should investigate, solve, or continue]"
 allowed-tools: Bash, AskUserQuestion, Agent
 ---
 
@@ -17,7 +17,7 @@ Execution mode:
 - If the request includes `--wait`, run it in the foreground.
 - If neither flag is present, default to foreground.
 - `--background` and `--wait` are execution flags for Claude Code. Do not forward them to the task text.
-- `--sandbox`, `--model`, and `--effort` are runtime flags. Preserve them for the forwarded call but do not treat them as part of the natural-language task text.
+- `--model` and `--effort` are runtime flags. Preserve them for the forwarded call but do not treat them as part of the natural-language task text.
 - If the request includes `--continue`, do not ask whether to continue. The user already chose.
 - If the request includes `--fresh`, do not ask whether to continue. The user already chose.
 - Otherwise, before starting agy, check for a resumable session by running:
@@ -43,3 +43,5 @@ Operating rules:
 - Do not paraphrase, summarize, rewrite, or add commentary before or after it.
 - If the helper reports that agy is missing or unauthenticated, stop and tell the user to run `/cc-agy-plugin:setup`.
 - If the user did not supply a request, ask what agy should investigate or fix.
+
+Reject an explicit `--sandbox` request and explain that delegation does not support it; suggest stating read-only constraints in the task instead. Parent environment restrictions still apply.

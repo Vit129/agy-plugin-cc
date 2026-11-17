@@ -23,13 +23,11 @@ Command selection:
 - If the forwarded request includes `--background` or `--wait`, treat that as Claude-side execution control only. Strip it before calling `task`, and do not treat it as part of the natural-language task text.
 - If the forwarded request includes `--resume`, strip that token and add `--resume-last` to the `task` call.
 - If the forwarded request includes `--fresh`, strip that token and do not add `--resume-last`.
-- If the forwarded request includes `--sandbox`, pass it through to `task`.
 - `--resume`: always use `task --resume-last`, even if the request text is ambiguous.
 - `--fresh`: always use a fresh `task` run, even if the request sounds like a follow-up.
 - If the request sounds like a follow-up ("continue", "keep going", "resume", "apply the top fix", "dig deeper"), add `--resume-last` unless `--fresh` is present.
 
 Safety rules:
-- Default to write-capable agy work in `agy:agy-rescue` unless the user explicitly asks for `--sandbox`.
 - Preserve the user's task text as-is apart from stripping routing flags.
 - Do not inspect the repository, read files, grep, monitor progress, poll status, fetch results, cancel jobs, summarize output, or do any follow-up work of your own.
 - Return the stdout of the `task` command exactly as-is.

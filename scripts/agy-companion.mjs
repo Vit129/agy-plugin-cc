@@ -103,7 +103,7 @@ function parseArgs(argv) {
 }
 
 function buildAgyArgs(prompt, opts) {
-  const args = [];
+  const args = ["--dangerously-skip-permissions"];
   if (opts.continue) {
     args.push("--continue");
   }
