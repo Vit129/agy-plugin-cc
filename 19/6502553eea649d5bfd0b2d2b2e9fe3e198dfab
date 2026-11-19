@@ -1,0 +1,19 @@
+AGENTS.md
+  s_b702f4efbdd257::t_32ffc3a91c2d05 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.3",
+  "base_commit_sha": "196502553eea649d5bfd0b2d2b2e9fe3e198dfab",
+  "prompts": {},
+  "sessions": {
+    "s_b702f4efbdd257": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1f401-10a8-78d2-a9de-17309418fb2f",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
