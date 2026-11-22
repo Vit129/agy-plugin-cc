@@ -12,7 +12,30 @@ const HOMEBREW_PREFIXES = ["/opt/homebrew/bin", "/usr/local/bin"];
 // Hook and IDE processes often run with a trimmed PATH; treating that as
 // "not installed" sent assistants to the vendor installer on machines where
 // the CLI was already present.
+// The shell's own lookup (`command -v agy`) runs first. The fixed install paths
+// below are a fallback for a trimmed PATH in hook and IDE processes.
+function commandVPath() {
+  const r = spawnSync("sh", ["-c", "command -v agy"], { encoding: "utf8" });
+  const found = r.status === 0 ? r.stdout.trim() : "";
+  return found && path.isAbsolute(found) ? found : null;
+}
+
+// A child killed by a signal has status null. Count it as a failure, not success.
+export function exitCodeOf(result) {
+  if (result.error) return 1;
+  if (typeof result.status === "number") return result.status;
+  return result.signal ? 1 : 0;
+}
+
+export function withSignalNote(stderr, signal) {
+  if (!signal) return stderr;
+  const sep = stderr && !stderr.endsWith("\n") ? "\n" : "";
+  return `${stderr}${sep}agy was terminated by signal ${signal}.\n`;
+}
+
 export function resolveAgyBinary() {
+  const onPath = commandVPath();
+  if (onPath) return onPath;
   const dirs = [
     ...(process.env.PATH || "").split(path.delimiter),
     ...HOMEBREW_PREFIXES,
@@ -56,7 +79,11 @@ export function getAgyAuthStatus(cwd) {
   if (!avail.available) {
     return { loggedIn: false, detail: "agy not installed" };
   }
-  return { loggedIn: true, detail: "agy is available (auth managed by agy itself)" };
+  // agy 1.5.x has no auth status command, so login is not checked. null means "not verified".
+  return {
+    loggedIn: null,
+    detail: "agy is installed; login is not checked (agy has no auth status command). If a task fails with an auth error, run `agy` once interactively to log in."
+  };
 }
 
 export function buildAgyArgs(prompt, options = {}) {
@@ -136,8 +163,8 @@ export async function runAgyTask(cwd, prompt, options = {}) {
       resolve({ exitCode: 1, stdout, stderr: error.message });
     });
 
-    child.on("close", (code) => {
-      resolve({ exitCode: code ?? 0, stdout, stderr });
+    child.on("close", (code, signal) => {
+      resolve({ exitCode: exitCodeOf({ status: code, signal }), stdout, stderr: withSignalNote(stderr, signal) });
     });
   });
 }
@@ -162,9 +189,9 @@ export function runAgyTaskSync(cwd, prompt, options = {}) {
   }
 
   return {
-    exitCode: result.status ?? (result.error ? 1 : 0),
+    exitCode: exitCodeOf(result),
     stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
+    stderr: withSignalNote(result.stderr ?? "", result.signal),
     timedOut: false
   };
 }
@@ -178,9 +205,9 @@ export function runAgyModels(cwd, options = {}) {
   });
 
   return {
-    exitCode: result.status ?? (result.error ? 1 : 0),
+    exitCode: exitCodeOf(result),
     stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
+    stderr: withSignalNote(result.stderr ?? "", result.signal),
     error: result.error ?? null
   };
 }
@@ -194,9 +221,9 @@ export function runAgyAgents(cwd, options = {}) {
   });
 
   return {
-    exitCode: result.status ?? (result.error ? 1 : 0),
+    exitCode: exitCodeOf(result),
     stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
+    stderr: withSignalNote(result.stderr ?? "", result.signal),
     error: result.error ?? null
   };
 }
@@ -210,9 +237,9 @@ export function runAgyChangelog(cwd, options = {}) {
   });
 
   return {
-    exitCode: result.status ?? (result.error ? 1 : 0),
+    exitCode: exitCodeOf(result),
     stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
+    stderr: withSignalNote(result.stderr ?? "", result.signal),
     error: result.error ?? null
   };
 }

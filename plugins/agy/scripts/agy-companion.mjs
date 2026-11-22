@@ -87,8 +87,20 @@ function outputResult(value, asJson) {
   }
 }
 
-function outputCommandResult(payload, rendered, asJson) {
+// A failed command writes its diagnostic to stderr. JSON callers still get the payload.
+function outputCommandResult(payload, rendered, asJson, exitCode = 0) {
+  if (exitCode !== 0 && !asJson) {
+    process.stderr.write(rendered.endsWith("\n") ? rendered : `${rendered}\n`);
+    return;
+  }
   outputResult(asJson ? payload : rendered, asJson);
+}
+
+// Shown under a task's output when agy exited nonzero, so the diagnostic is not lost.
+function renderStderrBlock(stderr, exitCode) {
+  const text = String(stderr ?? "").trim();
+  if (!text) return "";
+  return `\n--- agy stderr (exit ${exitCode}) ---\n${text}\n`;
 }
 
 function normalizeArgv(argv) {
@@ -222,6 +234,7 @@ function ensureValidModel(cwd, agyOptions) {
   }
   const result = runAgyModels(cwd, { timeout: 10000 });
   if (result.exitCode !== 0) {
+    process.stderr.write(`warning: could not validate model "${agyOptions.model}" (agy models exit ${result.exitCode}); continuing.\n${renderStderrBlock(result.stderr, result.exitCode)}`);
     return;
   }
   const rawLines = parseModelLines(result.stdout);
@@ -370,7 +383,7 @@ async function executeReviewRun(request) {
   const rendered = renderReviewResult(result.stdout, {
     reviewLabel: reviewName,
     targetLabel: target.label
-  });
+  }) + (result.exitCode !== 0 ? renderStderrBlock(result.stderr, result.exitCode) : "");
   const payload = {
     review: reviewName,
     target,
@@ -435,11 +448,12 @@ async function executeTaskRun(request) {
   const rendered = renderTaskResult(
     { rawOutput, failureMessage },
     { title: taskMetadata.title, jobId: request.jobId ?? null }
-  );
+  ) + (result.exitCode !== 0 ? renderStderrBlock(failureMessage, result.exitCode) : "");
   const payload = {
     status: result.exitCode === 0 ? "completed" : "failed",
     exitCode: result.exitCode,
-    rawOutput
+    rawOutput,
+    stderr: failureMessage
   };
 
   return {
@@ -558,7 +572,8 @@ function buildQuotaLines(cwd) {
 
   const result = runCodexBarAntigravityQuota(cwd, { timeout: 10000 });
   if (result.exitCode !== 0) {
-    return ["codexbar usage check failed (not logged in, or the antigravity provider is disabled in codexbar)."];
+    const detail = String(result.stderr ?? "").trim();
+    return [`codexbar usage check failed (not logged in, or the antigravity provider is disabled in codexbar)${detail ? `: ${detail}` : "."}`];
   }
 
   let parsed;
@@ -695,7 +710,7 @@ function buildDoctorReport(cwd) {
   const host = buildHostDoctor(manifest?.version ?? null);
 
   return {
-    ready: Boolean(agy.available && auth.loggedIn && manifest),
+    ready: Boolean(agy.available && auth.loggedIn !== false && manifest),
     plugin: {
       root: ROOT_DIR,
       manifestPath,
@@ -775,7 +790,8 @@ function handleModels(argv) {
   outputCommandResult(
     payload,
     result.exitCode === 0 ? renderModelsReport(models) : (result.stderr || result.stdout || "agy models failed\n"),
-    options.json
+    options.json,
+    result.exitCode
   );
   if (result.exitCode !== 0) {
     process.exitCode = result.exitCode;
@@ -803,7 +819,8 @@ function handleChangelog(argv) {
   outputCommandResult(
     payload,
     result.exitCode === 0 ? result.stdout : (result.stderr || result.stdout || "agy changelog failed\n"),
-    options.json
+    options.json,
+    result.exitCode
   );
   if (result.exitCode !== 0) {
     process.exitCode = result.exitCode;
@@ -821,7 +838,8 @@ function handleAgents(argv) {
   outputCommandResult(
     payload,
     result.exitCode === 0 ? result.stdout : (result.stderr || result.stdout || "agy agents failed\n"),
-    options.json
+    options.json,
+    result.exitCode
   );
   if (result.exitCode !== 0) {
     process.exitCode = result.exitCode;

@@ -13,12 +13,23 @@ function ensureStateDir() {
   fs.mkdirSync(STATE_DIR, { recursive: true });
 }
 
+// Background runs write their exit code to <job>.exit when they finish. Reading the
+// session records that result, so a finished background run becomes resumable.
 function readLastSession() {
+  let session;
   try {
-    return JSON.parse(fs.readFileSync(SESSION_FILE, "utf8"));
+    session = JSON.parse(fs.readFileSync(SESSION_FILE, "utf8"));
   } catch {
     return null;
   }
+  if (session && session.status === "running" && session.exitFile && fs.existsSync(session.exitFile)) {
+    const code = Number.parseInt(fs.readFileSync(session.exitFile, "utf8").trim(), 10);
+    session.exitCode = Number.isNaN(code) ? 1 : code;
+    session.status = session.exitCode === 0 ? "completed" : "failed";
+    session.completedAt = new Date().toISOString();
+    writeLastSession(session);
+  }
+  return session;
 }
 
 function writeLastSession(data) {
@@ -32,7 +43,17 @@ const HOMEBREW_PREFIXES = ["/opt/homebrew/bin", "/usr/local/bin"];
 // Hook and IDE processes often run with a trimmed PATH; treating that as
 // "not installed" sent agents to the vendor installer on machines where the
 // CLI was already present.
+// The shell's own lookup (`command -v`) runs first; the fixed paths are a fallback for
+// a trimmed PATH in hook and IDE processes.
+function commandVPath(name) {
+  const r = spawnSync("sh", ["-c", `command -v ${name}`], { encoding: "utf8" });
+  const found = r.status === 0 ? r.stdout.trim() : "";
+  return found && path.isAbsolute(found) ? found : null;
+}
+
 function findExecutable(name) {
+  const onPath = commandVPath(name);
+  if (onPath) return onPath;
   const dirs = [
     ...(process.env.PATH || "").split(path.delimiter),
     ...HOMEBREW_PREFIXES,
@@ -65,6 +86,10 @@ function installHint() {
 
 function getAgyVersion() {
   const result = spawnSync(getAgyPath() ?? "agy", ["--version"], { encoding: "utf8" });
+  if (result.error || result.status !== 0) {
+    process.stderr.write(`warning: agy --version failed (${result.error?.message ?? `exit ${result.status ?? "signal " + result.signal}`}): ${result.stderr.trim()}\n`);
+    return null;
+  }
   return result.stdout.trim() || result.stderr.trim() || null;
 }
 
@@ -153,7 +178,8 @@ async function runAgyForeground(prompt, opts) {
         continued: opts.continue
       });
       if (code !== 0) {
-        process.exitCode = code;
+        process.stderr.write(`agy exited with code ${code ?? "(signal)"}. The diagnostic is above.\n`);
+        process.exitCode = code ?? 1;
       }
       resolve();
     });
@@ -173,9 +199,11 @@ function runAgyBackground(prompt, opts) {
   const logFile = path.join(STATE_DIR, `${jobId}.log`);
   const args = buildAgyArgs(prompt, opts);
 
-  const child = spawn(agyPath, args, {
+  // The wrapper records the exit code after agy finishes, so the session can be reconciled later.
+  const exitFile = path.join(STATE_DIR, `${jobId}.exit`);
+  const child = spawn("/bin/sh", ["-c", '"$0" "$@"; code=$?; echo "$code" > "$EXIT_FILE"; exit "$code"', agyPath, ...args], {
     cwd: process.cwd(),
-    env: process.env,
+    env: { ...process.env, EXIT_FILE: exitFile },
     detached: true,
     stdio: ["ignore", fs.openSync(logFile, "w"), fs.openSync(logFile, "a")]
   });
@@ -187,6 +215,7 @@ function runAgyBackground(prompt, opts) {
     startedAt: new Date().toISOString(),
     pid: child.pid,
     logFile,
+    exitFile,
     status: "running",
     continued: opts.continue
   };
