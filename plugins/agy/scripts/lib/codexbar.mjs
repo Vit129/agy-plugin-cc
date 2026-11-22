@@ -16,7 +16,7 @@ export function runCodexBarAntigravityQuota(cwd, options = {}) {
   });
 
   return {
-    exitCode: result.status ?? (result.error ? 1 : 0),
+    exitCode: result.error ? 1 : (result.status ?? (result.signal ? 1 : 0)),
     stdout: result.stdout ?? "",
     stderr: result.stderr ?? "",
     error: result.error ?? null
