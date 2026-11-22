@@ -1,0 +1,29 @@
+.claude-plugin/marketplace.json
+  s_9776f2005ac1ad::t_52a7a7be0153b4 9,15
+.claude-plugin/plugin.json
+  s_9776f2005ac1ad::t_00bb2ffb78d9e7 3
+CHANGELOG.md
+  s_9776f2005ac1ad::t_806e0bb029b1e1 6,15-19,24
+package.json
+  s_9776f2005ac1ad::t_ac1b02701bef13 3
+plugins/agy/scripts/lib/git-update-check.mjs
+  s_9776f2005ac1ad::t_7319fc19d0170b 10
+version.json
+  s_9776f2005ac1ad::t_133ed8ddb01aef 2-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "27d77bf24df12009d3f0d159faf489f487a4e42b",
+  "prompts": {},
+  "sessions": {
+    "s_9776f2005ac1ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "s_9776f2005ac1ad",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
