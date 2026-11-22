@@ -1,0 +1,19 @@
+plugins/agy/scripts/agy-companion.mjs
+  s_6b826073e3d472::t_8a847fb07cd5c3 386,451
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "43a2b931359a0eae47f8809ea29e761a08d33968",
+  "prompts": {},
+  "sessions": {
+    "s_6b826073e3d472": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20252-e497-7832-bc43-3b4cfcdc4eac",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
