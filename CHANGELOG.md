@@ -3,7 +3,7 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-## [Unreleased]
+## [1.5.2] - 2026-11-22
 
 ### Documentation
 - Add ARCHITECTURE.md per universal architecture rule ([`cd67fa7`](https://github.com/Vit129/agy-plugin-cc/commit/cd67fa73e3408fca6d48fba41893ea90bfddc6a2))
@@ -12,10 +12,16 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 - Relicense to Apache-2.0 and credit codex-plugin-cc ([`15b9ce2`](https://github.com/Vit129/agy-plugin-cc/commit/15b9ce224e26d4a7929c202d726ae3f1839745e1))
 - Credit Claude as co-developer and contributor ([`94b6566`](https://github.com/Vit129/agy-plugin-cc/commit/94b65665f4c570287ab8addf11d825b6d474af01))
 - Install and update through the marketplace ([`c823e9d`](https://github.com/Vit129/agy-plugin-cc/commit/c823e9ddcfe03255637d10182d3dc38f75872cf2))
+- Unofficial notice, changelog in CHANGELOG.md only ([`f911023`](https://github.com/Vit129/agy-plugin-cc/commit/f911023886d6c4db347d70c68206de9d153a251e))
+- Add cross-link to agy-plugin-codex ([`829fd9c`](https://github.com/Vit129/agy-plugin-cc/commit/829fd9cda7731897333944eba2af3a65a2ee1aa8))
+- Update copyright notice with co-authors ([`45b6a9e`](https://github.com/Vit129/agy-plugin-cc/commit/45b6a9e1db672706dec101f728141e8216278dab))
+- Add docs/ index per project structure standard ([#16](https://github.com/Vit129/agy-plugin-cc/pull/16)) ([`10a9897`](https://github.com/Vit129/agy-plugin-cc/commit/10a98972312ac60c576ab49f2532d8b5af21aa6e))
+- Point agent memory path to unified-memory-vault ([#20](https://github.com/Vit129/agy-plugin-cc/pull/20)) ([`45ed22e`](https://github.com/Vit129/agy-plugin-cc/commit/45ed22e843f7d542f896cbdc6708852760616be8))
 
 ### Fixed
 - Prefer Homebrew for the agy install hint and resolve agy off PATH ([`d2351d8`](https://github.com/Vit129/agy-plugin-cc/commit/d2351d81ad96babf0374e2f2031fc315c2e51b2b))
 - Recommend the vendor installer, not the Homebrew cask ([`7c26a7b`](https://github.com/Vit129/agy-plugin-cc/commit/7c26a7bfd6d397774ff2b3fc2074ea6c6d6fa7cd))
+- Run delegated agy outside sandbox ([#17](https://github.com/Vit129/agy-plugin-cc/pull/17)) ([`d77b861`](https://github.com/Vit129/agy-plugin-cc/commit/d77b861d9a6038eef1135797c45ef991db627778))
 
 ## [1.5.1] - 2026-09-15
 
