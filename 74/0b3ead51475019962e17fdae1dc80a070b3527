@@ -1,0 +1,25 @@
+plugins/agy/scripts/agy-companion.mjs
+  s_0cedff1b078a92::t_daadbadd427145 90-95,99-105,237,386,451,455-456,575-576,713,793-794,822-823,841-842
+plugins/agy/scripts/lib/agy.mjs
+  s_0cedff1b078a92::t_63c8b9d7f85493 15-35,37-38,82-86,166-167,192,194,208,210,224,226,240,242
+plugins/agy/scripts/lib/codexbar.mjs
+  s_0cedff1b078a92::t_50617c7144b3f2 19
+scripts/agy-companion.mjs
+  s_0cedff1b078a92::t_3a2f463ae3308f 16-17,19,21,25-32,46-53,55-56,89-92,181-182,202-204,206,218
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "740b3ead51475019962e17fdae1dc80a070b3527",
+  "prompts": {},
+  "sessions": {
+    "s_0cedff1b078a92": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e8db658-20b0-4bb4-ba33-e16ebaa0045c",
+        "model": "claude-haiku-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
