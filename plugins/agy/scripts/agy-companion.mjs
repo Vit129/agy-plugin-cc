@@ -383,7 +383,7 @@ async function executeReviewRun(request) {
   const rendered = renderReviewResult(result.stdout, {
     reviewLabel: reviewName,
     targetLabel: target.label
-  }) + (result.exitCode !== 0 ? renderStderrBlock(result.stderr, result.exitCode) : "");
+  }) + (result.exitCode !== 0 || result.stderr ? renderStderrBlock(result.stderr, result.exitCode) : "");
   const payload = {
     review: reviewName,
     target,
@@ -448,7 +448,7 @@ async function executeTaskRun(request) {
   const rendered = renderTaskResult(
     { rawOutput, failureMessage },
     { title: taskMetadata.title, jobId: request.jobId ?? null }
-  ) + (result.exitCode !== 0 ? renderStderrBlock(failureMessage, result.exitCode) : "");
+  ) + (result.exitCode !== 0 || failureMessage ? renderStderrBlock(failureMessage, result.exitCode) : "");
   const payload = {
     status: result.exitCode === 0 ? "completed" : "failed",
     exitCode: result.exitCode,
