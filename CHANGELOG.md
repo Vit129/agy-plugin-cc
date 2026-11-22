@@ -22,6 +22,7 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 - Prefer Homebrew for the agy install hint and resolve agy off PATH ([`d2351d8`](https://github.com/Vit129/agy-plugin-cc/commit/d2351d81ad96babf0374e2f2031fc315c2e51b2b))
 - Recommend the vendor installer, not the Homebrew cask ([`7c26a7b`](https://github.com/Vit129/agy-plugin-cc/commit/7c26a7bfd6d397774ff2b3fc2074ea6c6d6fa7cd))
 - Run delegated agy outside sandbox ([#17](https://github.com/Vit129/agy-plugin-cc/pull/17)) ([`d77b861`](https://github.com/Vit129/agy-plugin-cc/commit/d77b861d9a6038eef1135797c45ef991db627778))
+- Agy failures are reported, signal exits count as failures, background runs record their exit ([`740b3ea`](https://github.com/Vit129/agy-plugin-cc/commit/740b3ead51475019962e17fdae1dc80a070b3527))
 
 ## [1.5.1] - 2026-09-15
 
