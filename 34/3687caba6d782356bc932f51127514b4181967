@@ -1,0 +1,23 @@
+plugins/agy/scripts/lib/state.mjs
+  s_6b826073e3d472::t_8a847fb07cd5c3 160-181
+  s_6b826073e3d472::t_ac8f6b24301a36 5
+tests/lib.test.mjs
+  s_6b826073e3d472::t_ac8f6b24301a36 9,85-86,94-110
+  s_6b826073e3d472::t_751ebdcd8bc8ee 111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "343687caba6d782356bc932f51127514b4181967",
+  "prompts": {},
+  "sessions": {
+    "s_6b826073e3d472": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20252-e497-7832-bc43-3b4cfcdc4eac",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
