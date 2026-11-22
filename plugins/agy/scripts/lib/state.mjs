@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import process from "node:process";
 
 import { resolveWorkspaceRoot } from "./workspace.mjs";
 
@@ -156,7 +157,28 @@ export function upsertJob(cwd, jobPatch) {
 }
 
 export function listJobs(cwd) {
-  return loadState(cwd).jobs;
+  const state = loadState(cwd);
+  let changed = false;
+  for (const job of state.jobs) {
+    if (job.status !== "running") continue;
+    let alive = false;
+    if (Number.isInteger(job.pid) && job.pid > 0) {
+      try {
+        process.kill(job.pid, 0);
+        alive = true;
+      } catch (error) {
+        alive = error?.code === "EPERM";
+      }
+    }
+    if (!alive) {
+      job.status = "failed";
+      job.phase = "failed";
+      job.note = "Detached worker process is no longer running.";
+      job.updatedAt = nowIso();
+      changed = true;
+    }
+  }
+  return changed ? saveState(cwd, state).jobs : state.jobs;
 }
 
 export function setConfig(cwd, key, value) {
