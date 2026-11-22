@@ -6,6 +6,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { spawnSync } from "node:child_process";
 import { buildAgyArgs, runAgyTask, runAgyTaskSync } from "../plugins/agy/scripts/lib/agy.mjs";
+import { runCommand } from "../plugins/agy/scripts/lib/process.mjs";
 
 import { parseArgs, splitRawArgumentString } from "../plugins/agy/scripts/lib/args.mjs";
 
@@ -81,13 +82,31 @@ test("state: state dir lives under the plugin data dir and is stable per workspa
 
 test("state: upsertJob inserts then merges by id, newest first", () => {
   withTempState((cwd) => {
-    state.upsertJob(cwd, { id: "a", status: "running" });
-    state.upsertJob(cwd, { id: "b", status: "running" });
+    state.upsertJob(cwd, { id: "a", status: "running", pid: process.pid });
+    state.upsertJob(cwd, { id: "b", status: "running", pid: process.pid });
     state.upsertJob(cwd, { id: "a", status: "done" });
     const jobs = state.listJobs(cwd);
     assert.equal(jobs.length, 2);
     assert.equal(jobs.find((j) => j.id === "a").status, "done");
   });
+});
+
+test("state: listJobs marks and persists a running job whose worker is gone", () => {
+  withTempState((cwd) => {
+    state.upsertJob(cwd, { id: "stale", status: "running", pid: -1 });
+    const job = state.listJobs(cwd)[0];
+    assert.equal(job.status, "failed");
+    assert.equal(job.phase, "failed");
+    assert.match(job.note, /worker process is no longer running/);
+    assert.equal(state.loadState(cwd).jobs[0].status, "failed");
+  });
+});
+
+test("runCommand: signal termination is a failure and names the signal", () => {
+  const result = runCommand("sh", ["-c", "kill -TERM $$"]);
+  assert.equal(result.status, 1);
+  assert.equal(result.signal, "SIGTERM");
+  assert.match(result.stderr, /signal SIGTERM/);
 });
 
 test("state: keeps at most 50 jobs", () => {
