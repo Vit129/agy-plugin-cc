@@ -3,6 +3,11 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.6.1] - 2026-11-24
+
+### Changed
+- Split agy-companion.mjs into feature modules ([`98d0797`](https://github.com/Vit129/agy-plugin-cc/commit/98d0797f4afa115c04e74f13a72d37db3a086b5c))
+
 ## [1.6.0] - 2026-11-24
 
 ### Added
