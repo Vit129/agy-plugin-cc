@@ -3,6 +3,23 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.6.0] - 2026-11-24
+
+### Added
+- Cheaper agy runs and leaner replies (--tier, output digest, --deep review, doc-to-md, media) ([`a5634dc`](https://github.com/Vit129/agy-plugin-cc/commit/a5634dcb0ac25a08f256a99ef11086b9b2a61216))
+- Hand whole test-gated tasks to agy and transfer a session to agy ([`ff720c0`](https://github.com/Vit129/agy-plugin-cc/commit/ff720c0bf4a52e63530802a569b9b7375e12f56f))
+- Record agy token usage per job so delegation cost can be measured ([`1bf0568`](https://github.com/Vit129/agy-plugin-cc/commit/1bf0568d3e476716f61c2dc60a6f1cefc178eec1))
+- Add /agy:image, /agy:research, /agy:scrape and /agy:design-review ([`c86df2b`](https://github.com/Vit129/agy-plugin-cc/commit/c86df2b0eac568a9ab5146791675be0d323b8380))
+
+### Changed
+- Drop /agy:media, the watch plugin already covers audio and video ([`c97a1a9`](https://github.com/Vit129/agy-plugin-cc/commit/c97a1a945296678fe94532fefae4b5f55bf0953a))
+
+### Documentation
+- Restore section separator ([`44c6922`](https://github.com/Vit129/agy-plugin-cc/commit/44c692264142203b18fb88b74de3262d5bb2ab44))
+
+### Fixed
+- Add the missing 1.5.3 changelog section so release:check passes ([`aaada60`](https://github.com/Vit129/agy-plugin-cc/commit/aaada60c4eca627c50ef8558bc8b79a70bc947ba))
+
 ## [1.5.3] - 2026-11-22
 
 ### Fixed
