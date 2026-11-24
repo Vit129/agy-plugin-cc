@@ -1,0 +1,36 @@
+tests/skills-layout.test.mjs
+  s_919be040a3c637::t_2797c5fec346b2 1-67
+plugins/agy/.codex-plugin/plugin.json
+  s_919be040a3c637::t_1a686551e8c52b 22-25
+README.md
+  s_919be040a3c637::t_1a686551e8c52b 262-263,272
+  s_919be040a3c637::t_17f6e887ad4fd0 273
+plugins/agy/skills/agy-companion-reference/SKILL.md
+  s_919be040a3c637::t_b5c895e7b9a61c 1-35
+plugins/agy/cc/skills/agy-cli-runtime/SKILL.md
+  s_919be040a3c637::t_b5c895e7b9a61c 1-38
+plugins/agy/.claude-plugin/plugin.json
+  s_919be040a3c637::t_1a686551e8c52b 16-17
+plugins/agy/codex/skills/agy-cli-runtime/SKILL.md
+  s_919be040a3c637::t_b5c895e7b9a61c 39-41
+plugins/agy/skills/gemini-3-prompting/SKILL.md
+  s_919be040a3c637::t_b5c895e7b9a61c 23,28
+plugins/agy/agents/agy-rescue.md
+  s_919be040a3c637::t_1a686551e8c52b 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "36fda4e647b90ceefc19a472a8f3855e2bce0462",
+  "prompts": {},
+  "sessions": {
+    "s_919be040a3c637": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa0a31f9-616e-44cf-af20-f1cef7231985",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
