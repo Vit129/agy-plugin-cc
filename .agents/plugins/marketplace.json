@@ -1,0 +1,20 @@
+{
+  "name": "agy-plugin-cc",
+  "interface": {
+    "displayName": "Agy Plugin CC"
+  },
+  "plugins": [
+    {
+      "name": "agy",
+      "source": {
+        "source": "local",
+        "path": "./plugins/agy"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_USE"
+      },
+      "category": "Coding"
+    }
+  ]
+}

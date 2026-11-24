@@ -1,0 +1,27 @@
+{
+  "description": "Optional agy Companion hooks for Codex.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"./scripts/session-lifecycle-hook.mjs\" SessionStart",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"./scripts/stop-review-gate-hook.mjs\"",
+            "timeout": 900
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -14,9 +14,9 @@ export function updateReleaseVersion(root, version) {
   if (!/^\d+\.\d+\.\d+$/.test(version ?? "")) throw new Error("Expected semver X.Y.Z");
   const semverFiles = [
     "package.json",
-    ".codex-plugin/plugin.json",
     ".claude-plugin/plugin.json",
     ".claude-plugin/marketplace.json",
+    "plugins/agy/.claude-plugin/plugin.json",
     "plugins/agy/.codex-plugin/plugin.json",
   ].filter((relative) => fs.existsSync(path.join(root, relative)));
   for (const relative of semverFiles) {

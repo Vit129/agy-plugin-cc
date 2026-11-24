@@ -17,7 +17,14 @@ function collectVersions(value, found = []) {
   return found;
 }
 
-for (const surface of [".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"]) {
+// The marketplaces install from plugins/agy, so its nested manifests are what
+// hosts actually read; they drifted to 1.5.1 once when only the root was bumped.
+for (const surface of [
+  ".claude-plugin/plugin.json",
+  ".claude-plugin/marketplace.json",
+  "plugins/agy/.claude-plugin/plugin.json",
+  "plugins/agy/.codex-plugin/plugin.json"
+]) {
   const versions = collectVersions(readJson(surface));
   if (!versions.length || versions.some((version) => version !== packageVersion)) {
     throw new Error(`${surface} version(s) must match package.json ${packageVersion}; found ${versions.join(", ") || "none"}`);
