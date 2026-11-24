@@ -3,6 +3,14 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.5.3] - 2026-11-22
+
+### Fixed
+- Report signal-killed commands as failures ([`298b2f9`](https://github.com/Vit129/agy-plugin-cc/commit/298b2f9332f2d52e1cb806f96e06826863430329))
+- Reconcile stale running jobs when listing ([`343687c`](https://github.com/Vit129/agy-plugin-cc/commit/343687caba6d782356bc932f51127514b4181967))
+- Retain stderr from successful agy runs ([`43a2b93`](https://github.com/Vit129/agy-plugin-cc/commit/43a2b931359a0eae47f8809ea29e761a08d33968))
+- Surface foreground failure diagnostics ([`105f74e`](https://github.com/Vit129/agy-plugin-cc/commit/105f74eea00907ff2c1caa8545de9926fbe36a65))
+
 ## [1.5.2] - 2026-11-22
 
 ### Documentation
