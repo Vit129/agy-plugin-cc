@@ -1,0 +1,29 @@
+README.md
+  s_e4a447a26c5fe9::t_b6315acef56a4c 317
+  s_e4a447a26c5fe9::t_219b803d77c0c5 48,51-55,57-62,305-308,310,318-320,322,328-331,339-340
+  s_62172e8e4b3d87::t_02d6953d80b5cd 38,40-47,49-50,56,65-67,300,302-304,309,311-316,321,323-327,332-338,345,349
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "3bbb3e99854ce36b84c16393a13258c229ecec91",
+  "prompts": {},
+  "sessions": {
+    "s_62172e8e4b3d87": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20dbd-fc04-79d0-b720-34919da86729",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    },
+    "s_e4a447a26c5fe9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20db8-a940-7431-9e6b-2e3b5ab8516f",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
