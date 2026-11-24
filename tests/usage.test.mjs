@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { formatUsage, parseAgyJsonOutput, sumUsage } from "../plugins/agy/scripts/lib/usage.mjs";
+import { formatUsage, parseAgyJsonOutput, progressFromStreamLine, sumUsage } from "../plugins/agy/scripts/lib/usage.mjs";
 
 const COMPANION = fileURLToPath(new URL("../plugins/agy/scripts/agy-companion.mjs", import.meta.url));
 
@@ -68,4 +68,38 @@ test("task command: records usage on the job and in usage.jsonl", () => {
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
+});
+
+// Shape captured from agy 1.5.16 `--output-format stream-json`.
+const STREAM = [
+  '{"event":"init","conversation_id":"s1","init":{"cwd":"/x","tools":["run_command"],"permission_mode":"always-proceed"}}',
+  '{"event":"step_update","step_update":{"conversation_id":"s1","step_index":1,"state":"ACTIVE","step_type":"agent_response","text_delta":"Running "}}',
+  '{"event":"step_update","step_update":{"conversation_id":"s1","step_index":1,"state":"DONE","step_type":"agent_response","duration_seconds":1,"usage":{"input_tokens":100,"output_tokens":5,"thinking_tokens":2,"cache_read_tokens":0,"total_tokens":105}}}',
+  '{"event":"step_update","step_update":{"conversation_id":"s1","step_index":2,"state":"ACTIVE","step_type":"tool","tool_name":"run_command","tool_info":{"name":"run_command","parameters":{"CommandLine":"ls -la"}}}}',
+  '{"event":"step_update","step_update":{"conversation_id":"s1","step_index":3,"state":"ACTIVE","step_type":"agent_response","text_delta":"ls."}}'
+];
+const STREAM_RESULT = '{"event":"result","result":{"conversation_id":"s1","status":"SUCCESS","response":"Running ls.","duration_seconds":3.5,"num_turns":1,"usage":{"input_tokens":300,"output_tokens":9,"thinking_tokens":2,"cache_read_tokens":50,"total_tokens":309}}}';
+
+test("parseAgyJsonOutput: stream-json result event", () => {
+  const parsed = parseAgyJsonOutput([...STREAM, STREAM_RESULT].join("\n"));
+  assert.equal(parsed.status, "SUCCESS");
+  assert.equal(parsed.response, "Running ls.");
+  assert.equal(parsed.conversationId, "s1");
+  assert.equal(parsed.tokens.input_tokens, 300);
+  assert.equal(parsed.tokens.cache_read_tokens, 50);
+});
+
+test("parseAgyJsonOutput: stream cut off before result keeps partial reply and tokens", () => {
+  const parsed = parseAgyJsonOutput(STREAM.join("\n"));
+  assert.equal(parsed.status, null);
+  assert.equal(parsed.response, "Running ls.");
+  assert.equal(parsed.conversationId, "s1");
+  assert.equal(parsed.tokens.input_tokens, 100);
+  assert.match(parsed.error, /before reporting a result/);
+});
+
+test("progressFromStreamLine: only tool starts produce a message", () => {
+  assert.equal(progressFromStreamLine(STREAM[3]), "run_command: ls -la");
+  assert.equal(progressFromStreamLine(STREAM[1]), null);
+  assert.equal(progressFromStreamLine("not json"), null);
 });

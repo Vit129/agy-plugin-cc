@@ -5,7 +5,7 @@ import path from "node:path";
 import process from "node:process";
 
 import { binaryAvailable } from "./process.mjs";
-import { parseAgyJsonOutput } from "./usage.mjs";
+import { parseAgyJsonOutput, progressFromStreamLine } from "./usage.mjs";
 
 const HOMEBREW_PREFIXES = ["/opt/homebrew/bin", "/usr/local/bin"];
 
@@ -144,7 +144,7 @@ export function buildAgyArgs(prompt, options = {}) {
 
   const effectivePrompt = prompt || (options.resumeLast ? "Continue." : "");
   if (effectivePrompt && options.jsonOutput) {
-    args.push("--output-format", "json");
+    args.push("--output-format", "stream-json");
   }
   if (effectivePrompt) {
     args.push("--print", effectivePrompt);
@@ -153,7 +153,7 @@ export function buildAgyArgs(prompt, options = {}) {
   return args;
 }
 
-// The JSON envelope carries token usage; `stdout` is unwrapped back to the
+// The stream's result event carries token usage; `stdout` is unwrapped back to the
 // plain reply so callers that render text keep working.
 function unwrapJsonResult(result, options) {
   const parsed = parseAgyJsonOutput(result.stdout);
@@ -193,11 +193,21 @@ export async function runAgyTask(cwd, prompt, options = {}) {
 
     let stdout = "";
     let stderr = "";
+    let pendingLine = "";
 
     child.stdout.on("data", (chunk) => {
       const s = chunk.toString();
       stdout += s;
-      if (!jsonOutput) options.onProgress?.({ message: s.trim().split("\n")[0] ?? "" });
+      if (!jsonOutput) {
+        options.onProgress?.({ message: s.trim().split("\n")[0] ?? "" });
+        return;
+      }
+      const lines = (pendingLine + s).split("\n");
+      pendingLine = lines.pop();
+      for (const line of lines) {
+        const message = progressFromStreamLine(line);
+        if (message) options.onProgress?.({ message });
+      }
     });
 
     child.stderr.on("data", (chunk) => {
