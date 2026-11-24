@@ -1,0 +1,55 @@
+plugins/agy/codex/skills/agy/SKILL.md
+  s_919be040a3c637::t_cd9b28756107af 1-15,21-110
+  s_919be040a3c637::t_4749af102ed12d 16-20
+plugins/agy/scripts/features/update.mjs
+  s_919be040a3c637::t_f1a09d059101e1 1-73
+scripts/check-version.mjs
+  s_919be040a3c637::t_e7edc42fbbd534 20-27
+plugins/agy/codex/skills/agy-cli-runtime/SKILL.md
+  s_919be040a3c637::t_cd9b28756107af 1-54
+plugins/agy/codex/skills/gemini-3-prompting/SKILL.md
+  s_919be040a3c637::t_cd9b28756107af 1-51
+scripts/set-release-version.mjs
+  s_919be040a3c637::t_e7edc42fbbd534 19
+plugins/agy/scripts/lib/git-update-check.mjs
+  s_919be040a3c637::t_f1a09d059101e1 69,125
+README.md
+  s_919be040a3c637::t_4fee2a093cb768 8,271-273
+  s_919be040a3c637::t_93280f7d2fd5b0 274
+plugins/agy/scripts/agy-companion.mjs
+  s_919be040a3c637::t_f1a09d059101e1 5,21,58-59
+  s_919be040a3c637::t_ce9837d137d0b2 60
+plugins/agy/commands/update.md
+  s_919be040a3c637::t_f1a09d059101e1 1-18
+plugins/agy/scripts/features/info.mjs
+  s_919be040a3c637::t_83d0abb7e419ec 51,62
+  s_919be040a3c637::t_20feb73615e779 16-22,24,46
+tests/release-version.test.mjs
+  s_919be040a3c637::t_e7edc42fbbd534 21-22,31-33
+plugins/agy/hooks.json
+  s_919be040a3c637::t_f1a09d059101e1 1-27
+plugins/agy/.claude-plugin/plugin.json
+  s_919be040a3c637::t_e7edc42fbbd534 3
+tests/lib.test.mjs
+  s_919be040a3c637::t_878258a97f4843 192-198
+plugins/agy/.codex-plugin/plugin.json
+  s_919be040a3c637::t_cd9b28756107af 1-42
+.agents/plugins/marketplace.json
+  s_919be040a3c637::t_cd9b28756107af 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "b0fb1881c29ae97f68a5f8a1242975da1fb36a4c",
+  "prompts": {},
+  "sessions": {
+    "s_919be040a3c637": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa0a31f9-616e-44cf-af20-f1cef7231985",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
