@@ -151,3 +151,22 @@ test("[TS-1003] [BE-IT] asynchronous task and synchronous stop-review launch pas
     fs.rmSync(root, { recursive: true, force: true });
   }
 });
+
+const { resolveTierModel, TIER_MODELS } = await import("../plugins/agy/scripts/lib/agy.mjs");
+const { digestOutput } = await import("../plugins/agy/scripts/lib/render.mjs");
+
+test("resolveTierModel: maps tiers, passes --model through, rejects conflicts and unknowns", () => {
+  assert.equal(resolveTierModel("low", null), TIER_MODELS.low);
+  assert.equal(resolveTierModel(null, "claude-sonnet-4-6"), "claude-sonnet-4-6");
+  assert.equal(resolveTierModel(undefined, undefined), null);
+  assert.throws(() => resolveTierModel("high", "x"), /either --tier or --model/);
+  assert.throws(() => resolveTierModel("pro", null), /Unknown --tier "pro"/);
+});
+
+test("digestOutput: short output unchanged, long output truncated with path", () => {
+  assert.deepEqual(digestOutput("hi", "/f", 10), { text: "hi", truncated: false });
+  const result = digestOutput("x".repeat(25), "/tmp/full.md", 10);
+  assert.equal(result.truncated, true);
+  assert.ok(result.text.startsWith("x".repeat(10) + "\n\n[agy output truncated"));
+  assert.match(result.text, /10 of 25 chars\. Full output: \/tmp\/full\.md/);
+});

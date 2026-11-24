@@ -1,6 +1,6 @@
 ---
 description: Run an agy code review against local git state
-argument-hint: '[--wait|--background] [--dry-run] [--base <ref>] [--scope auto|working-tree|branch] [--model <name>] [--effort <low|medium|high>]'
+argument-hint: '[--wait|--background] [--dry-run] [--deep] [--base <ref>] [--scope auto|working-tree|branch] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>]'
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(node:*), Bash(git:*), AskUserQuestion
 ---

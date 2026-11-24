@@ -91,6 +91,9 @@ Delegate investigation, fixes, or follow-up work to `agy`. Checks for a resumabl
 | `--background` | Run in the background; check progress with `/agy:status` |
 | `--resume` | Continue the most recent agy conversation |
 | `--fresh` | Force a new conversation, ignoring previous context |
+| `--tier low\|medium\|high` | Pick a Gemini 3.8 Flash level instead of naming a model (`--model` and `--tier` are exclusive; also on `/agy:agy` and the reviews) |
+
+Replies longer than 12,000 characters are cut; the last line names the file holding the full output.
 
 ---
 
@@ -104,9 +107,12 @@ Run a code review — agy examines the current git changes and reports findings.
 /agy:review --background
 /agy:review --scope branch
 /agy:review --base main
+/agy:review --deep
 ```
 
 **Scopes:** `auto` (default), `working-tree`, `branch`
+
+`--deep` (also on `/agy:adversarial-review`) tells agy to read the callers, surrounding code and tests of each changed symbol, not just the diff.
 
 ---
 
@@ -119,6 +125,16 @@ Run an adversarial review — agy tries to find the strongest reasons the change
 /agy:adversarial-review "focus on the auth boundary"
 /agy:adversarial-review --base main --wait
 ```
+
+---
+
+### `/agy:doc-to-md <file> [focus]`
+
+Convert a PDF, Word document or image to Markdown with agy's multimodal model. The result is written to `docs/agy/converted/`; only a short summary comes back.
+
+### `/agy:media <file|URL> [| question]`
+
+Transcribe or describe audio, video or an image with agy. The full transcript goes to `docs/agy/media/`; Claude gets a timestamped digest (or the answer to your question).
 
 ---
 
