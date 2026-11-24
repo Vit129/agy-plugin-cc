@@ -189,3 +189,10 @@ test("digestOutput: short output unchanged, long output truncated with path", ()
   assert.ok(result.text.startsWith("x".repeat(10) + "\n\n[agy output truncated"));
   assert.match(result.text, /10 of 25 chars\. Full output: \/tmp\/full\.md/);
 });
+
+const { detectHost } = await import("../plugins/agy/scripts/features/info.mjs");
+
+test("detectHost: Claude Code shells set CLAUDECODE, anything else is Codex", () => {
+  assert.equal(detectHost({ CLAUDECODE: "1" }), "claude");
+  assert.equal(detectHost({}), "codex");
+});

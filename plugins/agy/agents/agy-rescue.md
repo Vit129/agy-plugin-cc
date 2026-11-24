@@ -5,6 +5,7 @@ model: sonnet
 tools: Bash
 skills:
   - agy-cli-runtime
+  - agy-companion-reference
   - gemini-3-prompting
 ---
 

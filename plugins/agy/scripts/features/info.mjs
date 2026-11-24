@@ -13,9 +13,15 @@ export function readJsonIfExists(filePath) {
   }
 }
 
-export function findPluginManifest() {
+// One plugin tree serves both hosts, so the host comes from the environment:
+// Claude Code sets CLAUDECODE in every shell it runs.
+export function detectHost(env = process.env) {
+  return env.CLAUDECODE ? "claude" : "codex";
+}
+
+export function findPluginManifest(host = detectHost()) {
   const candidates = [
-    path.join(ROOT_DIR, ".codex-plugin", "plugin.json"),
+    path.join(ROOT_DIR, host === "codex" ? ".codex-plugin" : ".claude-plugin", "plugin.json"),
     path.join(ROOT_DIR, ".claude-plugin", "plugin.json")
   ];
   const manifestPath = candidates.find((candidate) => fs.existsSync(candidate));
@@ -37,12 +43,12 @@ export function buildHostDoctor(manifestVersion) {
   const codexConfig = fs.existsSync(codexConfigPath)
     ? fs.readFileSync(codexConfigPath, "utf8")
     : "";
-  const host = fs.existsSync(path.join(ROOT_DIR, ".codex-plugin")) ? "codex" : "claude";
+  const host = detectHost();
 
   if (host === "codex") {
     const skillPathMatches = [
       ...codexConfig.matchAll(
-        /path = "([^"]*agy-plugin-codex\/agy\/([^"]+)\/skills\/[^"]+\/SKILL\.md)"/g
+        /path = "([^"]*agy-plugin-cc\/agy\/([^"]+)\/skills\/[^"]+\/SKILL\.md)"/g
       )
     ];
     const skillPaths = skillPathMatches.map((match) => match[1]);
@@ -53,7 +59,7 @@ export function buildHostDoctor(manifestVersion) {
       host,
       configPath: codexConfigPath,
       configExists: Boolean(codexConfig),
-      pluginEnabled: /\[plugins\."agy@agy-plugin-codex"\][\s\S]*?enabled = true/.test(codexConfig),
+      pluginEnabled: /\[plugins\."agy@agy-plugin-cc"\][\s\S]*?enabled = true/.test(codexConfig),
       skillPaths,
       staleSkillPaths
     };

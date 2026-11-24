@@ -66,7 +66,7 @@ function writeDismissedVersion(version) {
 // Checks the git-clone install path for a newer version.json on GitHub and,
 // when found, either reports it (dirty tree) or hands the caller enough to
 // ask the user for confirmation before pulling (clean tree). Never pulls
-// itself — see commands/agy-update.md for the confirm-then-pull step.
+// itself — see commands/update.md (Claude) or codex/skills/agy/SKILL.md (Codex) for the confirm-then-pull step.
 export async function checkGitCloneUpdate(startDir) {
   const gitRoot = findGitRoot(startDir);
   if (!gitRoot) {
@@ -122,5 +122,5 @@ export function formatUpdateNotice(report) {
   if (report.dirty) {
     return `agy-plugin-cc git update available (${versionLabel}): working tree has uncommitted changes, pull manually later.`;
   }
-  return `agy-plugin-cc git update available (${versionLabel}, ${report.updated}): ${report.summary}. Run /agy-update to review and pull.`;
+  return `agy-plugin-cc git update available (${versionLabel}, ${report.updated}): ${report.summary}. Run /agy:update (Claude) or $agy update (Codex) to review and pull.`;
 }

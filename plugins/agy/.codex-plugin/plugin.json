@@ -1,0 +1,45 @@
+{
+  "name": "agy",
+  "version": "1.6.2",
+  "description": "Delegate coding tasks to Google's Antigravity (agy) CLI / Antigravity IDE from Codex CLI (Google Agy) with setup checks, one-shot tasks, rescue, review, hooks, job tracking, status, results, and cancellation.",
+  "author": {
+    "name": "Vit129",
+    "url": "https://github.com/Vit129"
+  },
+  "homepage": "https://github.com/Vit129/agy-plugin-cc",
+  "repository": "https://github.com/Vit129/agy-plugin-cc",
+  "license": "Apache-2.0",
+  "keywords": [
+    "agy",
+    "antigravity",
+    "antigravity-ide",
+    "google-antigravity",
+    "google-agy",
+    "gemini",
+    "codex",
+    "coding-agent"
+  ],
+  "skills": [
+    "./skills/",
+    "./codex/skills/"
+  ],
+  "interface": {
+    "displayName": "Agy",
+    "shortDescription": "Ask local Antigravity / Antigravity IDE from Codex.",
+    "longDescription": "Use local Google's Antigravity (Google Agy) / Antigravity IDE from Codex for setup checks, one-shot tasks, background work, continued debugging or implementation passes, agy-powered code reviews, job tracking, and optional stop-time review gates while Codex stays in charge.",
+    "developerName": "Vit129",
+    "category": "Coding",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "$agy setup",
+      "$agy task explain this repo",
+      "$agy rescue --background investigate this issue",
+      "$agy review --scope auto",
+      "$agy status"
+    ],
+    "brandColor": "#1A73E8"
+  }
+}

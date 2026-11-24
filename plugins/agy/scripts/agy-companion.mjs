@@ -2,6 +2,7 @@
 
 import process from "node:process";
 import { handleSetup } from "./features/setup.mjs";
+import { handleUpdate } from "./features/update.mjs";
 import { handleAgents, handleChangelog, handleDoctor, handleModels } from "./features/info.mjs";
 import { handleReviewCommand } from "./features/review.mjs";
 import { handleTask, handleTaskResumeCandidate } from "./features/task.mjs";
@@ -17,6 +18,7 @@ function printUsage() {
       "  node scripts/agy-companion.mjs agents [--json]",
       "  node scripts/agy-companion.mjs doctor [--json]",
       "  node scripts/agy-companion.mjs changelog [--json]",
+      "  node scripts/agy-companion.mjs update [--pull|--dismiss] [--json]",
       "  node scripts/agy-companion.mjs review [--wait|--background] [--dry-run] [--deep] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
       "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--dry-run] [--deep] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
       "  node scripts/agy-companion.mjs handoff [--background] [--dry-run] [--verify <cmd>] [--tests <a,b>] [--fixups <n>] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [--print-timeout <duration>] [--requirement-file <path>] [requirement]",
@@ -52,6 +54,9 @@ async function main() {
       break;
     case "agents":
       handleAgents(argv);
+      break;
+    case "update":
+      await handleUpdate(argv);
       break;
     case "review":
       await handleReviewCommand(argv, { reviewName: "Review" });
