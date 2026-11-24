@@ -1,3 +1,5 @@
+import { formatUsage } from "./usage.mjs";
+
 function escapeMarkdownCell(value) {
   return String(value ?? "")
     .replace(/\|/g, "\\|")
@@ -44,6 +46,9 @@ function pushJobDetails(lines, job, options = {}) {
   }
   if (options.showDuration && job.duration) {
     lines.push(`  Duration: ${job.duration}`);
+  }
+  if (job.usage) {
+    lines.push(`  Usage: ${formatUsage(job.usage)}`);
   }
   if (job.logFile && options.showLog) {
     lines.push(`  Log: ${job.logFile}`);

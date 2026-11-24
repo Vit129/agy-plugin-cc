@@ -12,6 +12,7 @@ import { getAgyAuthStatus, getAgyAvailability, installHint, runAgyAgents, runAgy
 import { getCodexBarAvailability, runCodexBarAntigravityQuota } from "./lib/codexbar.mjs";
 import { readStdinIfPiped } from "./lib/fs.mjs";
 import { ensureGitRepository, getCurrentBranch, isWorkingTreeDirty, resolveReviewTarget } from "./lib/git.mjs";
+import { sumUsage } from "./lib/usage.mjs";
 import { detectVerifyCommand, hashFiles, parseTestList, renderHandoffReport, runHandoffLoop } from "./lib/handoff.mjs";
 import { binaryAvailable, terminateProcessTree } from "./lib/process.mjs";
 import {
@@ -400,6 +401,7 @@ async function executeReviewRun(request) {
     exitStatus: result.exitCode,
     payload,
     rendered,
+    usage: result.usage ?? null,
     summary: firstMeaningfulLine(result.stdout, `${reviewName} finished.`),
     jobTitle: `agy ${reviewName}`,
     jobClass: "review",
@@ -462,6 +464,7 @@ async function executeTaskRun(request) {
     exitStatus: result.exitCode,
     payload,
     rendered,
+    usage: result.usage ?? null,
     summary: firstMeaningfulLine(rawOutput, firstMeaningfulLine(failureMessage, `${taskMetadata.title} finished.`)),
     jobTitle: taskMetadata.title,
     jobClass: "task"
@@ -1065,6 +1068,7 @@ async function executeHandoffRun(request) {
   const { plan, requirement } = request;
   const testHashes = hashFiles(plan.root, plan.testFiles);
   const log = (message) => request.onProgress?.({ message });
+  const agyUsages = [];
 
   const result = await runHandoffLoop({
     prompt: buildHandoffPrompt(requirement, plan),
@@ -1077,6 +1081,9 @@ async function executeHandoffRun(request) {
         ...(request.agyOptions ?? {}),
         resumeLast: resume,
         onProgress: request.onProgress
+      }).then((agyResult) => {
+        agyUsages.push(agyResult.usage);
+        return agyResult;
       });
     },
     runVerify: (command) => {
@@ -1105,6 +1112,7 @@ async function executeHandoffRun(request) {
       branch: plan.branch
     },
     rendered,
+    usage: sumUsage(agyUsages),
     summary: `Hand-off ${result.status.label}`,
     jobTitle: "agy Hand-off",
     jobClass: "task"

@@ -141,6 +141,12 @@ Move this session's work to an interactive agy session: Claude writes `.tmp/agy-
 
 ---
 
+### Usage tracking
+
+Every `task`, review and hand-off runs agy with `--output-format json` and records its token usage (input, output + thinking, cache read), model and agy's own duration on the job. `/agy:status` shows it per job, and each finished job appends one line to `usage.jsonl` in the workspace state dir (`$CLAUDE_PLUGIN_DATA/state/<slug>-<hash>/`). Hand-offs record the sum of all their agy calls. An agy that does not print the JSON envelope falls back to plain text with no usage. The stop-review gate is not tracked.
+
+---
+
 ### `/agy:status [job-id]`
 
 Show active and recent agy jobs for this repository.
