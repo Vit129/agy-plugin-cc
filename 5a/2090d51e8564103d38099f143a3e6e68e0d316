@@ -1,0 +1,27 @@
+plugins/agy/commands/design-review.md
+  s_919be040a3c637::t_563bfa3eae3e0c 1-20
+plugins/agy/commands/research.md
+  s_919be040a3c637::t_563bfa3eae3e0c 1-22
+plugins/agy/commands/image.md
+  s_919be040a3c637::t_563bfa3eae3e0c 1-20
+plugins/agy/commands/scrape.md
+  s_919be040a3c637::t_563bfa3eae3e0c 1-20
+README.md
+  s_919be040a3c637::t_be3e5e646265fb 125-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "5a2090d51e8564103d38099f143a3e6e68e0d316",
+  "prompts": {},
+  "sessions": {
+    "s_919be040a3c637": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa0a31f9-616e-44cf-af20-f1cef7231985",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
