@@ -1,0 +1,28 @@
+plugins/agy/scripts/lib/agy.mjs
+  s_07d61da22e6e96::t_684f4b1d40f449 8,147,156,196,201-210
+README.md
+  s_07d61da22e6e96::t_73a87682f6d3ee 178
+plugins/agy/skills/agy-companion-reference/SKILL.md
+  s_07d61da22e6e96::t_73a87682f6d3ee 25
+tests/usage.test.mjs
+  s_07d61da22e6e96::t_73a87682f6d3ee 10,72-105
+plugins/agy/scripts/lib/usage.mjs
+  s_07d61da22e6e96::t_684f4b1d40f449 6-11,14-19,22-28,31-32,36-38,51-82
+  s_07d61da22e6e96::t_ebcb0cb56d833c 83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "31ab9cab99dc66d9f82542e6842ceb81a69ca23d",
+  "prompts": {},
+  "sessions": {
+    "s_07d61da22e6e96": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fbf4f69-9616-4859-ba51-ae4f1465e3db",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
