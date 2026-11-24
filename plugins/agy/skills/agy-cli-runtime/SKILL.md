@@ -43,6 +43,7 @@ The companion also supports local agy CLI features verified against `agy 1.0.16`
 - `changelog [--json]` prints agy release notes (no agy task run, just `agy changelog`).
 - `task` accepts `--model <name>`, `--effort <low|medium|high>`, `--conversation <id>`, `--project <id>` or `--new-project` (mutually exclusive), `--dangerously-skip-permissions`, repeatable `--add-dir <path>`, `--log-file <path>`, and `--print-timeout <duration>`.
 - `review` and `adversarial-review` accept the same `--model`, `--effort`, `--project`/`--new-project`, `--dangerously-skip-permissions`, `--add-dir`, `--log-file`, and `--print-timeout` flags.
+- `handoff` accepts `--verify <cmd>`, `--tests <a,b>` (repeatable), `--fixups <n>` (default 1), `--requirement-file <path>`, `--model`, `--effort`, `--print-timeout` (default 60m), `--background`, `--dry-run`. Exit codes: 0 PASS, 4 FAIL, 5 AGY FAILED, 6 TEST FILES MODIFIED.
 - `--model` is validated against a live `agy models` call before the run starts — an unrecognized name fails fast with the current model list instead of reaching agy.
 - `--effort` is validated against the static `low|medium|high` enum agy itself defines — no CLI call needed for this one.
 - `task`/`review`/`adversarial-review` accept `--dry-run`: prints the resolved options, the live `agy models` list (selected model marked), and current Antigravity quota (5-hour + weekly, Gemini and Claude/GPT pools) — then exits without calling agy. Use it to pick a model and confirm there's enough quota before committing to a real run.
