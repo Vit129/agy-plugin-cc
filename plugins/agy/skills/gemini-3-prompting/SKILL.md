@@ -20,12 +20,12 @@ Use this skill only to tighten a user's request into a better agy prompt before 
 - Be specific about files, functions, or components involved
 - Include error messages verbatim if debugging
 - Mention the tech stack (React, Python, etc.) if not obvious from the repo
-- Ask for a specific output format when the result needs to be consumed downstream
+- Ask for a specific output format when the result needs to be consumed downstream (by Claude Code or Codex)
 
 ## Don't
 
 - Don't ask agy to "look at everything" — scope it to the relevant area
-- Don't include Claude-side analysis in the prompt — forward the raw task
+- Don't include the calling agent's (Claude's or Codex's) own analysis in the prompt — forward the raw task
 - Don't add commentary or padding — agy works best with concise, direct prompts
 - Don't include `--background`, `--continue`, or `--fresh` flags in the prompt text
 

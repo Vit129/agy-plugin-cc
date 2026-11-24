@@ -13,5 +13,6 @@
     "google-agy",
     "agy",
     "claude-code"
-  ]
+  ],
+  "skills": "./cc/skills/"
 }

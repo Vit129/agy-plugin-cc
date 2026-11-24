@@ -19,7 +19,10 @@
     "codex",
     "coding-agent"
   ],
-  "skills": "./codex/skills/",
+  "skills": [
+    "./skills/",
+    "./codex/skills/"
+  ],
   "interface": {
     "displayName": "Agy",
     "shortDescription": "Ask local Antigravity / Antigravity IDE from Codex.",
