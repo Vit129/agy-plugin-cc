@@ -5,9 +5,11 @@ import {
   readJobFile,
   resolveJobFile,
   resolveJobLogFile,
+  resolveStateDir,
   upsertJob,
   writeJobFile
 } from "./state.mjs";
+import { appendUsageLog } from "./usage.mjs";
 
 export const SESSION_ID_ENV = "AGY_COMPANION_SESSION_ID";
 
@@ -114,6 +116,23 @@ function readStoredJobOrNull(workspaceRoot, jobId) {
   return readJobFile(jobFile);
 }
 
+// usage.jsonl is the per-workspace ledger later cost reports read; a failed
+// write must not fail the job it describes.
+function recordUsage(job, usage, status, completedAt) {
+  if (!usage) return;
+  try {
+    appendUsageLog(resolveStateDir(job.workspaceRoot), {
+      at: completedAt,
+      jobId: job.id,
+      kind: job.kind ?? null,
+      status,
+      ...usage
+    });
+  } catch (error) {
+    process.stderr.write(`agy usage log not written: ${error instanceof Error ? error.message : String(error)}\n`);
+  }
+}
+
 export async function runTrackedJob(job, runner, options = {}) {
   const runningRecord = {
     ...job,
@@ -137,7 +156,8 @@ export async function runTrackedJob(job, runner, options = {}) {
       phase: completionStatus === "completed" ? "done" : "failed",
       completedAt,
       result: execution.payload,
-      rendered: execution.rendered
+      rendered: execution.rendered,
+      usage: execution.usage ?? null
     });
     upsertJob(job.workspaceRoot, {
       id: job.id,
@@ -145,8 +165,10 @@ export async function runTrackedJob(job, runner, options = {}) {
       summary: execution.summary,
       phase: completionStatus === "completed" ? "done" : "failed",
       pid: null,
-      completedAt
+      completedAt,
+      usage: execution.usage ?? null
     });
+    recordUsage(job, execution.usage, completionStatus, completedAt);
     appendLogBlock(options.logFile ?? job.logFile ?? null, "Final output", execution.rendered);
     return execution;
   } catch (error) {
