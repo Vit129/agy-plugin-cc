@@ -1,0 +1,31 @@
+DESIGN.md
+  s_919be040a3c637::t_11496417c141a3 5,10-13
+CONTEXT.md
+  s_919be040a3c637::t_11496417c141a3 11-13
+ARCHITECTURE.md
+  s_919be040a3c637::t_11496417c141a3 3,7-8,14-18,25-30,37-38
+docs/README.md
+  s_919be040a3c637::t_11496417c141a3 3
+PRODUCT.md
+  s_919be040a3c637::t_11496417c141a3 3,7-16,20
+README.md
+  s_919be040a3c637::t_11496417c141a3 175-184,240-252,254,257-271,282
+AGENTS.md
+  s_919be040a3c637::t_fd7b2e17b20e39 20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "3c94d7c6475d78519ff15945e37921f67580f1f8",
+  "prompts": {},
+  "sessions": {
+    "s_919be040a3c637": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa0a31f9-616e-44cf-af20-f1cef7231985",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
