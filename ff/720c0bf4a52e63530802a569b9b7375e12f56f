@@ -1,0 +1,33 @@
+tests/handoff.test.mjs
+  s_919be040a3c637::t_55dc843608869b 1-167
+README.md
+  s_919be040a3c637::t_71536a39f47e81 137-149
+  s_919be040a3c637::t_c6db9692af8234 150-155
+plugins/agy/scripts/lib/handoff.mjs
+  s_919be040a3c637::t_0f7d2c4a96fd06 1-132
+plugins/agy/scripts/agy-companion.mjs
+  s_919be040a3c637::t_7b6488047bca03 3,14-15,1041-1143,1145-1196,1227-1229,1507-1508
+  s_919be040a3c637::t_71537b598cd7c7 1509
+plugins/agy/commands/transfer.md
+  s_919be040a3c637::t_c6db9692af8234 1-26
+plugins/agy/commands/handoff.md
+  s_919be040a3c637::t_71536a39f47e81 1-2,4-26
+plugins/agy/prompts/handoff.md
+  s_919be040a3c637::t_27158304686ad8 1-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "ff720c0bf4a52e63530802a569b9b7375e12f56f",
+  "prompts": {},
+  "sessions": {
+    "s_919be040a3c637": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa0a31f9-616e-44cf-af20-f1cef7231985",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
