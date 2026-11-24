@@ -1,0 +1,23 @@
+plugins/agy/.codex-plugin/plugin.json
+  s_07d61da22e6e96::t_51988ac28aa815 3
+plugins/agy/.claude-plugin/plugin.json
+  s_07d61da22e6e96::t_51988ac28aa815 3
+scripts/release.sh
+  s_07d61da22e6e96::t_416c4cb24058fb 43
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "f70ac24b9f4cd9149eee151d316fab7604e56944",
+  "prompts": {},
+  "sessions": {
+    "s_07d61da22e6e96": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4fbf4f69-9616-4859-ba51-ae4f1465e3db",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
