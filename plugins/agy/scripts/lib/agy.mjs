@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 
 import { binaryAvailable } from "./process.mjs";
+import { parseAgyJsonOutput } from "./usage.mjs";
 
 const HOMEBREW_PREFIXES = ["/opt/homebrew/bin", "/usr/local/bin"];
 
@@ -142,6 +143,9 @@ export function buildAgyArgs(prompt, options = {}) {
   }
 
   const effectivePrompt = prompt || (options.resumeLast ? "Continue." : "");
+  if (effectivePrompt && options.jsonOutput) {
+    args.push("--output-format", "json");
+  }
   if (effectivePrompt) {
     args.push("--print", effectivePrompt);
   }
@@ -149,8 +153,32 @@ export function buildAgyArgs(prompt, options = {}) {
   return args;
 }
 
+// The JSON envelope carries token usage; `stdout` is unwrapped back to the
+// plain reply so callers that render text keep working.
+function unwrapJsonResult(result, options) {
+  const parsed = parseAgyJsonOutput(result.stdout);
+  if (!parsed) return { ...result, usage: null, conversationId: null };
+  const errorNote = parsed.error && !result.stderr.includes(parsed.error) ? `${parsed.error}\n` : "";
+  return {
+    ...result,
+    stdout: parsed.response,
+    stderr: result.stderr + errorNote,
+    conversationId: parsed.conversationId,
+    usage: {
+      model: options.model ?? null,
+      effort: options.effort ?? null,
+      agyStatus: parsed.status,
+      finishedReason: parsed.finishedReason,
+      durationSeconds: parsed.durationSeconds,
+      numTurns: parsed.numTurns,
+      tokens: parsed.tokens
+    }
+  };
+}
+
 export async function runAgyTask(cwd, prompt, options = {}) {
-  const args = buildAgyArgs(prompt, options);
+  const jsonOutput = options.jsonOutput ?? true;
+  const args = buildAgyArgs(prompt, { ...options, jsonOutput });
 
   if (!args.length) {
     throw new Error("No prompt or action provided for agy.");
@@ -169,19 +197,22 @@ export async function runAgyTask(cwd, prompt, options = {}) {
     child.stdout.on("data", (chunk) => {
       const s = chunk.toString();
       stdout += s;
-      options.onProgress?.({ message: s.trim().split("\n")[0] ?? "" });
+      if (!jsonOutput) options.onProgress?.({ message: s.trim().split("\n")[0] ?? "" });
     });
 
     child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString();
+      const s = chunk.toString();
+      stderr += s;
+      if (jsonOutput) options.onProgress?.({ message: s.trim().split("\n")[0] ?? "" });
     });
 
     child.on("error", (error) => {
-      resolve({ exitCode: 1, stdout, stderr: error.message });
+      resolve({ exitCode: 1, stdout, stderr: error.message, usage: null, conversationId: null });
     });
 
     child.on("close", (code, signal) => {
-      resolve({ exitCode: exitCodeOf({ status: code, signal }), stdout, stderr: withSignalNote(stderr, signal) });
+      const raw = { exitCode: exitCodeOf({ status: code, signal }), stdout, stderr: withSignalNote(stderr, signal) };
+      resolve(jsonOutput ? unwrapJsonResult(raw, options) : { ...raw, usage: null, conversationId: null });
     });
   });
 }
