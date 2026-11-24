@@ -253,6 +253,61 @@ When a session ends with the gate enabled:
 
 ---
 
+## Codex
+
+### Install
+
+In your terminal, add the GitHub marketplace and install the plugin:
+
+```bash
+codex plugin marketplace add Vit129/agy-plugin-cc
+codex plugin add agy@agy-plugin-cc
+```
+
+Start a new Codex session to load the plugin. Try `$agy task --tier low "Reply with exactly: hello ok"`, then `$agy status` to see the result and token usage.
+
+### Update
+
+Refresh the Git marketplace and its installed plugins with Codex CLI 0.171.0:
+
+```bash
+codex plugin marketplace upgrade agy-plugin-cc
+```
+
+Start a new Codex session to load the updated plugin.
+
+### Uninstall
+
+Remove the plugin, then remove the marketplace if you no longer use it:
+
+```bash
+codex plugin remove agy@agy-plugin-cc
+codex plugin marketplace remove agy-plugin-cc
+```
+
+Start a new Codex session to apply the change.
+
+### Migrate from `agy-plugin-codex`
+
+Remove the old plugin and marketplace, then install from the GitHub marketplace. Remove the old marketplace entry even if it points to a local checkout you have already deleted.
+
+```bash
+codex plugin remove agy@agy-plugin-codex
+codex plugin marketplace remove agy-plugin-codex
+codex plugin marketplace add Vit129/agy-plugin-cc
+codex plugin add agy@agy-plugin-cc
+```
+
+If `~/.codex/config.toml` still contains `[[skills.config]]` entries whose `path` points to missing skills under `~/.codex/plugins/cache/agy-plugin-codex/`, remove those entries. You can also remove the old cache directory if it is empty. Start a new Codex session and run `$agy status`.
+
+Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds shared skills (loaded by Claude Code by default and listed in the Codex manifest), `plugins/agy/cc/skills/` holds Claude-only skills (`skills` in `.claude-plugin/plugin.json`, which adds to the default), and `plugins/agy/codex/skills/` holds Codex-only skills (`skills` in `.codex-plugin/plugin.json` lists `./skills/` and `./codex/skills/`, because a Codex `skills` list replaces the default).
+
+`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code. `tests/skills-layout.test.mjs` checks that each host resolves its skills.
+
+## Development and delivery
+
+This is a Claude Code plugin package, not a local web application. `npm start` / `make start` runs the isolated package preview gate: syntax checks, unit tests, and `npm pack --dry-run`. There is no local GUI dev server; review runtime behavior by installing into a separate test Claude Code profile. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
+
 ## Architecture
 
 ```
@@ -294,63 +349,6 @@ plugins/agy/
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
-
-## Codex
-
-### Install
-
-In your terminal, add the GitHub marketplace and install the plugin:
-
-```bash
-codex plugin marketplace add Vit129/agy-plugin-cc
-codex plugin add agy@agy-plugin-cc
-```
-
-Start a new Codex session to load the plugin. Try `$agy task --tier low "Reply with exactly: hello ok"`, then `$agy status` to see the result and token usage.
-
-### Update
-
-Refresh the marketplace, then reinstall the plugin from the refreshed marketplace:
-
-```bash
-codex plugin marketplace upgrade agy-plugin-cc
-codex plugin remove agy@agy-plugin-cc
-codex plugin add agy@agy-plugin-cc
-```
-
-Start a new Codex session to load the updated plugin.
-
-### Uninstall
-
-Remove the plugin, then remove the marketplace if you no longer use it:
-
-```bash
-codex plugin remove agy@agy-plugin-cc
-codex plugin marketplace remove agy-plugin-cc
-```
-
-Start a new Codex session to apply the change.
-
-### Migrate from `agy-plugin-codex`
-
-Remove the old plugin and marketplace, then install from the GitHub marketplace. Remove the old marketplace entry even if it points to a local checkout you have already deleted.
-
-```bash
-codex plugin remove agy@agy-plugin-codex
-codex plugin marketplace remove agy-plugin-codex
-codex plugin marketplace add Vit129/agy-plugin-cc
-codex plugin add agy@agy-plugin-cc
-```
-
-If `~/.codex/config.toml` still contains `[[skills.config]]` entries whose `path` points to missing skills under `~/.codex/plugins/cache/agy-plugin-codex/`, remove those entries. You can also remove the old cache directory if it is empty. Start a new Codex session and run `$agy status`.
-
-Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds shared skills (loaded by Claude Code by default and listed in the Codex manifest), `plugins/agy/cc/skills/` holds Claude-only skills (`skills` in `.claude-plugin/plugin.json`, which adds to the default), and `plugins/agy/codex/skills/` holds Codex-only skills (`skills` in `.codex-plugin/plugin.json` lists `./skills/` and `./codex/skills/`, because a Codex `skills` list replaces the default).
-
-`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code. `tests/skills-layout.test.mjs` checks that each host resolves its skills.
-
-## Development and delivery
-
-This is a Claude Code plugin package, not a local web application. `npm start` / `make start` runs the isolated package preview gate: syntax checks, unit tests, and `npm pack --dry-run`. There is no local GUI dev server; review runtime behavior by installing into a separate test Claude Code profile. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
 
 ## Contributors
 
