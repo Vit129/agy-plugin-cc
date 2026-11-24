@@ -1,0 +1,47 @@
+README.md
+  s_919be040a3c637::t_3354de4031c087 94-96,110,115-116,131-137
+  s_919be040a3c637::t_a5ceef83b79d78 138-140
+plugins/agy/commands/doc-to-md.md
+  s_919be040a3c637::t_c399ad615f66ff 1-20
+plugins/agy/commands/review.md
+  s_919be040a3c637::t_5faf2156221a0b 3
+plugins/agy/scripts/lib/render.mjs
+  s_919be040a3c637::t_6ec40ebab91050 231-246
+plugins/agy/scripts/agy-companion.mjs
+  s_919be040a3c637::t_30ae695961118a 53-55
+  s_919be040a3c637::t_4524ce6a093a92 73-75
+  s_919be040a3c637::t_6ec40ebab91050 11,20,172,331-354,389,396,462,859,861,904,922,932
+plugins/agy/commands/agy.md
+  s_919be040a3c637::t_5faf2156221a0b 3
+plugins/agy/commands/rescue.md
+  s_919be040a3c637::t_4524ce6a093a92 20
+  s_919be040a3c637::t_5faf2156221a0b 3
+plugins/agy/agents/agy-rescue.md
+  s_919be040a3c637::t_d7b92a66729960 34,36
+plugins/agy/commands/media.md
+  s_919be040a3c637::t_c399ad615f66ff 1-20
+plugins/agy/scripts/lib/agy.mjs
+  s_919be040a3c637::t_6ec40ebab91050 62-78
+plugins/agy/commands/adversarial-review.md
+  s_919be040a3c637::t_5faf2156221a0b 3
+plugins/agy/skills/agy-cli-runtime/SKILL.md
+  s_919be040a3c637::t_d7b92a66729960 46-48
+tests/lib.test.mjs
+  s_919be040a3c637::t_5faf2156221a0b 154-172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "a5634dcb0ac25a08f256a99ef11086b9b2a61216",
+  "prompts": {},
+  "sessions": {
+    "s_919be040a3c637": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa0a31f9-616e-44cf-af20-f1cef7231985",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
