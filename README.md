@@ -134,6 +134,25 @@ Convert a PDF, Word document or image to Markdown with agy's multimodal model. T
 
 ---
 
+### `/agy:handoff <requirement>`
+
+Hand a whole, test-covered task to agy. The companion refuses `main`/`master` and a dirty tree, runs agy, runs the test command itself (`--verify`, or detected from `package.json` / `pyproject.toml` / `go.mod` / `Cargo.toml`), sends up to `--fixups` (default 1) follow-ups on the same conversation quoting the failure, and checks that the `--tests` files were not changed.
+
+```text
+/agy:handoff --tests tests/cart.test.mjs "Add a discount code field to the cart..."
+/agy:handoff --verify "make check" --fixups 2 --background "..."
+```
+
+Result: `PASS` (exit 0), `FAIL` (4), `AGY FAILED` (5), `TEST FILES MODIFIED` (6). Worth it for changes of roughly 200+ lines; small edits cost more this way.
+
+---
+
+### `/agy:transfer [notes]`
+
+Move this session's work to an interactive agy session: Claude writes `.tmp/agy-transfer-<timestamp>.md` (goal, done so far, next steps, constraints, git state) and prints an `agy -i "..."` command to continue there. Unlike `--resume`, which continues agy's own conversation under Claude's control, this hands Claude's context to you in agy.
+
+---
+
 ### `/agy:status [job-id]`
 
 Show active and recent agy jobs for this repository.

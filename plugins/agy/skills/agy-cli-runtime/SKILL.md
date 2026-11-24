@@ -46,6 +46,7 @@ The companion also supports local agy CLI features verified against `agy 1.0.16`
 - `--tier <low|medium|high>` maps to `gemini-3.8-flash-low|medium|high` and cannot be combined with `--model`.
 - `review` and `adversarial-review` accept `--deep`: agy also reads callers, surrounding code and tests of the changed symbols (read only).
 - Replies longer than 12,000 characters are cut; the rendered output ends with a line naming the file that holds the full text.
+- `handoff` accepts `--verify <cmd>`, `--tests <a,b>` (repeatable), `--fixups <n>` (default 1), `--requirement-file <path>`, `--model`/`--tier`, `--effort`, `--print-timeout` (default 60m), `--background`, `--dry-run`. Exit codes: 0 PASS, 4 FAIL, 5 AGY FAILED, 6 TEST FILES MODIFIED.
 - `--model` is validated against a live `agy models` call before the run starts — an unrecognized name fails fast with the current model list instead of reaching agy.
 - `--effort` is validated against the static `low|medium|high` enum agy itself defines — no CLI call needed for this one.
 - `task`/`review`/`adversarial-review` accept `--dry-run`: prints the resolved options, the live `agy models` list (selected model marked), and current Antigravity quota (5-hour + weekly, Gemini and Claude/GPT pools) — then exits without calling agy. Use it to pick a model and confirm there's enough quota before committing to a real run.
