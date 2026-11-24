@@ -7,7 +7,7 @@ import { isWorkingTreeDirty } from "./git.mjs";
 import { runCommand } from "./process.mjs";
 
 // Bump alongside version.json at the repo root whenever a feature ships.
-export const CURRENT_VERSION = 7;
+export const CURRENT_VERSION = 8;
 
 const REPO = "Vit129/agy-plugin-cc";
 const VERSION_URL = `https://raw.githubusercontent.com/${REPO}/main/version.json`;
