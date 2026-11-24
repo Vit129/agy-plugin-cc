@@ -1,0 +1,22 @@
+README.md
+  s_62172e8e4b3d87::t_d26162ea34488e 271
+  s_62172e8e4b3d87::t_6c02f837844b20 311-347
+  s_62172e8e4b3d87::t_d875d997def86b 348-351
+  s_62172e8e4b3d87::t_fc6e10e10e203e 352
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "cbc89dd082e580857bc95678c2d967fb6f6280b6",
+  "prompts": {},
+  "sessions": {
+    "s_62172e8e4b3d87": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a20dbd-fc04-79d0-b720-34919da86729",
+        "model": "gpt-6-luna"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
