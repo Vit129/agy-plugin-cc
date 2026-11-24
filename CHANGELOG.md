@@ -3,6 +3,11 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.6.2] - 2026-11-24
+
+### Removed
+- Delete unused stop-gate helpers ([#34](https://github.com/Vit129/agy-plugin-cc/pull/34)) ([`1d96e74`](https://github.com/Vit129/agy-plugin-cc/commit/1d96e740c9c9c1db81be46dfe8617c623727dfc9))
+
 ## [1.6.1] - 2026-11-24
 
 ### Changed
