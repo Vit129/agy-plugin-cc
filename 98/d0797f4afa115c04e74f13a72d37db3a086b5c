@@ -1,0 +1,40 @@
+plugins/agy/scripts/features/stop-gate-unused.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 5-97
+  s_919be040a3c637::t_0adbe11ec3ce07 1-4
+plugins/agy/scripts/features/jobs.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 1-167
+package.json
+  s_919be040a3c637::t_96ca534bb9277b 17
+plugins/agy/scripts/features/shared.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 1-375
+ARCHITECTURE.md
+  s_919be040a3c637::t_96ca534bb9277b 17-21
+plugins/agy/scripts/features/handoff.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 1-171
+plugins/agy/scripts/features/review.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 1-154
+plugins/agy/scripts/features/info.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 1-214
+plugins/agy/scripts/features/task.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 1-194
+plugins/agy/scripts/features/setup.mjs
+  s_919be040a3c637::t_95b78bc59d4d46 1-98
+plugins/agy/scripts/agy-companion.mjs
+  s_919be040a3c637::t_bb7dc5ba4382d0 4-9
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "98d0797f4afa115c04e74f13a72d37db3a086b5c",
+  "prompts": {},
+  "sessions": {
+    "s_919be040a3c637": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa0a31f9-616e-44cf-af20-f1cef7231985",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
