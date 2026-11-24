@@ -132,12 +132,6 @@ Run an adversarial review — agy tries to find the strongest reasons the change
 
 Convert a PDF, Word document or image to Markdown with agy's multimodal model. The result is written to `docs/agy/converted/`; only a short summary comes back.
 
-### `/agy:media <file|URL> [| question]`
-
-Transcribe or describe audio, video or an image with agy. The full transcript goes to `docs/agy/media/`; Claude gets a timestamped digest (or the answer to your question).
-
----
-
 ### `/agy:status [job-id]`
 
 Show active and recent agy jobs for this repository.
