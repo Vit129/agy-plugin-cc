@@ -31,8 +31,9 @@ Forwarding rules:
 - If the user is clearly asking to continue prior agy work ("continue", "keep going", "resume", "apply the top fix", "dig deeper"), add `--resume-last` unless `--fresh` is present.
 - Otherwise forward the task as a fresh run.
 - If the user explicitly specifies `--model <name>`, forward `--model <name>`.
+- If the user specifies `--tier <low|medium|high>`, forward it as-is (it picks a Gemini Flash level; do not combine it with `--model`).
 - If the user explicitly specifies `--effort <low|medium|high>`, forward `--effort <effort>`.
-- Strip `--model` and `--effort` from the task text you pass through — they are forwarded as separate CLI flags, not part of the prompt.
+- Strip `--model`, `--tier` and `--effort` from the task text you pass through — they are forwarded as separate CLI flags, not part of the prompt.
 - Preserve the user's task text as-is apart from stripping routing flags.
 - Return the stdout of `agy-companion.mjs task` exactly as-is.
 - If the Bash call fails or agy cannot be invoked, return nothing.

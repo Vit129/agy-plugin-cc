@@ -86,6 +86,23 @@ export function getAgyAuthStatus(cwd) {
   };
 }
 
+// Tier names are stable for callers; the model ids behind them track `agy models`.
+export const TIER_MODELS = {
+  low: "gemini-3.8-flash-low",
+  medium: "gemini-3.8-flash-medium",
+  high: "gemini-3.8-flash-high"
+};
+
+export function resolveTierModel(tier, model) {
+  if (!tier) return model ?? null;
+  if (model) throw new Error("Choose either --tier or --model.");
+  const resolved = TIER_MODELS[tier];
+  if (!resolved) {
+    throw new Error(`Unknown --tier "${tier}". Valid values: ${Object.keys(TIER_MODELS).join(", ")}`);
+  }
+  return resolved;
+}
+
 export function buildAgyArgs(prompt, options = {}) {
   if (options.sandbox) throw new Error("--sandbox is no longer supported for delegation; remove --sandbox and specify read-only behavior in the prompt if needed.");
   const args = ["--dangerously-skip-permissions"];

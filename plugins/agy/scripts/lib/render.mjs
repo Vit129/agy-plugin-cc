@@ -228,3 +228,19 @@ export function renderCancelReport(job) {
 
   return `${lines.join("\n").trimEnd()}\n`;
 }
+
+export const DIGEST_CHAR_LIMIT = 12000;
+
+// Long agy replies flood the caller's context; keep the head inline and point
+// to the full text on disk instead.
+export function digestOutput(text, fullOutputPath, limit = DIGEST_CHAR_LIMIT) {
+  const output = typeof text === "string" ? text : "";
+  if (output.length <= limit) {
+    return { text: output, truncated: false };
+  }
+  const head = output.slice(0, limit).trimEnd();
+  return {
+    text: `${head}\n\n[agy output truncated: showing ${limit} of ${output.length} chars. Full output: ${fullOutputPath}]\n`,
+    truncated: true
+  };
+}

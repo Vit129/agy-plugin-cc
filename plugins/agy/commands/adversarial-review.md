@@ -1,6 +1,6 @@
 ---
 description: Run an agy adversarial review that challenges the implementation approach and design choices
-argument-hint: '[--wait|--background] [--dry-run] [--base <ref>] [--scope auto|working-tree|branch] [--model <name>] [--effort <low|medium|high>] [focus ...]'
+argument-hint: '[--wait|--background] [--dry-run] [--deep] [--base <ref>] [--scope auto|working-tree|branch] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [focus ...]'
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(node:*), Bash(git:*), AskUserQuestion
 ---

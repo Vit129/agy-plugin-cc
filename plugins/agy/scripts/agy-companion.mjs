@@ -8,7 +8,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 
 import { parseArgs, splitRawArgumentString } from "./lib/args.mjs";
-import { getAgyAuthStatus, getAgyAvailability, installHint, runAgyAgents, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
+import { getAgyAuthStatus, resolveTierModel, getAgyAvailability, installHint, runAgyAgents, runAgyChangelog, runAgyModels, runAgyTask, runAgyTaskSync } from "./lib/agy.mjs";
 import { getCodexBarAvailability, runCodexBarAntigravityQuota } from "./lib/codexbar.mjs";
 import { readStdinIfPiped } from "./lib/fs.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "./lib/git.mjs";
@@ -17,6 +17,7 @@ import {
   generateJobId,
   getConfig,
   listJobs,
+  resolveJobsDir,
   setConfig,
   upsertJob,
   writeJobFile
@@ -49,7 +50,9 @@ import {
   renderSetupReport,
   renderStatusReport,
   renderStoredJobResult,
-  renderTaskResult
+  renderTaskResult,
+  digestOutput,
+  DIGEST_CHAR_LIMIT
 } from "./lib/render.mjs";
 
 const ROOT_DIR = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -67,9 +70,9 @@ function printUsage() {
       "  node scripts/agy-companion.mjs agents [--json]",
       "  node scripts/agy-companion.mjs doctor [--json]",
       "  node scripts/agy-companion.mjs changelog [--json]",
-      "  node scripts/agy-companion.mjs review [--wait|--background] [--dry-run] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
-      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--dry-run] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
-      "  node scripts/agy-companion.mjs task [--background] [--dry-run] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
+      "  node scripts/agy-companion.mjs review [--wait|--background] [--dry-run] [--deep] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>]",
+      "  node scripts/agy-companion.mjs adversarial-review [--wait|--background] [--dry-run] [--deep] [--base <ref>] [--scope <auto|working-tree|branch>] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [focus text]",
+      "  node scripts/agy-companion.mjs task [--background] [--dry-run] [--continue|--resume-last|--resume|--fresh] [--conversation <id>] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [--project <id>|--new-project] [--dangerously-skip-permissions] [--add-dir <path>] [--log-file <path>] [--print-timeout <duration>] [prompt]",
       "  node scripts/agy-companion.mjs task-worker --job-id <id>",
       "  node scripts/agy-companion.mjs task-resume-candidate [--json]",
       "  node scripts/agy-companion.mjs status [job-id] [--wait] [--all] [--json]",
@@ -178,7 +181,7 @@ function buildAgyRunOptions(cwd, options = {}, config = {}) {
   return {
     resumeLast: Boolean(config.allowResume && (options["continue"] || options["resume-last"] || options.resume)),
     conversation: config.allowConversation ? options.conversation ?? null : null,
-    model: options.model ?? null,
+    model: resolveTierModel(options.tier, options.model),
     effort: options.effort ?? null,
     project: options.project ?? null,
     newProject: Boolean(options["new-project"]),
@@ -338,7 +341,30 @@ function interpolateTemplate(template, vars) {
   return result;
 }
 
-function buildReviewPrompt(target, reviewName, focusText) {
+const DEEP_REVIEW_INSTRUCTIONS = `
+
+Deep mode: do not stop at the diff. For each changed function or exported symbol, open the surrounding file, its callers and its tests (search the repository), and check that the change still holds there: contracts callers rely on, tests that no longer cover the new behavior, and related code that should have changed but did not. Read only; do not edit any file.`;
+
+function buildReviewPrompt(target, reviewName, focusText, deep = false) {
+  const prompt = buildBaseReviewPrompt(target, reviewName, focusText);
+  return deep ? prompt + DEEP_REVIEW_INSTRUCTIONS : prompt;
+}
+
+function writeFullOutput(cwd, label, text) {
+  const dir = resolveJobsDir(resolveWorkspaceRoot(cwd));
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `${label}-${Date.now()}-output.md`);
+  fs.writeFileSync(file, text, "utf8");
+  return file;
+}
+
+function capOutput(cwd, label, text) {
+  const output = typeof text === "string" ? text : "";
+  if (output.length <= DIGEST_CHAR_LIMIT) return output;
+  return digestOutput(output, writeFullOutput(cwd, label, output)).text;
+}
+
+function buildBaseReviewPrompt(target, reviewName, focusText) {
   const template = loadPromptTemplate(
     reviewName === "Adversarial Review" ? "adversarial-review" : "review"
   );
@@ -373,14 +399,14 @@ async function executeReviewRun(request) {
   });
   const focusText = request.focusText?.trim() ?? "";
   const reviewName = request.reviewName ?? "Review";
-  const prompt = buildReviewPrompt(target, reviewName, focusText);
+  const prompt = buildReviewPrompt(target, reviewName, focusText, Boolean(request.deep));
 
   const result = await runAgyTask(request.cwd, prompt, {
     ...(request.agyOptions ?? {}),
     onProgress: request.onProgress
   });
 
-  const rendered = renderReviewResult(result.stdout, {
+  const rendered = renderReviewResult(capOutput(request.cwd, "review", result.stdout), {
     reviewLabel: reviewName,
     targetLabel: target.label
   }) + (result.exitCode !== 0 || result.stderr ? renderStderrBlock(result.stderr, result.exitCode) : "");
@@ -446,7 +472,7 @@ async function executeTaskRun(request) {
   const rawOutput = result.stdout ?? "";
   const failureMessage = result.stderr ?? "";
   const rendered = renderTaskResult(
-    { rawOutput, failureMessage },
+    { rawOutput: capOutput(request.cwd, "task", rawOutput), failureMessage },
     { title: taskMetadata.title, jobId: request.jobId ?? null }
   ) + (result.exitCode !== 0 || failureMessage ? renderStderrBlock(failureMessage, result.exitCode) : "");
   const payload = {
@@ -852,9 +878,9 @@ function handleAgents(argv) {
 
 async function handleReviewCommand(argv, config) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["base", "scope", "cwd", "model", "effort", "project", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["base", "scope", "cwd", "model", "tier", "effort", "project", "add-dir", "log-file", "print-timeout"],
     repeatableOptions: ["add-dir"],
-    booleanOptions: ["json", "background", "wait", "new-project", "dangerously-skip-permissions", "dry-run"]
+    booleanOptions: ["json", "background", "wait", "new-project", "dangerously-skip-permissions", "dry-run", "deep"]
   });
 
   if (options.project && options["new-project"]) {
@@ -897,6 +923,7 @@ async function handleReviewCommand(argv, config) {
       scope: options.scope,
       focusText,
       reviewName: config.reviewName,
+      deep: Boolean(options.deep),
       agyOptions,
       jobId: job.id
     };
@@ -914,6 +941,7 @@ async function handleReviewCommand(argv, config) {
         scope: options.scope,
         focusText,
         reviewName: config.reviewName,
+        deep: Boolean(options.deep),
         agyOptions,
         onProgress: progress
       }),
@@ -923,7 +951,7 @@ async function handleReviewCommand(argv, config) {
 
 async function handleTask(argv) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["cwd", "prompt-file", "conversation", "model", "effort", "project", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["cwd", "prompt-file", "conversation", "model", "tier", "effort", "project", "add-dir", "log-file", "print-timeout"],
     repeatableOptions: ["add-dir"],
     booleanOptions: [
       "json",
