@@ -277,6 +277,15 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## Codex
 
+Install in Codex:
+
+```text
+codex plugin marketplace add Vit129/agy-plugin-cc
+codex plugin add agy@agy-plugin-cc
+```
+
+Codex has no automatic plugin updates: run `codex plugin marketplace upgrade`, then start a new Codex session. Coming from the deprecated `agy-plugin-codex`: remove `agy@agy-plugin-codex` first; `$agy ...` commands are unchanged.
+
 Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds shared skills (loaded by Claude Code by default and listed in the Codex manifest), `plugins/agy/cc/skills/` holds Claude-only skills (`skills` in `.claude-plugin/plugin.json`, which adds to the default), and `plugins/agy/codex/skills/` holds Codex-only skills (`skills` in `.codex-plugin/plugin.json` lists `./skills/` and `./codex/skills/`, because a Codex `skills` list replaces the default).
 
 `plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code; `/agy:doctor` reports which host it runs in. The Codex side has not been re-tested inside Codex since the merge; `tests/skills-layout.test.mjs` checks that each host resolves its skills.
