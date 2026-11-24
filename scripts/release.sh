@@ -40,7 +40,7 @@ node scripts/set-release-version.mjs "$NEW_VERSION"
 
 git-cliff --tag "$TAG" --output CHANGELOG.md
 git add CHANGELOG.md
-git add package.json version.json .claude-plugin/plugin.json .claude-plugin/marketplace.json plugins/agy/scripts/lib/git-update-check.mjs
+git add package.json version.json .claude-plugin/plugin.json .claude-plugin/marketplace.json plugins/agy/.claude-plugin/plugin.json plugins/agy/.codex-plugin/plugin.json plugins/agy/scripts/lib/git-update-check.mjs
 git commit -m "chore(release): ${TAG}"
 npm run release:check
 git tag "$TAG" -m "$TAG"
