@@ -172,6 +172,16 @@ agy does the browsing or generation and writes the result under `docs/agy/`; Cla
 
 ---
 
+### Maintenance commands
+
+| Command | What it does |
+|---|---|
+| `/agy:doctor` | Checks the plugin manifest, host (Claude Code or Codex), agy binary and models |
+| `/agy:models`, `/agy:agents`, `/agy:changelog` | Pass through `agy models`, `agy agents`, `agy changelog` |
+| `/agy:update [--pull\|--dismiss]` | For git-clone installs: shows whether a newer version is on GitHub and pulls it after you confirm |
+
+---
+
 ### `/agy:status [job-id]`
 
 Show active and recent agy jobs for this repository.
@@ -227,40 +237,38 @@ When a session ends with the gate enabled:
 
 ```
 plugins/agy/
-├── .claude-plugin/plugin.json       # plugin metadata (v1.1.0)
-├── agents/agy-rescue.md             # agy:agy-rescue subagent
-├── commands/                        # slash commands
-│   ├── agy.md                       # /agy:agy
-│   ├── rescue.md                    # /agy:rescue
-│   ├── setup.md                     # /agy:setup
-│   ├── review.md                    # /agy:review
-│   ├── adversarial-review.md        # /agy:adversarial-review
-│   ├── status.md                    # /agy:status
-│   ├── result.md                    # /agy:result
-│   └── cancel.md                    # /agy:cancel
-├── hooks/hooks.json                 # SessionStart / SessionEnd / Stop
-├── prompts/                         # prompt templates
-│   ├── review.md
-│   ├── adversarial-review.md
-│   └── stop-review-gate.md
+├── .claude-plugin/plugin.json       # Claude Code manifest ("skills": "./cc/skills/")
+├── .codex-plugin/plugin.json        # Codex manifest ("skills": ["./skills/", "./codex/skills/"])
+├── agents/agy-rescue.md             # agy:agy-rescue subagent (Claude)
+├── commands/                        # Claude slash commands, one .md each
+│   ├── agy.md rescue.md             # /agy:agy, /agy:rescue
+│   ├── review.md adversarial-review.md
+│   ├── handoff.md transfer.md       # /agy:handoff, /agy:transfer
+│   ├── image.md research.md scrape.md design-review.md doc-to-md.md
+│   ├── status.md result.md cancel.md
+│   └── setup.md doctor.md models.md agents.md changelog.md update.md
+├── hooks/hooks.json                 # Claude hooks: SessionStart / SessionEnd / Stop
+├── hooks.json                       # Codex hooks: SessionStart / Stop
+├── prompts/                         # review, adversarial-review, handoff, stop-review-gate
 ├── scripts/
-│   ├── agy-companion.mjs            # main runtime (9 subcommands)
+│   ├── agy-companion.mjs            # entry point: usage + subcommand switch
 │   ├── session-lifecycle-hook.mjs   # SessionStart / SessionEnd handler
 │   ├── stop-review-gate-hook.mjs    # Stop hook handler
-│   └── lib/                         # modular library
-│       ├── agy.mjs                  # agy CLI wrapper
-│       ├── args.mjs                 # argument parsing
-│       ├── fs.mjs                   # file utilities
-│       ├── git.mjs                  # git review target resolution
-│       ├── job-control.mjs          # job queries & enrichment
-│       ├── process.mjs              # process utilities
-│       ├── render.mjs               # output rendering
-│       ├── state.mjs                # persistent job state
-│       ├── tracked-jobs.mjs         # job lifecycle tracking
-│       └── workspace.mjs            # git root resolution
-└── skills/
-    ├── agy-companion-reference/SKILL.md # shared: subcommands and flags (both hosts)
-    └── gemini-3-prompting/SKILL.md      # shared: prompt composition guidance
+│   ├── features/                    # one module per feature
+│   │   ├── task.mjs review.mjs handoff.mjs jobs.mjs
+│   │   ├── setup.mjs info.mjs update.mjs
+│   │   └── shared.mjs               # CLI plumbing shared by features
+│   └── lib/                         # logic and adapters, no CLI concerns
+│       ├── agy.mjs                  # agy process, --tier, JSON envelope
+│       ├── handoff.mjs usage.mjs    # hand-off loop, usage parsing
+│       ├── state.mjs tracked-jobs.mjs job-control.mjs
+│       ├── git.mjs git-update-check.mjs workspace.mjs
+│       └── args.mjs fs.mjs process.mjs render.mjs codexbar.mjs
+├── skills/                          # shared by both hosts: edit here once
+│   ├── agy-companion-reference/     # subcommands and flags
+│   └── gemini-3-prompting/          # prompt composition guidance
+├── cc/skills/                       # Claude-only: agy-cli-runtime, agy-result-handling
+└── codex/skills/                    # Codex-only: agy ($agy), agy-cli-runtime
 ```
 
 ## Changelog
@@ -271,7 +279,7 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds shared skills (loaded by Claude Code by default and listed in the Codex manifest), `plugins/agy/cc/skills/` holds Claude-only skills (`skills` in `.claude-plugin/plugin.json`, which adds to the default), and `plugins/agy/codex/skills/` holds Codex-only skills (`skills` in `.codex-plugin/plugin.json` lists `./skills/` and `./codex/skills/`, because a Codex `skills` list replaces the default).
 
-`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code; `/agy:doctor` reports which host it runs in. The Codex side has not been re-tested since the merge.
+`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code; `/agy:doctor` reports which host it runs in. The Codex side has not been re-tested inside Codex since the merge; `tests/skills-layout.test.mjs` checks that each host resolves its skills.
 
 ## Development and delivery
 

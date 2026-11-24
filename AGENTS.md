@@ -17,7 +17,7 @@ Global instructions authoritative:
 
 ## Project Summary
 
-Claude Code plugin, **Agy (Antigravity CLI)** ecosystem. Plugin system mirror `~/.claude/` structure — skills, commands, agents, hooks.
+Plugin for Claude Code and OpenAI Codex CLI, **Agy (Antigravity CLI)** ecosystem. One `plugins/agy` tree: shared skills in `skills/`, host-only skills in `cc/skills/` and `codex/skills/`, commands, agents, hooks.
 
 ## Skills & Rules
 
