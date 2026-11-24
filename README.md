@@ -35,16 +35,36 @@ The Antigravity CLI must be installed and authenticated before using this plugin
 
 ## Installation
 
-In Claude Code:
+### Claude Code
 
-```text
-/plugin marketplace add Vit129/agy-plugin-cc
-/plugin install agy@agy-plugin-cc
-/reload-plugins
+Install from GitHub in your terminal:
+
+```bash
+claude plugin marketplace add Vit129/agy-plugin-cc
+claude plugin install agy@agy-plugin-cc
 ```
 
-Updates: open `/plugin` → Marketplaces → `agy-plugin-cc` and turn on auto-update; new versions arrive when a session starts.
-Manual update: `/plugin marketplace update agy-plugin-cc`, then `/reload-plugins`.
+Start Claude Code, or run `/reload-plugins` in an open session to load the plugin.
+
+To update manually, refresh the marketplace and update the installed plugin:
+
+```bash
+claude plugin marketplace update agy-plugin-cc
+claude plugin update agy@agy-plugin-cc
+```
+
+Restart Claude Code to apply the update. You can also enable marketplace auto-update under `/plugin` → Marketplaces → `agy-plugin-cc`.
+
+To uninstall the plugin and remove its marketplace:
+
+```bash
+claude plugin uninstall agy@agy-plugin-cc
+claude plugin marketplace remove agy-plugin-cc
+```
+
+Plugin install and uninstall default to `--scope user`. If you installed at project or local scope, pass `--scope project` or `--scope local` to the uninstall command. The update command detects the installation scope by default and accepts the same options to target a specific scope. Marketplace removal without `--scope` removes its declaration from every scope.
+
+If you already use `agy@agy-plugin-cc` in Claude Code, follow the update steps above to move to the shared release. If you also installed the separate `agy-plugin-codex` in Codex, follow the [Codex migration steps](#migrate-from-agy-plugin-codex) in that host.
 
 ## Commands & Usage
 
@@ -277,18 +297,56 @@ See [CHANGELOG.md](CHANGELOG.md).
 
 ## Codex
 
-Install in Codex:
+### Install
 
-```text
+In your terminal, add the GitHub marketplace and install the plugin:
+
+```bash
 codex plugin marketplace add Vit129/agy-plugin-cc
 codex plugin add agy@agy-plugin-cc
 ```
 
-Codex has no automatic plugin updates: run `codex plugin marketplace upgrade`, then start a new Codex session. Coming from the deprecated `agy-plugin-codex`: remove `agy@agy-plugin-codex` first; `$agy ...` commands are unchanged.
+Start a new Codex session to load the plugin. Try `$agy task --tier low "Reply with exactly: hello ok"`, then `$agy status` to see the result and token usage.
+
+### Update
+
+Refresh the marketplace, then reinstall the plugin from the refreshed marketplace:
+
+```bash
+codex plugin marketplace upgrade agy-plugin-cc
+codex plugin remove agy@agy-plugin-cc
+codex plugin add agy@agy-plugin-cc
+```
+
+Start a new Codex session to load the updated plugin.
+
+### Uninstall
+
+Remove the plugin, then remove the marketplace if you no longer use it:
+
+```bash
+codex plugin remove agy@agy-plugin-cc
+codex plugin marketplace remove agy-plugin-cc
+```
+
+Start a new Codex session to apply the change.
+
+### Migrate from `agy-plugin-codex`
+
+Remove the old plugin and marketplace, then install from the GitHub marketplace. Remove the old marketplace entry even if it points to a local checkout you have already deleted.
+
+```bash
+codex plugin remove agy@agy-plugin-codex
+codex plugin marketplace remove agy-plugin-codex
+codex plugin marketplace add Vit129/agy-plugin-cc
+codex plugin add agy@agy-plugin-cc
+```
+
+If `~/.codex/config.toml` still contains `[[skills.config]]` entries whose `path` points to missing skills under `~/.codex/plugins/cache/agy-plugin-codex/`, remove those entries. You can also remove the old cache directory if it is empty. Start a new Codex session and run `$agy status`.
 
 Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds shared skills (loaded by Claude Code by default and listed in the Codex manifest), `plugins/agy/cc/skills/` holds Claude-only skills (`skills` in `.claude-plugin/plugin.json`, which adds to the default), and `plugins/agy/codex/skills/` holds Codex-only skills (`skills` in `.codex-plugin/plugin.json` lists `./skills/` and `./codex/skills/`, because a Codex `skills` list replaces the default).
 
-`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code; `/agy:doctor` reports which host it runs in. The Codex side has not been re-tested inside Codex since the merge; `tests/skills-layout.test.mjs` checks that each host resolves its skills.
+`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code. `tests/skills-layout.test.mjs` checks that each host resolves its skills.
 
 ## Development and delivery
 
