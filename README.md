@@ -159,6 +159,19 @@ Every `task`, review and hand-off runs agy with `--output-format json` and recor
 
 ---
 
+### Web and image commands
+
+agy does the browsing or generation and writes the result under `docs/agy/`; Claude gets a short reply and checks the result.
+
+| Command | What it does | Claude's check |
+|---|---|---|
+| `/agy:image <description>` | Generates an image with agy's built-in image tool → `docs/agy/images/` | opens the image and says whether it matches |
+| `/agy:research <question>` | One round of web research, every claim with source URLs → `docs/agy/research/` | fetches the cited pages for up to 3 key claims; unsupported claims are marked unverified. Use the `deep-research` skill for broad multi-angle reports |
+| `/agy:scrape <url> [what]` | Extracts a table (or JSON with `--json`) from one page → `docs/agy/scrapes/` | checks row count and columns |
+| `/agy:design-review <url> [focus]` | agy captures 1440px and 390px screenshots → `docs/agy/design-reviews/` | reviews the screenshots itself; agy's own page description is not trusted |
+
+---
+
 ### `/agy:status [job-id]`
 
 Show active and recent agy jobs for this repository.
