@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "updated": "2026-11-24",
   "summary": "Add git-clone update check with pull confirmation prompt"
 }

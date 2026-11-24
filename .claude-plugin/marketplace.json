@@ -6,13 +6,13 @@
   },
   "metadata": {
     "description": "Antigravity (agy) CLI integration for Claude Code",
-    "version": "1.6.2"
+    "version": "1.6.3"
   },
   "plugins": [
     {
       "name": "agy",
       "description": "Delegate coding tasks to Antigravity (agy) CLI from Claude Code — full rescue, resume, background execution, code review, and stop-time review gate.",
-      "version": "1.6.2",
+      "version": "1.6.3",
       "author": {
         "name": "Supavit Cho"
       },

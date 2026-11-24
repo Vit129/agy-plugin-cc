@@ -3,10 +3,25 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.6.3] - 2026-11-24
+
+### Added
+- Install into Codex from this repo, replacing agy-plugin-codex ([`b0fb188`](https://github.com/Vit129/agy-plugin-cc/commit/b0fb1881c29ae97f68a5f8a1242975da1fb36a4c))
+
+### Changed
+- One skills source for both hosts (skills/ shared, cc/ and codex/ per host) ([`36fda4e`](https://github.com/Vit129/agy-plugin-cc/commit/36fda4e647b90ceefc19a472a8f3855e2bce0462))
+
+### Fixed
+- The manifest the marketplace installs (`plugins/agy/.claude-plugin/plugin.json`) was stuck at 1.5.1, so `/agy:doctor` and installs reported 1.5.1; release scripts now bump and check it ([#36](https://github.com/Vit129/agy-plugin-cc/pull/36))
+- The session-start update notice pointed at `/agy-update`, which did not exist; `/agy:update` now implements it ([#36](https://github.com/Vit129/agy-plugin-cc/pull/36))
+
+### Documentation
+- Describe the two-host plugin, feature modules and shared skills ([`3c94d7c`](https://github.com/Vit129/agy-plugin-cc/commit/3c94d7c6475d78519ff15945e37921f67580f1f8))
+
 ## [1.6.2] - 2026-11-24
 
-### Removed
-- Delete unused stop-gate helpers ([#34](https://github.com/Vit129/agy-plugin-cc/pull/34)) ([`1d96e74`](https://github.com/Vit129/agy-plugin-cc/commit/1d96e740c9c9c1db81be46dfe8617c623727dfc9))
+### Fixed
+- Add the 1.6.2 changelog section git-cliff skipped ([`71cfb3f`](https://github.com/Vit129/agy-plugin-cc/commit/71cfb3f97e756cfacbffcd2ef0bd6287b621c589))
 
 ## [1.6.1] - 2026-11-24
 
