@@ -8,12 +8,16 @@ plugins/agy/scripts/lib/handoff.mjs
 plugins/agy/scripts/agy-companion.mjs
   s_919be040a3c637::t_7b6488047bca03 3,14-15,1041-1143,1145-1196,1227-1229,1507-1508
   s_919be040a3c637::t_71537b598cd7c7 1509
+  s_919be040a3c637::t_eb1beb83722142 76,1144
 plugins/agy/commands/transfer.md
   s_919be040a3c637::t_c6db9692af8234 1-26
 plugins/agy/commands/handoff.md
   s_919be040a3c637::t_71536a39f47e81 1-2,4-26
+  s_919be040a3c637::t_2a9aee5ce3e794 3
 plugins/agy/prompts/handoff.md
   s_919be040a3c637::t_27158304686ad8 1-16
+plugins/agy/skills/agy-cli-runtime/SKILL.md
+  s_919be040a3c637::t_eb1beb83722142 49
 ---
 {
   "schema_version": "authorship/3.0.0",
