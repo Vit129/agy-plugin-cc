@@ -10,6 +10,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ -x \"$HOME/.local/bin/agent-usage\" ]; then \"$HOME/.local/bin/agent-usage\" ensure-running --quiet || true; fi",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "SessionEnd": [

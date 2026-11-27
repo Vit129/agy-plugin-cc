@@ -2,7 +2,7 @@
 
 ## Interaction model
 
-The product is a plugin for two hosts, Claude Code and OpenAI Codex CLI, not a graphical application. The design surface is the command vocabulary (`/agy:*` in Claude Code, `$agy ...` in Codex), prompts, status output, and lifecycle behavior.
+The product is a plugin for two hosts, Claude Code and OpenAI Codex CLI, with an optional local Agent Usage dashboard. The design surface is the command vocabulary (`/agy:*` in Claude Code, `$agy ...` in Codex), prompts, status output, and lifecycle behavior.
 
 ## Principles
 
@@ -13,4 +13,4 @@ The product is a plugin for two hosts, Claude Code and OpenAI Codex CLI, not a g
 - Make update checks read-only unless the user explicitly requests a pull (`/agy:update --pull`, `$agy update --pull`).
 - Keep runtime review isolated in a separate test Claude Code profile.
 
-There is no visual UI, so a graphical layout specification does not apply.
+Agent Usage shows quota remaining and reset times for each provider, estimated session capacity, and model totals for 7 or 30 days. Colors and labels distinguish threshold severity and unavailable or stale values.

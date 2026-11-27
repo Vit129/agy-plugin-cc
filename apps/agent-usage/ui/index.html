@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Agent Usage</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="masthead">
+  <div class="shell">
+    <div class="wordmark"><span class="mark" aria-hidden="true"></span>Agent Usage</div>
+    <div class="mast-actions">
+      <button class="theme" type="button" data-testid="btn_toggleTheme_monitorPage" aria-pressed="true">Light mode</button>
+    </div>
+  </div>
+</header>
+<main class="shell">
+  <section class="overview-dashboard" id="overview-panel" aria-labelledby="overview-heading">
+    <div class="overview">
+      <div><h1 id="overview-heading">Usage overview</h1><p>Claude Code &amp; Antigravity</p></div>
+      <div class="overview-actions">
+        <span class="server-label"><span class="dot" aria-hidden="true"></span>Local dashboard</span>
+        <button class="action" id="open-settings" type="button" data-testid="btn_openAlertSettings_monitorPage">Alert settings</button>
+      </div>
+    </div>
+    <div class="notice" role="status" data-testid="lbl_quotaAlert_monitorPage">
+      <span class="dot" aria-hidden="true"></span>
+      <div><strong id="alert-title">Loading local quota…</strong><p id="alert-details"></p></div>
+    </div>
+    <section class="panel plan-panel" aria-labelledby="plan-usage">
+      <div class="section-title">
+        <div><h2 id="plan-usage">Plan usage</h2><p class="plan-caption">Percent remaining in each quota window</p></div>
+        <div class="legend" aria-label="Alert thresholds"></div>
+      </div>
+      <div class="plan-grid plan-columns" aria-hidden="true"><span>Provider</span><span>5-hour window</span><span>7-day window</span><span>Sessions left</span></div>
+      <div id="quota-rows"></div>
+      <p class="plan-note" id="estimate-note"></p>
+    </section>
+    <section class="panel model-panel" aria-labelledby="by-model">
+      <div class="section-title">
+        <h2 id="by-model">By model</h2>
+        <div class="range-picker" role="group" aria-label="Model usage time range">
+          <button type="button" data-model-days="7" aria-pressed="true" data-testid="btn_modelLastSevenDays_monitorPage">7 days</button>
+          <button type="button" data-model-days="30" aria-pressed="false" data-testid="btn_modelLastThirtyDays_monitorPage">30 days</button>
+        </div>
+      </div>
+      <div class="model-scroll">
+        <table class="model-table" aria-labelledby="by-model" data-testid="tbl_modelUsage_monitorPage">
+          <thead><tr><th scope="col">Model</th><th scope="col" class="model-numeric">Calls</th><th scope="col" class="model-numeric">OK</th><th scope="col">Tokens</th><th scope="col" class="model-numeric">Avg time</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="panel" aria-labelledby="reset-heading">
+      <div class="section-title"><div><h2 id="reset-heading">Quota checks</h2><p class="plan-caption" id="reset-caption">Times are estimates based on the observed 5-hour reset.</p></div></div>
+      <ul class="schedule-list" id="reset-checks"></ul>
+    </section>
+    <details class="panel disclosure">
+      <summary data-testid="btn_terminalStartup_monitorPage">Terminal startup</summary>
+      <div class="startup-content"><code>claude</code> or <code>agy</code><span aria-hidden="true">→</span><span>Start or reuse the local dashboard server</span></div>
+    </details>
+  </section>
+</main>
+<dialog class="settings-dialog" aria-labelledby="settings-heading" data-testid="dlg_alertSettings_monitorPage">
+  <form id="quota-settings">
+    <h2 id="settings-heading">Alert settings</h2>
+    <p class="plan-caption">Trigger an alert when the remaining quota reaches or falls below each level.</p>
+    <div class="settings-fields">
+      <label>Yellow · Watch (%)<input name="watch" type="number" min="2" max="100" step="1" required data-testid="txt_watchThreshold_monitorPage"></label>
+      <label>Orange · Low (%)<input name="low" type="number" min="1" max="99" step="1" required data-testid="txt_lowThreshold_monitorPage"></label>
+      <label>Red · Critical (%)<input name="critical" type="number" min="0" max="98" step="1" required data-testid="txt_criticalThreshold_monitorPage"></label>
+      <label>Expected quota per session (%)<input name="cost" type="number" min="1" max="100" step="1" required data-testid="txt_sessionCost_monitorPage"></label>
+      <label>Target sessions per provider<input name="target" type="number" min="1" max="100" step="1" required data-testid="txt_sessionTarget_monitorPage"></label>
+    </div>
+    <p class="form-error" role="alert"></p>
+    <div class="settings-actions">
+      <button class="action" type="button" id="cancel-settings" data-testid="btn_cancelAlertSettings_monitorPage">Cancel</button>
+      <button class="action primary" type="submit" data-testid="btn_saveAlertSettings_monitorPage">Save settings</button>
+    </div>
+  </form>
+</dialog>
+<script type="module" src="/dashboard.mjs"></script>
+</body>
+</html>
