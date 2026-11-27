@@ -105,6 +105,26 @@ export function resolveTierModel(tier, model) {
   return resolved;
 }
 
+export function selectAgyModel({
+  kind = "task",
+  promptLength = 0,
+  deep = false,
+  model = null,
+  tier = null,
+  env = process.env
+} = {}) {
+  if (model || tier) {
+    return { model: resolveTierModel(tier, model), tier: tier || "explicit", auto: false };
+  }
+  if (kind === "adversarial-review" || deep || promptLength > 10_000) {
+    return { model: env.AGY_MODEL_LARGE || "gemini-4-neon-medium", tier: "large", auto: true };
+  }
+  if (kind === "task" && promptLength < 2_000) {
+    return { model: env.AGY_MODEL_SMALL || "gemini-4-hydrogen-low", tier: "small", auto: true };
+  }
+  return { model: env.AGY_MODEL_MEDIUM || "gemini-4-hydrogen-medium", tier: "medium", auto: true };
+}
+
 export function buildAgyArgs(prompt, options = {}) {
   if (options.sandbox) throw new Error("--sandbox is no longer supported for delegation; remove --sandbox and specify read-only behavior in the prompt if needed.");
   const args = ["--dangerously-skip-permissions"];

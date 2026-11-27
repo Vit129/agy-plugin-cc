@@ -183,6 +183,12 @@ export function ensureValidModel(cwd, agyOptions) {
   if (modelIds.includes(agyOptions.model) || rawLines.includes(agyOptions.model)) {
     return;
   }
+  if (agyOptions.autoModel) {
+    process.stderr.write(`warning: auto-selected model "${agyOptions.model}" is not in \`agy models\`; falling back to agy default.\n`);
+    agyOptions.model = null;
+    agyOptions.autoModel = false;
+    return;
+  }
   throw new Error(
     `Unknown --model "${agyOptions.model}". Available models:\n${rawLines.map((model) => `- ${model}`).join("\n")}`
   );

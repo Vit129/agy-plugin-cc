@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { runAgyTask } from "../lib/agy.mjs";
+import { runAgyTask, selectAgyModel } from "../lib/agy.mjs";
 import { readStdinIfPiped } from "../lib/fs.mjs";
 import { ensureGitRepository, getCurrentBranch, isWorkingTreeDirty } from "../lib/git.mjs";
 import { detectVerifyCommand, hashFiles, parseTestList, renderHandoffReport, runHandoffLoop } from "../lib/handoff.mjs";
@@ -130,6 +130,11 @@ export async function handleHandoff(argv) {
   const plan = resolveHandoffPlan(cwd, options, requirement);
 
   const agyOptions = buildAgyRunOptions(cwd, options, {});
+  if (!agyOptions.model && !options.tier) {
+    const picked = selectAgyModel({ kind: "handoff", promptLength: requirement.length });
+    agyOptions.model = picked.model;
+    agyOptions.autoModel = true;
+  }
   agyOptions.printTimeout = agyOptions.printTimeout ?? DEFAULT_HANDOFF_PRINT_TIMEOUT;
   ensureValidModel(cwd, agyOptions);
   ensureValidEffort(agyOptions);

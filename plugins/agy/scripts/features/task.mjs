@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { runAgyTask } from "../lib/agy.mjs";
+import { runAgyTask, selectAgyModel } from "../lib/agy.mjs";
 import { readStdinIfPiped } from "../lib/fs.mjs";
 import { findLatestResumableTaskJob, sortJobsNewestFirst } from "../lib/job-control.mjs";
 import { renderTaskResult } from "../lib/render.mjs";
@@ -107,6 +107,11 @@ export async function handleTask(argv) {
   }
 
   const agyOptions = buildAgyRunOptions(cwd, options, { allowResume: true, allowConversation: true });
+  if (!agyOptions.model && !options.tier) {
+    const picked = selectAgyModel({ kind: "task", promptLength: prompt.length });
+    agyOptions.model = picked.model;
+    agyOptions.autoModel = true;
+  }
   ensureValidModel(cwd, agyOptions);
   ensureValidEffort(agyOptions);
   const fresh = Boolean(options.fresh);

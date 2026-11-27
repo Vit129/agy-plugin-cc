@@ -1,4 +1,4 @@
-import { runAgyTask } from "../lib/agy.mjs";
+import { runAgyTask, selectAgyModel } from "../lib/agy.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "../lib/git.mjs";
 import { renderReviewResult } from "../lib/render.mjs";
 import { buildAgyRunOptions, buildDryRunReport, capOutput, createCompanionJob, enqueueBackgroundTask, ensureAgyAvailable, ensureValidEffort, ensureValidModel, firstMeaningfulLine, interpolateTemplate, loadPromptTemplate, outputCommandResult, parseCommandInput, renderDryRunReport, renderQueuedTaskLaunch, renderStderrBlock, resolveCommandCwd, resolveCommandWorkspace, runForegroundCommand, shorten } from "./shared.mjs";
@@ -95,6 +95,15 @@ export async function handleReviewCommand(argv, config) {
   const workspaceRoot = resolveCommandWorkspace(options);
   const focusText = positionals.join(" ").trim();
   const agyOptions = buildAgyRunOptions(cwd, options, {});
+  if (!agyOptions.model && !options.tier) {
+    const picked = selectAgyModel({
+      kind: config.reviewName === "Adversarial Review" ? "adversarial-review" : "review",
+      promptLength: focusText.length,
+      deep: Boolean(options.deep)
+    });
+    agyOptions.model = picked.model;
+    agyOptions.autoModel = true;
+  }
   ensureValidModel(cwd, agyOptions);
   ensureValidEffort(agyOptions);
 
