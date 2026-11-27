@@ -1,6 +1,6 @@
 {
   "name": "@vit129/agy-plugin-cc",
-  "version": "1.6.5",
+  "version": "1.6.6",
   "description": "Claude Code plugin installer and updater for the Antigravity agy companion.",
   "type": "module",
   "files": [

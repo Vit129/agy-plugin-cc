@@ -3,6 +3,14 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.6.6] - 2026-11-27
+
+### Added
+- Auto-select agy model by task size when unspecified ([`d403bee`](https://github.com/Vit129/agy-plugin-cc/commit/d403bee91d01fab3b8d7c973d7721eaf60775ce7))
+
+### Documentation
+- Remove codex-plugin-cc derivation notes from README and NOTICE ([`d328df1`](https://github.com/Vit129/agy-plugin-cc/commit/d328df18fa35569c1210a88af754d7a489a3f656))
+
 ## [1.6.5] - 2026-11-27
 
 ### Added
