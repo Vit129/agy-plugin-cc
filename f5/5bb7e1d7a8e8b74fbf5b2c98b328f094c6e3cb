@@ -1,0 +1,28 @@
+plugins/agy/scripts/agy-companion.mjs
+  h_d82339d8725694 11,31-32,90-92
+plugins/agy/scripts/features/route.mjs
+  h_d82339d8725694 1-46
+plugins/agy/scripts/features/setup.mjs
+  h_d82339d8725694 3,67-95
+plugins/agy/scripts/lib/agy.mjs
+  h_d82339d8725694 8,157-170,175,177,191,240-244
+plugins/agy/scripts/lib/job-control.mjs
+  h_d82339d8725694 4,200-201
+plugins/agy/scripts/lib/quota-state.mjs
+  h_d82339d8725694 1-216
+plugins/agy/scripts/lib/render.mjs
+  h_d82339d8725694 130,133-150
+tests/quota-state.test.mjs
+  h_d82339d8725694 1-164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "f55bb7e1d7a8e8b74fbf5b2c98b328f094c6e3cb",
+  "prompts": {},
+  "humans": {
+    "h_d82339d8725694": {
+      "author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
