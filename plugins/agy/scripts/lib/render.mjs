@@ -127,9 +127,26 @@ export function renderStatusReport(report) {
   const lines = [
     "# agy Status",
     "",
-    `Review gate: ${report.config.stopReviewGate ? "enabled" : "disabled"}`,
-    ""
+    `Review gate: ${report.config.stopReviewGate ? "enabled" : "disabled"}`
   ];
+
+  if (report.quota && (report.quota.agy?.available || report.quota.claude?.available)) {
+    const parts = [];
+    if (report.quota.agy?.available) {
+      const g5 = report.quota.agy.pools.gemini["5h"]?.effectiveRemainingPct;
+      const g7 = report.quota.agy.pools.gemini["7d"]?.effectiveRemainingPct;
+      parts.push(`agy:gemini 5h:${g5 ?? "--"}% rem 7d:${g7 ?? "--"}% rem`);
+    }
+    if (report.quota.claude?.available) {
+      const c5 = report.quota.claude.pools.default["5h"]?.effectiveRemainingPct;
+      const c7 = report.quota.claude.pools.default["7d"]?.effectiveRemainingPct;
+      parts.push(`claude 5h:${c5 ?? "--"}% rem 7d:${c7 ?? "--"}% rem`);
+    }
+    if (parts.length > 0) {
+      lines.push(`Quota: ${parts.join(" | ")}`);
+    }
+  }
+  lines.push("");
 
   if (report.running.length > 0) {
     appendActiveJobsTable(lines, report.running);

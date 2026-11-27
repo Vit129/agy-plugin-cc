@@ -1,5 +1,6 @@
 import { getAgyAuthStatus, getAgyAvailability, installHint } from "../lib/agy.mjs";
 import { getCodexBarAvailability, runCodexBarAntigravityQuota } from "../lib/codexbar.mjs";
+import { readAllQuota } from "../lib/quota-state.mjs";
 import { renderSetupReport } from "../lib/render.mjs";
 import { getConfig, setConfig } from "../lib/state.mjs";
 import { resolveWorkspaceRoot } from "../lib/workspace.mjs";
@@ -63,7 +64,35 @@ export async function handleSetup(argv) {
   outputResult(options.json ? finalReport : renderSetupReport(finalReport), options.json);
 }
 
-export function buildQuotaLines(cwd) {
+export function buildQuotaLines(cwd, options = {}) {
+  if (!options.liveQuota) {
+    const all = readAllQuota(options);
+    const agyPools = all.agy.pools;
+    const hasLocal =
+      all.agy.available ||
+      all.claude.available ||
+      agyPools.gemini["5h"].state !== "unknown";
+    if (hasLocal) {
+      const fmt = (w) =>
+        w && w.state !== "unknown"
+          ? `${100 - w.effectiveRemainingPct}% used (${w.effectiveRemainingPct}% rem, ${w.state})`
+          : "unknown";
+      const lines = [];
+      if (all.agy.available) {
+        lines.push(
+          `- agy:gemini — 5h: ${fmt(agyPools.gemini["5h"])}, 7d: ${fmt(agyPools.gemini["7d"])}`,
+          `- agy:argon — 7d: ${fmt(agyPools.argon["7d"])}`,
+          `- agy:3p — 5h: ${fmt(agyPools["3p"]["5h"])}, 7d: ${fmt(agyPools["3p"]["7d"])}`
+        );
+      }
+      if (all.claude.available) {
+        const cp = all.claude.pools.default;
+        lines.push(`- claude:default — 5h: ${fmt(cp["5h"])}, 7d: ${fmt(cp["7d"])}`);
+      }
+      if (lines.length > 0) return lines;
+    }
+  }
+
   const avail = getCodexBarAvailability(cwd);
   if (!avail.available) {
     return ["codexbar not installed — run `brew install --cask codexbar` to see Antigravity quota here."];

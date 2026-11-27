@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 
 import { binaryAvailable } from "./process.mjs";
+import { classifyQuotaError, recordCooldown, resolveAgyPool } from "./quota-state.mjs";
 import { parseAgyJsonOutput, progressFromStreamLine } from "./usage.mjs";
 
 const HOMEBREW_PREFIXES = ["/opt/homebrew/bin", "/usr/local/bin"];
@@ -153,13 +154,27 @@ export function buildAgyArgs(prompt, options = {}) {
   return args;
 }
 
+function recordAgyQuotaCooldownIfNeeded(result, options = {}) {
+  const errText = `${result.stderr ?? ""}\n${result.stdout ?? ""}`;
+  if (result.exitCode !== 0 && classifyQuotaError(errText)) {
+    const pool = resolveAgyPool(options.model ?? "");
+    try {
+      recordCooldown("agy", pool, { reason: result.stderr || result.stdout, env: options.env });
+    } catch {
+      // Never fail task reporting if cooldown cache write fails
+    }
+    return { ...result, quotaError: true };
+  }
+  return result;
+}
+
 // The stream's result event carries token usage; `stdout` is unwrapped back to the
 // plain reply so callers that render text keep working.
 function unwrapJsonResult(result, options) {
   const parsed = parseAgyJsonOutput(result.stdout);
-  if (!parsed) return { ...result, usage: null, conversationId: null };
+  if (!parsed) return recordAgyQuotaCooldownIfNeeded({ ...result, usage: null, conversationId: null }, options);
   const errorNote = parsed.error && !result.stderr.includes(parsed.error) ? `${parsed.error}\n` : "";
-  return {
+  return recordAgyQuotaCooldownIfNeeded({
     ...result,
     stdout: parsed.response,
     stderr: result.stderr + errorNote,
@@ -173,7 +188,7 @@ function unwrapJsonResult(result, options) {
       numTurns: parsed.numTurns,
       tokens: parsed.tokens
     }
-  };
+  }, options);
 }
 
 export async function runAgyTask(cwd, prompt, options = {}) {
@@ -222,7 +237,11 @@ export async function runAgyTask(cwd, prompt, options = {}) {
 
     child.on("close", (code, signal) => {
       const raw = { exitCode: exitCodeOf({ status: code, signal }), stdout, stderr: withSignalNote(stderr, signal) };
-      resolve(jsonOutput ? unwrapJsonResult(raw, options) : { ...raw, usage: null, conversationId: null });
+      resolve(
+        jsonOutput
+          ? unwrapJsonResult(raw, options)
+          : recordAgyQuotaCooldownIfNeeded({ ...raw, usage: null, conversationId: null }, options)
+      );
     });
   });
 }

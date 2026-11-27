@@ -8,6 +8,7 @@ import { handleReviewCommand } from "./features/review.mjs";
 import { handleTask, handleTaskResumeCandidate } from "./features/task.mjs";
 import { handleHandoff } from "./features/handoff.mjs";
 import { handleCancel, handleResult, handleStatus, handleTaskWorker } from "./features/jobs.mjs";
+import { handleRoute } from "./features/route.mjs";
 
 function printUsage() {
   console.log(
@@ -27,7 +28,8 @@ function printUsage() {
       "  node scripts/agy-companion.mjs task-resume-candidate [--json]",
       "  node scripts/agy-companion.mjs status [job-id] [--wait] [--all] [--json]",
       "  node scripts/agy-companion.mjs result [job-id] [--json]",
-      "  node scripts/agy-companion.mjs cancel [job-id] [--json]"
+      "  node scripts/agy-companion.mjs cancel [job-id] [--json]",
+      "  node scripts/agy-companion.mjs route [--preferred <claude|agy>] [--model <name>] [--min-5h <n>] [--min-7d <n>] [--json]"
     ].join("\n")
   );
 }
@@ -84,6 +86,9 @@ async function main() {
       break;
     case "cancel":
       await handleCancel(argv);
+      break;
+    case "route":
+      handleRoute(argv);
       break;
     default:
       throw new Error(`Unknown subcommand: ${subcommand}`);

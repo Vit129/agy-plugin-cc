@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import process from "node:process";
 
+import { readAllQuota } from "./quota-state.mjs";
 import { getConfig, listJobs, readJobFile, resolveJobFile } from "./state.mjs";
 import { SESSION_ID_ENV } from "./tracked-jobs.mjs";
 import { resolveWorkspaceRoot } from "./workspace.mjs";
@@ -196,7 +197,8 @@ export function buildStatusSnapshot(cwd, options = {}) {
     running,
     latestFinished,
     recent,
-    needsReview: Boolean(config.stopReviewGate)
+    needsReview: Boolean(config.stopReviewGate),
+    quota: readAllQuota()
   };
 }
 
