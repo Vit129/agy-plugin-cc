@@ -1,0 +1,28 @@
+.claude-plugin/marketplace.json
+  h_d82339d8725694 9,15
+.claude-plugin/plugin.json
+  h_d82339d8725694 3
+CHANGELOG.md
+  h_d82339d8725694 6-13
+package.json
+  h_d82339d8725694 3
+plugins/agy/.claude-plugin/plugin.json
+  h_d82339d8725694 3
+plugins/agy/.codex-plugin/plugin.json
+  h_d82339d8725694 3
+plugins/agy/scripts/lib/git-update-check.mjs
+  h_d82339d8725694 10
+version.json
+  h_d82339d8725694 2-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "a2c732b419f0f9d73270e174e8d8fe843d5bb709",
+  "prompts": {},
+  "humans": {
+    "h_d82339d8725694": {
+      "author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
