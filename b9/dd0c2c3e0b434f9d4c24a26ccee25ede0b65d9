@@ -1,0 +1,74 @@
+apps/agent-usage/live-quota.mjs
+  s_d767ea7fa79a08::t_f3ce604210edb1 1-83
+apps/agent-usage/quota.mjs
+  s_d767ea7fa79a08::t_73badfeb32831e 1-28,34-44,46-72
+  s_d767ea7fa79a08::t_f3ce604210edb1 29-33,45
+README.md
+  s_d767ea7fa79a08::t_c6f7e5022e66df 309
+apps/agent-usage/ui/dashboard.mjs
+  s_d767ea7fa79a08::t_797fcad7b0f9a2 47-50,61,64,75,148
+  s_d767ea7fa79a08::t_f2a184c518da32 59-60,65
+  s_d767ea7fa79a08::t_19067f4c5527d0 1-46,51-58,62-63,66,68-74,76-147,149-151
+  s_d767ea7fa79a08::t_2f02027cc3fb20 67
+apps/agent-usage/usage.mjs
+  s_d767ea7fa79a08::t_73badfeb32831e 1-122
+apps/agent-usage/ui/styles.css
+  s_d767ea7fa79a08::t_3dd3ac596b6793 57
+  s_d767ea7fa79a08::t_19067f4c5527d0 2-28,35,39-43,45-56,58-61,63-147,149-155,157-185,187-188,190-193
+  s_d767ea7fa79a08::t_f2a184c518da32 148,186,189
+  s_d767ea7fa79a08::t_797fcad7b0f9a2 1,29-34,36-38,44,62,156
+apps/agent-usage/cli.mjs
+  s_d767ea7fa79a08::t_9ff4791019e484 9,64-68
+  s_d767ea7fa79a08::t_9d5829db6178e5 1-8,10-63,69,71-85
+  s_d767ea7fa79a08::t_f3ce604210edb1 70
+ARCHITECTURE.md
+  s_d767ea7fa79a08::t_9ff4791019e484 33-36
+CHANGELOG.md
+  s_d767ea7fa79a08::t_c6f7e5022e66df 6-12
+PRODUCT.md
+  s_d767ea7fa79a08::t_9ff4791019e484 7,14
+CONTEXT.md
+  s_d767ea7fa79a08::t_9ff4791019e484 14-15
+apps/agent-usage/server.mjs
+  s_d767ea7fa79a08::t_797fcad7b0f9a2 20
+  s_d767ea7fa79a08::t_9d5829db6178e5 1-4,7-19,21-43,45-48,50-55,57,63,65,67-130,132-154
+  s_d767ea7fa79a08::t_f3ce604210edb1 5-6,44,49,62
+  s_d767ea7fa79a08::t_3dd3ac596b6793 56,58-61,64,66,131
+DESIGN.md
+  s_d767ea7fa79a08::t_9ff4791019e484 5,16
+package.json
+  s_d767ea7fa79a08::t_3dd3ac596b6793 18
+  s_d767ea7fa79a08::t_2b2221932c55a5 9-10,19-20,26-29
+apps/agent-usage/ui/index.html
+  s_d767ea7fa79a08::t_797fcad7b0f9a2 2,15
+  s_d767ea7fa79a08::t_19067f4c5527d0 1,3-14,16-86
+apps/agent-usage/state.mjs
+  s_d767ea7fa79a08::t_9d5829db6178e5 1-26
+apps/agent-usage/README.md
+  s_d767ea7fa79a08::t_3dd3ac596b6793 8
+  s_d767ea7fa79a08::t_f3ce604210edb1 7
+  s_d767ea7fa79a08::t_8ed7a5e2f59ad1 1-6,9-10
+tests/agent-usage.test.mjs
+  s_d767ea7fa79a08::t_dec71fe64b37a1 1-4,10-52
+  s_d767ea7fa79a08::t_3dd3ac596b6793 5-8
+  s_d767ea7fa79a08::t_50d9579ea5fbf2 9,70,105-149
+  s_d767ea7fa79a08::t_6b9569eef4d534 53-69,71-104,150
+plugins/agy/hooks/hooks.json
+  s_d767ea7fa79a08::t_3a3af711f0efb1 13-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "b9dd0c2c3e0b434f9d4c24a26ccee25ede0b65d9",
+  "prompts": {},
+  "sessions": {
+    "s_d767ea7fa79a08": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21d2c-e72c-7031-8708-fa3c1feeb0dc",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
