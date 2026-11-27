@@ -1,0 +1,14 @@
+README.md
+  h_d82339d8725694 7,359
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "d328df18fa35569c1210a88af754d7a489a3f656",
+  "prompts": {},
+  "humans": {
+    "h_d82339d8725694": {
+      "author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
