@@ -3,6 +3,14 @@
 All notable changes to agy-plugin-cc are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.6.5] - 2026-11-27
+
+### Added
+- Add shared quota state, route command, and cooldown tracking ([`f55bb7e`](https://github.com/Vit129/agy-plugin-cc/commit/f55bb7e1d7a8e8b74fbf5b2c98b328f094c6e3cb))
+
+### Fixed
+- Stage the plugin manifests in release commits so hosts see the new version ([`f70ac24`](https://github.com/Vit129/agy-plugin-cc/commit/f70ac24b9f4cd9149eee151d316fab7604e56944))
+
 ## [1.6.4] - 2026-11-24
 
 ### Added
