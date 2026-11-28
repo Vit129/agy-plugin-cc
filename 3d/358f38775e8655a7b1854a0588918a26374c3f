@@ -1,0 +1,29 @@
+CHANGELOG.md
+  s_673a52416b7659::t_3d85d15483c1a0 9-15
+PRODUCT.md
+  s_673a52416b7659::t_3d85d15483c1a0 15
+apps/agent-usage/README.md
+  s_673a52416b7659::t_3d85d15483c1a0 16,18,20-27,35-44
+ARCHITECTURE.md
+  s_673a52416b7659::t_3d85d15483c1a0 39-41
+CONTEXT.md
+  s_673a52416b7659::t_3d85d15483c1a0 13-15
+DESIGN.md
+  s_673a52416b7659::t_3d85d15483c1a0 18,20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "3d358f38775e8655a7b1854a0588918a26374c3f",
+  "prompts": {},
+  "sessions": {
+    "s_673a52416b7659": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a220a2-a7e1-75c0-9c4b-d250cd39b337",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
