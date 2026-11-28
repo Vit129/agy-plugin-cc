@@ -1,0 +1,27 @@
+CHANGELOG.md
+  s_162efa8565b211::t_03884f0f166660 9-12
+apps/agent-usage/ui/dashboard.mjs
+  s_162efa8565b211::t_8a40ef100feb14 347,349-356,359,433
+scripts/install.mjs
+  s_162efa8565b211::t_d0e23713ada50d 221-223,227
+tests/install.test.mjs
+  s_162efa8565b211::t_c75079737aba78 6,257-272
+tests/tests-web/dashboard.ui.spec.mjs
+  s_162efa8565b211::t_0430c7159e4e82 114-121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "74f79819daf3cb0a80c61e6cb76d7b8c8f51d33b",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
