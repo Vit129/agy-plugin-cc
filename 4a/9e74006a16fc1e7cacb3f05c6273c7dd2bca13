@@ -1,0 +1,27 @@
+apps/agent-usage/menubar/UsagePanel.swift
+  s_162efa8565b211::t_9e047d263a1b72 133-138,140
+  s_162efa8565b211::t_8e59db0bf1669c 36
+  s_162efa8565b211::t_087744f05b606f 86-110
+apps/agent-usage/menubar/StatusTitle.swift
+  s_162efa8565b211::t_307fa0e3368a53 57-65
+tests/agent-usage-menubar.test.mjs
+  s_162efa8565b211::t_9bbf7913756ccc 117-123
+tests/fixtures/StatusTitleMain.swift
+  s_162efa8565b211::t_5626831df313a5 15,26-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "4a9e74006a16fc1e7cacb3f05c6273c7dd2bca13",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
