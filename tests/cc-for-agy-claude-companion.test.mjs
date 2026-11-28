@@ -60,6 +60,22 @@ test("runClaudePrompt blocks recursive calls when CC_PLUGIN_AGY_ACTIVE=1", async
   );
 });
 
+test("[TC-CLAUDE-PIPE-01][BE-IT] runClaudePrompt reports Claude exiting before reading stdin", async (t) => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cc-plugin-agy-early-exit-"));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  const stub = path.join(dir, "claude");
+  fs.writeFileSync(stub, "#!/bin/sh\nprintf 'Claude startup failed\\n' >&2\nexit 42\n", { mode: 0o755 });
+
+  // Exceed the pipe capacity so the write is still pending when the stub exits.
+  const result = await runClaudePrompt("x".repeat(1024 * 1024), {
+    cwd: dir,
+    env: { ...process.env, CLAUDE_BIN: stub, [RECURSION_GUARD_ENV]: "0" }
+  });
+
+  assert.equal(result.exitCode, 42);
+  assert.equal(result.stderr, "claude exited before reading the prompt (code 42): Claude startup failed");
+});
+
 test("[TC-QAR-04][BE-IT] PreInvocation never blocks ordinary agy prompts; it only diverts Claude delegations", () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "cc-plugin-agy-hook-"));
   const env = { AI_QUOTA_DIR: dir, AGENT_USAGE_STATE_DIR: dir, PLUGIN_DATA: dir };

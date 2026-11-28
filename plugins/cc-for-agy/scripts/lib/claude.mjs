@@ -172,6 +172,7 @@ export async function runClaudePrompt(prompt, options = {}) {
 
     let stdout = "";
     let stderr = "";
+    let stdinError;
     const timeoutMs = options.timeoutMs ?? 300_000;
     const timer =
       timeoutMs > 0
@@ -186,6 +187,10 @@ export async function runClaudePrompt(prompt, options = {}) {
     child.stderr.on("data", (chunk) => {
       stderr += chunk.toString();
     });
+    child.stdin.on("error", (err) => {
+      // Wait for close so Claude's exit status and stderr are available.
+      stdinError = err;
+    });
     child.on("error", (err) => {
       if (timer) clearTimeout(timer);
       resolve({
@@ -197,13 +202,13 @@ export async function runClaudePrompt(prompt, options = {}) {
         quotaError: false
       });
     });
-    child.on("close", (code) => {
+    child.on("close", (code, signal) => {
       if (timer) clearTimeout(timer);
       const parsed = parseClaudeJsonOutput(stdout, { model: options.model, effort: options.effort });
       const exitCode = code ?? 1;
       const responseText = parsed ? parsed.result : stdout.trim();
       const combinedErr = `${stderr}\n${parsed?.isError ? responseText : ""}`.trim();
-      const isQuotaErr = (exitCode !== 0 || parsed?.isError) && classifyQuotaError(combinedErr);
+      const isQuotaErr = (exitCode !== 0 || stdinError || parsed?.isError) && classifyQuotaError(combinedErr);
 
       if (isQuotaErr) {
         try {
@@ -213,10 +218,19 @@ export async function runClaudePrompt(prompt, options = {}) {
         }
       }
 
+      let diagnostic = stderr.trim();
+      if (stdinError) {
+        const status = signal ? `signal ${signal}` : `code ${exitCode}`;
+        const message = stdinError.code === "EPIPE"
+          ? "claude exited before reading the prompt"
+          : `could not write the prompt to claude: ${stdinError.message}`;
+        diagnostic = `${message} (${status})${diagnostic ? `: ${diagnostic}` : ""}`;
+      }
+
       resolve({
-        exitCode: parsed?.isError && exitCode === 0 ? 1 : exitCode,
+        exitCode: (stdinError || parsed?.isError) && exitCode === 0 ? 1 : exitCode,
         text: responseText,
-        stderr: stderr.trim(),
+        stderr: diagnostic,
         sessionId: parsed?.sessionId ?? null,
         usage: parsed?.usage ?? null,
         durationMs: parsed?.durationMs ?? null,
@@ -225,7 +239,6 @@ export async function runClaudePrompt(prompt, options = {}) {
     });
 
     // Always pass prompt via stdin so leading `---` never parses as a CLI flag.
-    child.stdin.write(textPrompt);
-    child.stdin.end();
+    child.stdin.end(textPrompt);
   });
 }
