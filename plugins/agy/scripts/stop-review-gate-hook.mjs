@@ -6,7 +6,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-import { getAgyAvailability } from "./lib/agy.mjs";
+import { resolveAgyBinary } from "./lib/agy.mjs";
 import { getConfig, listJobs } from "./lib/state.mjs";
 import { SESSION_ID_ENV } from "./lib/tracked-jobs.mjs";
 import { resolveWorkspaceRoot } from "./lib/workspace.mjs";
@@ -43,9 +43,8 @@ function filterJobsForCurrentSession(jobs, input = {}) {
   return jobs.filter((job) => job.sessionId === sessionId);
 }
 
-function buildSetupNote(cwd) {
-  const availability = getAgyAvailability(cwd);
-  if (availability.available) {
+function buildSetupNote() {
+  if (resolveAgyBinary()) {
     return null;
   }
   return "agy is not set up for the review gate. Run /agy:setup.";
@@ -186,7 +185,7 @@ function main() {
     return;
   }
 
-  const setupNote = buildSetupNote(cwd);
+  const setupNote = buildSetupNote();
   if (setupNote) {
     logNote(setupNote);
     logNote(runningTaskNote);

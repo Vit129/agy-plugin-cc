@@ -121,6 +121,7 @@ export function buildAgyRunOptions(cwd, options = {}, config = {}) {
     project: options.project ?? null,
     newProject: Boolean(options["new-project"]),
     dangerouslySkipPermissions: true,
+    routeOff: options.route === "off",
     addDirs,
     logFile: resolveOptionalPath(cwd, options["log-file"]),
     printTimeout: options["print-timeout"] ?? null

@@ -214,6 +214,7 @@ function unwrapJsonResult(result, options) {
 export async function runAgyTask(cwd, prompt, options = {}) {
   const jsonOutput = options.jsonOutput ?? true;
   const args = buildAgyArgs(prompt, { ...options, jsonOutput });
+  const env = options.env ?? process.env;
 
   if (!args.length) {
     throw new Error("No prompt or action provided for agy.");
@@ -222,7 +223,8 @@ export async function runAgyTask(cwd, prompt, options = {}) {
   return new Promise((resolve) => {
       const child = spawn(agyCommand(), args, {
         cwd: cwd || process.cwd(),
-        env: options.env ?? process.env,
+        // Claude's companion has already made the quota decision for this delegation.
+        env: options.routeOff || env.CLAUDECODE ? { ...env, CC_PLUGIN_AGY_ROUTE: "off" } : env,
         stdio: ["ignore", "pipe", "pipe"]
       });
 

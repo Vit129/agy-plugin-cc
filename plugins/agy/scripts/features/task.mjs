@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { runAgyTask, selectAgyModel } from "../lib/agy.mjs";
+import { applyAgyRoute } from "./route.mjs";
 import { readStdinIfPiped } from "../lib/fs.mjs";
 import { findLatestResumableTaskJob, sortJobsNewestFirst } from "../lib/job-control.mjs";
 import { renderTaskResult } from "../lib/render.mjs";
@@ -74,7 +75,7 @@ export async function executeTaskRun(request) {
 
 export async function handleTask(argv) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["cwd", "prompt-file", "conversation", "model", "tier", "effort", "project", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["cwd", "prompt-file", "conversation", "model", "tier", "effort", "project", "add-dir", "log-file", "print-timeout", "route"],
     repeatableOptions: ["add-dir"],
     booleanOptions: [
       "json",
@@ -87,6 +88,7 @@ export async function handleTask(argv) {
       "wait",
       "new-project",
       "dangerously-skip-permissions",
+      "route-check",
       "dry-run"
     ]
   });
@@ -112,7 +114,6 @@ export async function handleTask(argv) {
     agyOptions.model = picked.model;
     agyOptions.autoModel = true;
   }
-  ensureValidModel(cwd, agyOptions);
   ensureValidEffort(agyOptions);
   const fresh = Boolean(options.fresh);
   if (agyOptions.resumeLast && fresh) {
@@ -124,6 +125,14 @@ export async function handleTask(argv) {
   if (!prompt && !agyOptions.resumeLast && !agyOptions.conversation) {
     throw new Error("Provide prompt, prompt file, piped stdin, --conversation, or use --continue.");
   }
+
+  const routeCheck = options["route-check"];
+  if (applyAgyRoute(workspaceRoot, routeCheck ? "rescue" : "task", options, agyOptions.model)) return;
+  if (routeCheck) {
+    outputCommandResult({ status: "allowed" }, "Delegation allowed.\n", options.json);
+    return;
+  }
+  ensureValidModel(cwd, agyOptions);
 
   if (options["dry-run"]) {
     const report = buildDryRunReport(cwd, "agy Task", agyOptions, [

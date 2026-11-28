@@ -1,6 +1,6 @@
 ---
 description: Delegate investigation, an explicit fix request, or follow-up rescue work to the agy (Antigravity) agent
-argument-hint: "[--background|--wait] [--resume|--fresh] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [what agy should investigate, solve, or continue]"
+argument-hint: "[--background|--wait] [--resume|--fresh] [--route auto|off] [--model <name>|--tier <low|medium|high>] [--effort <low|medium|high>] [what agy should investigate, solve, or continue]"
 allowed-tools: Bash(node:*), AskUserQuestion, Agent
 ---
 
@@ -11,6 +11,8 @@ The final user-visible response must be agy's output verbatim.
 Raw user request:
 $ARGUMENTS
 
+Before invoking `Agent` or asking about resume, run `node "${CLAUDE_PLUGIN_ROOT}/scripts/agy-companion.mjs" task --route-check --json` with the user's prompt and any `--resume`, `--route`, `--model` or `--tier` flags as separate CLI arguments. If the response has `status: "diverted"`, return its `message` and stop. Continue only when the preflight reports `status: "allowed"`.
+
 Execution mode:
 
 - If the request includes `--background`, run the `agy:agy-rescue` subagent in the background.
@@ -18,6 +20,7 @@ Execution mode:
 - If neither flag is present, default to foreground.
 - `--background` and `--wait` are execution flags for Claude Code. Do not forward them to the task text.
 - `--model`, `--tier` and `--effort` are runtime flags. Preserve them for the forwarded call but do not treat them as part of the natural-language task text.
+- Preserve `--route auto|off` as a runtime flag on the forwarded call.
 - If the request includes `--resume`, do not ask whether to continue. The user already chose.
 - If the request includes `--fresh`, do not ask whether to continue. The user already chose.
 - Otherwise, before starting agy, check for a resumable session by running:

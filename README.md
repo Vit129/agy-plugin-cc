@@ -173,6 +173,12 @@ Move this session's work to an interactive agy session: Claude writes `.tmp/agy-
 
 ---
 
+### Quota Auto-Route
+
+Claude Code delegations to agy use `--route auto` by default. When either agy window is critical and both Claude windows are above Low, task, rescue, review, and handoff return a reason to run the work in Claude. Use `--route off` on the delegation to override. The companion recommends agy when Claude is critical and agy has headroom.
+
+Agent Usage shows the current decision for Claude→agy and agy→Claude in **Plan usage**. Both directions use the shared quota cache and Agent Usage thresholds. Missing, stale, or reset windows keep the requested target. Diversions are written to the workspace's `usage.jsonl`.
+
 ### Usage tracking
 
 Every `task`, review and hand-off runs agy with `--output-format stream-json`, reports each tool agy starts as job progress, and records its token usage (input, output + thinking, cache read), model and agy's own duration on the job. `/agy:status` shows it per job, and each finished job appends one line to `usage.jsonl` in the workspace state dir (`$CLAUDE_PLUGIN_DATA/state/<slug>-<hash>/`). Hand-offs record the sum of all their agy calls. A run cut off before its result still records the reply and tokens seen so far; an agy that prints no JSON falls back to plain text with no usage. The stop-review gate is not tracked.
@@ -306,7 +312,7 @@ Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds s
 
 ## Development and delivery
 
-This is a Claude Code plugin package, not a local web application. `npm start` / `make start` runs the isolated package preview gate: syntax checks, unit tests, and `npm pack --dry-run`. There is no local GUI dev server; review runtime behavior by installing into a separate test Claude Code profile. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
+`npm start` and `make start` run the package preview gate with syntax checks, unit tests, and `npm pack --dry-run`. Use a separate test Claude Code profile to verify the plugin lifecycle. Start the optional local quota dashboard with `npm run dashboard`. See the [Agent Usage instructions](apps/agent-usage/README.md) for data sources, notifications, and scheduled checks. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
 
 ## Architecture
 
