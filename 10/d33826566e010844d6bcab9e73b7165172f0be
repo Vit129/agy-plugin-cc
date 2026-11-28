@@ -1,0 +1,24 @@
+apps/agent-usage/menubar/build.sh
+  s_673a52416b7659::t_4f3d9a22334ec4 16-43
+apps/agent-usage/menubar/AgentUsageBar.swift
+  s_673a52416b7659::t_4f3d9a22334ec4 23,39-86,89,97-105,149-150,153-161,183-195,198-219,221-233,265-272,276
+  s_673a52416b7659::t_fa4579fc3028f7 196-197,220
+  s_673a52416b7659::t_b6598656861e3e 121
+  s_673a52416b7659::t_2be29d3db84cae 277
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "10d33826566e010844d6bcab9e73b7165172f0be",
+  "prompts": {},
+  "sessions": {
+    "s_673a52416b7659": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a220a2-a7e1-75c0-9c4b-d250cd39b337",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
