@@ -119,6 +119,8 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .plan-provider .provider { white-space: normal; }
 .plan-provider h3 { font-size: 14px; line-height: 1.15; overflow-wrap: anywhere; }
 .plan-provider small { color: var(--muted); display: block; margin-top: 4px; font-size: 11px; }
+.account-login { overflow-wrap: anywhere; }
+.active-badge { display: inline-block; margin-top: 5px; padding: 2px 6px; border-radius: 5px; color: var(--accent); background: var(--accent-bg); font-size: 11px; font-weight: 700; }
 .window { min-width: 0; }
 .window-head { display: flex; align-items: center; justify-content: space-between; gap: 4px 7px; flex-wrap: wrap; margin-bottom: 5px; }
 .window-head strong { font-size: 19px; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -171,6 +173,14 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .settings-fields input, .account-row input { display: block; width: 100%; margin-top: 3px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); padding: 6px 8px; }
 .account-settings > div { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
 .account-settings h3 { font-size: 13px; margin-bottom: 6px; }
+.detected-accounts { list-style: none; margin: 0; padding: 0; }
+.detected-accounts li { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 7px; font-size: 13px; }
+.detected-accounts li > div { min-width: 0; }
+.detected-accounts small { display: block; color: var(--muted); }
+.account-advanced { margin-top: 6px; font-size: 13px; }
+.account-advanced summary { padding-block: 4px; cursor: pointer; color: var(--muted); }
+.account-advanced .plan-caption { margin-bottom: 6px; }
+#account-result:not(:empty) { margin-top: 8px; }
 .account-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; align-items: end; gap: 6px; margin-bottom: 8px; }
 .account-row .action { min-height: 34px; }
 .settings-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }

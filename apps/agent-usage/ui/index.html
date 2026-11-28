@@ -85,19 +85,46 @@
     </fieldset>
     <fieldset class="account-settings">
       <legend>Accounts</legend>
-      <p class="plan-caption">Add signed-in configuration folders. An empty list uses your current CLI account. Auto-Route always uses the current CLI accounts.</p>
+      <p class="plan-caption">Auto-Route uses your current CLI accounts.</p>
       <div data-account-provider="claude">
-        <h3>Claude Code</h3><div class="account-rows"></div>
-        <button class="action" type="button" data-add-account data-testid="btn_addClaudeAccount_monitorPage">Add Claude account</button>
+        <h3>Claude Code</h3>
+        <ul class="detected-accounts" aria-label="Claude Code accounts"></ul>
+        <button class="action" type="button" data-sign-in data-testid="btn_signInClaudeAccount_monitorPage">Sign in another account</button>
+        <details class="account-advanced">
+          <summary data-testid="btn_advancedClaudeAccounts_monitorPage">Advanced</summary>
+          <p class="plan-caption">Add configuration folders to choose which existing accounts to monitor.</p>
+          <div class="account-rows"></div>
+          <button class="action" type="button" data-add-account data-testid="btn_addClaudeAccount_monitorPage">Add configuration folder</button>
+        </details>
       </div>
       <div data-account-provider="copilot">
-        <h3>GitHub Copilot</h3><div class="account-rows"></div>
-        <button class="action" type="button" data-add-account data-testid="btn_addCopilotAccount_monitorPage">Add Copilot account</button>
+        <h3>GitHub Copilot</h3>
+        <ul class="detected-accounts" aria-label="GitHub Copilot accounts"></ul>
+        <button class="action" type="button" data-sign-in data-testid="btn_signInCopilotAccount_monitorPage">Sign in another account</button>
+        <details class="account-advanced">
+          <summary data-testid="btn_advancedCopilotAccounts_monitorPage">Advanced</summary>
+          <p class="plan-caption">Add configuration folders to choose which existing accounts to monitor.</p>
+          <div class="account-rows"></div>
+          <button class="action" type="button" data-add-account data-testid="btn_addCopilotAccount_monitorPage">Add configuration folder</button>
+        </details>
       </div>
       <div data-account-provider="codex">
-        <h3>OpenAI Codex</h3><div class="account-rows"></div>
-        <button class="action" type="button" data-add-account data-testid="btn_addCodexAccount_monitorPage">Add Codex account</button>
+        <h3>OpenAI Codex</h3>
+        <ul class="detected-accounts" aria-label="OpenAI Codex accounts"></ul>
+        <button class="action" type="button" data-sign-in data-testid="btn_signInCodexAccount_monitorPage">Sign in another account</button>
+        <details class="account-advanced">
+          <summary data-testid="btn_advancedCodexAccounts_monitorPage">Advanced</summary>
+          <p class="plan-caption">Add configuration folders to choose which existing accounts to monitor.</p>
+          <div class="account-rows"></div>
+          <button class="action" type="button" data-add-account data-testid="btn_addCodexAccount_monitorPage">Add configuration folder</button>
+        </details>
       </div>
+      <div data-account-provider="agy">
+        <h3>Antigravity</h3>
+        <ul class="detected-accounts" aria-label="Antigravity account"></ul>
+        <p class="plan-caption">Antigravity uses one account from the current CLI environment.</p>
+      </div>
+      <p class="plan-caption" id="account-result" role="status"></p>
     </fieldset>
     <template id="account-row-template">
       <div class="account-row">
