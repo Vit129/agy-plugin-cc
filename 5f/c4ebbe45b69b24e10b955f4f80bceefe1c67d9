@@ -1,0 +1,43 @@
+.agy-plugin/marketplace.json
+  s_162efa8565b211::t_0e2a2716e3d06f 9,15,18-19
+.claude-plugin/marketplace.json
+  s_162efa8565b211::t_6ad073336f0aa1 9,15
+.claude-plugin/plugin.json
+  s_162efa8565b211::t_699ec53f19e0bd 3
+CHANGELOG.md
+  s_162efa8565b211::t_cb599e1dc4c405 9-14
+package.json
+  s_162efa8565b211::t_76d599b470edd6 3
+plugins/agy/.claude-plugin/plugin.json
+  s_162efa8565b211::t_593c0e9860af2d 3
+plugins/agy/.codex-plugin/plugin.json
+  s_162efa8565b211::t_1d014a985185d4 3
+plugins/agy/scripts/lib/git-update-check.mjs
+  s_162efa8565b211::t_a66320a843d8ff 10
+plugins/cc-for-agy/README.md
+  s_162efa8565b211::t_95a4b15a07a30a 3
+plugins/cc-for-agy/package.json
+  s_162efa8565b211::t_8adbf6e4294852 3
+plugins/cc-for-agy/plugin.json
+  s_162efa8565b211::t_5de9c849403a54 3
+plugins/cc-for-agy/scripts/ask-claude-mcp.mjs
+  s_162efa8565b211::t_3e58f2cbdae75b 44
+version.json
+  s_162efa8565b211::t_ba32052481c6e9 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "5fc4ebbe45b69b24e10b955f4f80bceefe1c67d9",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
