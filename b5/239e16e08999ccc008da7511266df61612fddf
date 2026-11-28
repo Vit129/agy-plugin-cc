@@ -1,0 +1,19 @@
+.agy-plugin/marketplace.json
+  s_162efa8565b211::t_588bb5527b7a27 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "b5239e16e08999ccc008da7511266df61612fddf",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
