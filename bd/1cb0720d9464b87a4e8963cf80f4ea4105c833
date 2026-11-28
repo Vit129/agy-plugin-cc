@@ -1,0 +1,19 @@
+tests/cc-for-agy-quota-route.test.mjs
+  s_082075287b17a4::t_0af5f1548e22ef 46-51,83-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "bd1cb0720d9464b87a4e8963cf80f4ea4105c833",
+  "prompts": {},
+  "sessions": {
+    "s_082075287b17a4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a22109-da87-7870-94ab-4c937af744c9",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
