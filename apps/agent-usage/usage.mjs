@@ -65,8 +65,8 @@ export function aggregateCalls(calls, days, now = Date.now()) {
   }
   const models = new Map();
   for (const call of unique.values()) {
-    const key = `${call.provider}:${call.model}`;
-    const totals = models.get(key) ?? { provider: call.provider, model: call.model, calls: 0, finished: 0, success: 0, tokens: 0, times: 0, durationMs: 0 };
+    const key = JSON.stringify([call.provider, call.accountId, call.model]);
+    const totals = models.get(key) ?? { provider: call.provider, accountId: call.accountId, label: call.label, model: call.model, calls: 0, finished: 0, success: 0, tokens: 0, times: 0, durationMs: 0 };
     totals.calls++;
     totals.tokens += call.tokens;
     if (typeof call.ok === 'boolean') totals.finished++;
@@ -77,8 +77,9 @@ export function aggregateCalls(calls, days, now = Date.now()) {
     }
     models.set(key, totals);
   }
-  return [...models.values()].map(({ provider, model, calls, finished, success, tokens, times, durationMs }) => ({
-    provider, model, calls, tokens, okPct: finished ? Math.round(100 * success / finished) : null, avgMs: times ? durationMs / times : null,
+  return [...models.values()].map(({ provider, accountId, label, model, calls, finished, success, tokens, times, durationMs }) => ({
+    provider, ...(accountId ? { accountId, label } : {}), model, calls, tokens,
+    okPct: finished ? Math.round(100 * success / finished) : null, avgMs: times ? durationMs / times : null,
   })).sort((first, second) => second.tokens - first.tokens);
 }
 
