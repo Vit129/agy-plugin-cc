@@ -71,6 +71,7 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         popover.contentViewController = NSHostingController(rootView: UsagePanel(
             state: panelState, icons: icons,
             openDashboard: { [weak self] in self?.openDashboard() },
+            openSettings: { [weak self] in self?.openDashboard(section: "") },
             refresh: { [weak self] in self?.refresh() },
             quit: { NSApp.terminate(nil) },
             startServer: { [weak self] in self?.startServer() },
@@ -239,9 +240,9 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         return label
     }
 
-    private func openDashboard() {
+    private func openDashboard(section: String? = nil) {
         popover.performClose(nil)
-        NSWorkspace.shared.open(base)
+        NSWorkspace.shared.open(DashboardLink.url(base: base, settingsSection: section))
     }
 
     private func startServer() {
