@@ -32,5 +32,8 @@
   "private": true,
   "bin": {
     "agent-usage": "apps/agent-usage/cli.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
   }
 }

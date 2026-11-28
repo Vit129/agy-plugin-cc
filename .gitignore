@@ -7,3 +7,6 @@ dist/
 agent-memory/
 .kouen-worktrees/
 .claude/worktrees/
+node_modules/
+test-results/
+playwright-report/
