@@ -1,0 +1,19 @@
+apps/agent-usage/ui/styles.css
+  s_162efa8565b211::t_bb1ba1da67a6e8 25-40,74,83-84,89-90,108,113,121,125,132,134,138-139,141,144,148-150,154,158,161-162,172,174,180,183,189-190,194-195,206,208,211,228,238,245,256,266-268,280,282,285,293
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "b7a273669eb6ef691c1f8f8272ceb858f635070b",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
