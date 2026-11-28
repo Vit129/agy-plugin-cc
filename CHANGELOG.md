@@ -6,9 +6,17 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
-### Added
+## [1.7.0] - 2026-11-28
 
-- Add the local Agent Usage dashboard for Claude Code and Antigravity quota, desktop alerts, and model usage.
+### Added
+- Native multi-provider quota monitoring for Claude, agy, Copilot and Codex, replacing the CodexBar dependency
+- Cache-first quota probing so the dashboard and routing read recent results before re-probing
+- Auto-Route (`--route auto|off`) diverts delegations to the other side when one side is critical
+- Route display and richer notifications showing quota numbers, reset time and the chosen route
+- Local Agent Usage dashboard for Claude Code and Antigravity quota, desktop alerts, and model usage
+
+### Fixed
+- Claude `/usage` parse errors are now surfaced instead of silently ignored
 
 ## [1.6.6] - 2026-11-27
 
