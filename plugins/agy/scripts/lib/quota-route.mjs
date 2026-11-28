@@ -21,6 +21,11 @@ export function loadRouteThresholds(env = process.env) {
   return defaultRouteThresholds;
 }
 
+// Persistent off-switch: `touch "$(state dir)/route-off"` disables hook routing without relaunching agy.
+export function isRouteOffPersisted(env = process.env) {
+  return fs.existsSync(path.join(resolveAgentUsageState(env), "route-off"));
+}
+
 export function parseRouteMode(value = "auto") {
   if (value !== "auto" && value !== "off") throw new Error("--route must be auto or off.");
   return value;

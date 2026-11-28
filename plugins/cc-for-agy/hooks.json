@@ -1,0 +1,27 @@
+{
+  "quota-router": {
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "node ./scripts/quota-hook.mjs pre-invocation",
+        "timeout": 5
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node ./scripts/quota-hook.mjs stop",
+        "timeout": 5
+      }
+    ]
+  },
+  "agent-usage-dashboard": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "if [ -x \"$HOME/.local/bin/agent-usage\" ]; then \"$HOME/.local/bin/agent-usage\" on-provider-start agy || true; fi",
+        "timeout": 5
+      }
+    ]
+  }
+}
