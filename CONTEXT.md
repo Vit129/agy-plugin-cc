@@ -18,4 +18,5 @@ Domain terms as used in `plugins/agy/scripts/`.
 - **Usage ledger** — `usage.jsonl` in the state dir records token counts for finished jobs and quota diversions with their reason.
 - **Auto-Route** — a cache-only decision before delegation. It uses the tightest fresh 5h/7d quota for each provider and the Agent Usage Critical and Low thresholds. `--route off` bypasses the decision. Agent Usage displays both directions.
 
+- **LaunchAgent** — a per-user macOS login service for the dashboard server, menu bar app or reset checker. Setup generates its paths from the current clone and home.
 - **Reset check** — a scheduled snapshot read based on a projected five-hour interval. A provider-reported reset is separate from the check time.

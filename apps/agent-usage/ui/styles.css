@@ -72,6 +72,8 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 15px 18px; }
 .provider { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; font-size: 12px; }
 .provider-mark { display: inline-grid; place-items: center; flex: none; width: 24px; height: 24px; border-radius: 6px; font-size: 13px; font-weight: 800; }
+.provider-mark svg { width: 65%; height: 65%; }
+#claude-credit-prompt a { color: var(--accent); }
 .claude .provider-mark { background: var(--claude-bg); color: var(--claude); }
 .agy .provider-mark { background: var(--agy-bg); color: var(--agy); }
 /* Quota and model overview */

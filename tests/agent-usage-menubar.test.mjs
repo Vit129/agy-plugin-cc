@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { after, before, describe, test } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { providerIcons } from '../apps/agent-usage/ui/provider-icons.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const swift = spawnSync('swiftc', ['--version']);
@@ -12,6 +13,29 @@ const hour = 3600;
 const window = (short, remaining, resetsAt) => ({ short, remaining, resetsAt, state: 'live' });
 const claude = { provider: 'claude', windows: [window('5h', 93, now + 2 * hour), window('7d', 33, now + 48 * hour)] };
 const copilot = { provider: 'copilot', windows: [window('monthly', 21, now + 72 * hour)] };
+
+test('[TC-AGU-54][FE-IT] draws bundled templates and falls back when the provider has no vector', {
+  skip: process.platform !== 'darwin' || swift.status !== 0,
+}, t => {
+  const scratch = join(root, '.tmp');
+  mkdirSync(scratch, { recursive: true });
+  const directory = mkdtempSync(join(scratch, 'provider-icons-test-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const executable = join(directory, 'provider-icons');
+  const geometry = join(directory, 'icons.json');
+  writeFileSync(geometry, JSON.stringify(providerIcons));
+  execFileSync('swiftc', [
+    '-module-cache-path', join(directory, 'modules'),
+    'apps/agent-usage/menubar/SVGPathParser.swift',
+    'apps/agent-usage/menubar/ProviderIcons.swift',
+    'tests/fixtures/ProviderIconsMain.swift',
+    '-o', executable,
+  ], { cwd: root, stdio: 'pipe' });
+  const { coverage, aider } = JSON.parse(execFileSync(executable, [geometry], { encoding: 'utf8' }));
+  assert.equal(coverage.length, 4);
+  assert.ok(coverage.every(pixels => pixels > 0), `Vector coverage: ${coverage}`);
+  assert.equal(aider, 'AI');
+});
 
 describe('Agent Usage status title', { skip: swift.error?.code === 'ENOENT' && 'swiftc unavailable' }, () => {
   let directory;

@@ -27,7 +27,7 @@ final class UsagePanelState: ObservableObject {
 
 struct UsagePanel: View {
     @ObservedObject var state: UsagePanelState
-    let icons: [String: NSImage]
+    let icons: ProviderIcons
     let openDashboard: () -> Void
     let refresh: () -> Void
     let quit: () -> Void
@@ -120,10 +120,10 @@ struct UsagePanel: View {
             VStack(spacing: 4) {
                 Group {
                     if let provider {
-                        if let icon = icons[provider.rawValue] {
+                        if let icon = icons.template(for: provider.rawValue) {
                             Image(nsImage: icon).resizable().renderingMode(.template).scaledToFit()
                         } else {
-                            Text(provider.glyph).font(.caption.weight(.bold))
+                            Text(ProviderIcons.monogram(for: provider.rawValue)).font(.caption.weight(.bold))
                         }
                     } else {
                         Image(systemName: "square.grid.2x2").font(.system(size: 13, weight: .medium))

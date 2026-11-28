@@ -22,6 +22,7 @@ const run = promisify(execFile);
 const assets = {
   '/': ['ui/index.html', 'text/html; charset=utf-8'],
   '/dashboard.mjs': ['ui/dashboard.mjs', 'text/javascript; charset=utf-8'],
+  '/provider-icons.mjs': ['ui/provider-icons.mjs', 'text/javascript; charset=utf-8'],
   '/styles.css': ['ui/styles.css', 'text/css; charset=utf-8'],
   '/reset-credits.mjs': ['reset-credits.mjs', 'text/javascript; charset=utf-8'],
 };

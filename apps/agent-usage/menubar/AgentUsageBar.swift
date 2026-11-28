@@ -40,18 +40,13 @@ private final class StatusPercentBadge: NSView {
 
 @main
 private final class StatusBar: NSObject, NSApplicationDelegate {
-    private let base = URL(string: "http://127.0.0.1:43127")!
+    private let base = URL(string: "http://127.0.0.1:\(ProcessInfo.processInfo.environment["AGENT_USAGE_PORT"] ?? "43127")")!
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let popover = NSPopover()
     private let panelState = UsagePanelState()
     private let primaryFont = NSFont.systemFont(ofSize: 11, weight: .medium)
     private let secondaryFont = NSFont.systemFont(ofSize: 9)
-    private lazy var icons: [String: NSImage] = UsageProvider.allCases.reduce(into: [:]) { images, provider in
-        guard let url = Bundle.main.url(forResource: provider.rawValue, withExtension: "png", subdirectory: "ProviderIcons"),
-              let image = NSImage(contentsOf: url) else { return }
-        image.isTemplate = true
-        images[provider.rawValue] = image
-    }
+    private let icons = ProviderIcons()
     private var snapshot: Snapshot?
     private var unavailable = false
     private var fetching = false
@@ -198,7 +193,7 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         top.orientation = .horizontal
         top.alignment = .centerY
         top.spacing = 3
-        if let icon = icons[title.provider] {
+        if let icon = icons.template(for: title.provider) {
             let imageView = NSImageView(image: icon)
             imageView.contentTintColor = .labelColor
             imageView.imageScaling = .scaleProportionallyUpOrDown
@@ -207,7 +202,7 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
             imageView.widthAnchor.constraint(equalToConstant: 11).isActive = true
             imageView.heightAnchor.constraint(equalToConstant: 11).isActive = true
         } else {
-            top.addArrangedSubview(statusLabel(UsageProvider(rawValue: title.provider)?.glyph ?? "?", font: primaryFont))
+            top.addArrangedSubview(statusLabel(ProviderIcons.monogram(for: title.provider), font: primaryFont))
         }
         if let session = title.session {
             top.addArrangedSubview(statusLine(session, compact: compact, font: primaryFont))
@@ -252,8 +247,13 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
     private func startServer() {
         guard !starting else { return }
         let launch = Process()
-        launch.executableURL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/bin/agent-usage")
+        let home = ProcessInfo.processInfo.environment["HOME"].map { URL(fileURLWithPath: $0, isDirectory: true) }
+            ?? FileManager.default.homeDirectoryForCurrentUser
+        launch.executableURL = home.appendingPathComponent(".local/bin/agent-usage")
         launch.arguments = ["ensure-running"]
+        if CommandLine.arguments.contains("--allow-worktree") {
+            launch.arguments?.append("--allow-worktree")
+        }
         launch.terminationHandler = { [weak self] process in
             let success = process.terminationStatus == 0
             DispatchQueue.main.async { self?.serverStarted(success) }

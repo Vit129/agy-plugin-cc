@@ -17,3 +17,17 @@ jobs:
         with:
           node-version: 20
       - run: npm run release:check
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check setup and build in a clean home
+        run: |
+          export HOME="$(mktemp -d)"
+          node scripts/install.mjs --usage --dry-run
+          npm run menubar:build
+          node --test tests/agent-usage-menubar.test.mjs

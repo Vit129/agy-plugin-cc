@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import { execFile, spawnSync } from 'node:child_process';
-import { createServer } from 'node:http';
 import { test } from 'node:test';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
@@ -24,33 +23,31 @@ test('[TC-AGU-12][BE-IT] checks the persisted switch before terminal startup for
   const cli = fileURLToPath(new URL('../apps/agent-usage/cli.mjs', import.meta.url));
   const run = promisify(execFile);
   const providers = { claude: false, agy: false, copilot: false, codex: false };
-  let checks = 0;
-  const health = createServer((request, response) => {
-    if (request.url === '/health') checks++;
-    response.end(JSON.stringify({ service: 'agent-usage' }));
-  });
+  // This case owns the settings gate. A real HTTP timeout also exercises startup
+  // retries, where a second process can probe the same address after EADDRINUSE.
+  const fakeHealth = `data:text/javascript,${encodeURIComponent(`
+    globalThis.fetch = async url => {
+      if (new URL(url).pathname !== '/health') throw new Error('Unexpected URL: ' + url);
+      console.log('health probe');
+      return { ok: true, json: async () => ({ service: 'agent-usage' }) };
+    };
+  `)}`;
+  const env = { ...process.env, HOME: directory, AGENT_USAGE_STATE_DIR: directory };
+  const invoke = (...args) => run(process.execPath, ['--import', fakeHealth, cli, ...args, '--allow-worktree'], { env });
+  const save = selected => writeFile(path.join(directory, 'settings.json'), JSON.stringify({ ...defaultSettings, providers: selected }));
   try {
-    await new Promise(resolve => health.listen(0, '127.0.0.1', resolve));
-    const env = { ...process.env, AGENT_USAGE_STATE_DIR: directory, AGENT_USAGE_PORT: String(health.address().port) };
-    const save = selected => writeFile(path.join(directory, 'settings.json'), JSON.stringify({ ...defaultSettings, providers: selected }));
-    const startup = provider => run(process.execPath, [cli, 'on-provider-start', provider], { env });
     await save(providers);
     for (const provider of Object.keys(providers)) {
-      const { stdout } = await startup(provider);
-      assert.equal(stdout, '');
+      assert.equal((await invoke('on-provider-start', provider)).stdout, '');
     }
-    assert.equal(checks, 0);
-    for (const [index, provider] of Object.keys(providers).entries()) {
+    for (const provider of Object.keys(providers)) {
       await save({ ...providers, [provider]: true });
-      await startup(provider);
-      assert.equal(checks, index + 1);
+      assert.equal((await invoke('on-provider-start', provider)).stdout, 'health probe\n');
     }
-    await assert.rejects(startup('unrecognized'), /Unknown provider/);
+    await assert.rejects(invoke('on-provider-start', 'unrecognized'), /Unknown provider/);
     await save(providers);
-    await run(process.execPath, [cli, 'ensure-running', '--quiet'], { env });
-    assert.equal(checks, 5);
+    assert.equal((await invoke('ensure-running', '--quiet')).stdout, 'health probe\n');
   } finally {
-    await new Promise(resolve => health.close(resolve));
     await rm(directory, { recursive: true, force: true });
   }
 });
