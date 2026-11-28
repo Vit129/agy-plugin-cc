@@ -60,9 +60,9 @@ if [[ $NOTES_LEN -gt 120000 ]]; then
   NOTES="$(echo "$NOTES" | head -c 119000)"$'\n\n'"...(truncated, see CHANGELOG.md for the rest)"
 fi
 
-create_err="$(gh release create "$TAG" --repo Vit129/agy-plugin-cc --title "$TAG" --notes "$NOTES" 2>&1 >/dev/null)"
+create_err="$(gh release create "$TAG" --repo Vit129/agent-bridge --title "$TAG" --notes "$NOTES" 2>&1 >/dev/null)"
 if [[ $? -ne 0 ]]; then
-  edit_err="$(gh release edit "$TAG" --repo Vit129/agy-plugin-cc --title "$TAG" --notes "$NOTES" 2>&1 >/dev/null)"
+  edit_err="$(gh release edit "$TAG" --repo Vit129/agent-bridge --title "$TAG" --notes "$NOTES" 2>&1 >/dev/null)"
   if [[ $? -ne 0 ]]; then
     echo "GitHub release create AND edit both failed for $TAG:" >&2
     echo "  create: $create_err" >&2

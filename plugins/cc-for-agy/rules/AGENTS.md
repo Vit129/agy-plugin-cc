@@ -1,4 +1,4 @@
-# cc-plugin-agy Rules
+# Agent Bridge for Antigravity Rules
 
 - You have `ask_claude` (MCP) and `scripts/claude-companion.mjs` to consult Claude Code CLI using the user's local Claude subscription (no API key).
 - **Read-only by default:** `ask_claude` runs with `Read,Grep,Glob` (or `--no-tools` when passing a diff directly). Never pass `edit: true` unless the user explicitly asks Claude to edit files (or using `handoff` on a clean feature branch).

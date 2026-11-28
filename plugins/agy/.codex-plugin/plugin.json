@@ -1,13 +1,13 @@
 {
   "name": "agy",
-  "version": "1.9.2",
+  "version": "2.0.0",
   "description": "Delegate coding tasks to Google's Antigravity (agy) CLI / Antigravity IDE from Codex CLI (Google Agy) with setup checks, one-shot tasks, rescue, review, hooks, job tracking, status, results, and cancellation.",
   "author": {
     "name": "Vit129",
     "url": "https://github.com/Vit129"
   },
-  "homepage": "https://github.com/Vit129/agy-plugin-cc",
-  "repository": "https://github.com/Vit129/agy-plugin-cc",
+  "homepage": "https://github.com/Vit129/agent-bridge",
+  "repository": "https://github.com/Vit129/agent-bridge",
   "license": "Apache-2.0",
   "keywords": [
     "agy",

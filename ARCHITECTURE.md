@@ -1,4 +1,4 @@
-# agy-plugin-cc — System Architecture
+# agent-bridge — System Architecture
 
 > Status: **active** (v1.6.3). Companion to `README.md` and `CLAUDE.md`.
 

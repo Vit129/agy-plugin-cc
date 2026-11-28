@@ -6,6 +6,39 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-28
+
+### Breaking changes
+
+The repository, marketplaces and root npm package are now `Vit129/agent-bridge`, `agent-bridge` and `@vit129/agent-bridge`. Claude Code and Codex install `agy@agent-bridge`. Antigravity installs `agent-bridge` from `plugins/cc-for-agy` or the published marketplace.
+
+**Claude Code**
+
+```bash
+claude plugin uninstall agy@agy-plugin-cc
+claude plugin marketplace remove agy-plugin-cc
+claude plugin marketplace add Vit129/agent-bridge
+claude plugin install agy@agent-bridge
+```
+
+**Codex**
+
+```bash
+codex plugin remove agy@agy-plugin-cc
+codex plugin marketplace remove agy-plugin-cc
+codex plugin marketplace add Vit129/agent-bridge
+codex plugin add agy@agent-bridge
+```
+
+**Antigravity**
+
+```bash
+agy plugin uninstall cc-plugin-agy
+agy plugin install agent-bridge@https://raw.githubusercontent.com/Vit129/agent-bridge/main/.agy-plugin/marketplace.json
+```
+
+For a local install, run `agy plugin install ./plugins/cc-for-agy` from the renamed checkout instead. Restart each host after reinstalling. For an existing clone whose `origin` points to the old GitHub URL, run `git remote set-url origin https://github.com/Vit129/agent-bridge.git`. If you move the clone and use Agent Usage, regenerate its launcher with `node apps/agent-usage/cli.mjs install-launcher`.
+
 ## [1.9.2] - 2026-11-28
 
 ### Fixed

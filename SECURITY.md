@@ -17,7 +17,7 @@ of the `agy` CLI output, command injection through job arguments, or
 insecure storage of job state under `plugins/agy/scripts/lib/state.mjs`),
 please report it privately rather than opening a public issue.
 
-- Open a [GitHub Security Advisory](https://github.com/Vit129/agy-plugin-cc/security/advisories/new)
+- Open a [GitHub Security Advisory](https://github.com/Vit129/agent-bridge/security/advisories/new)
   for this repository, or
 - Contact the maintainer directly via the GitHub profile [@Vit129](https://github.com/Vit129).
 

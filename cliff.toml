@@ -2,8 +2,8 @@
 header = """
 # Changelog
 
-All notable changes to agy-plugin-cc are documented here. The format is based on
-[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agy-plugin-cc follows
+All notable changes to agent-bridge are documented here. The format is based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and agent-bridge follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 """
 body = """
@@ -15,7 +15,7 @@ body = """
 {% for group, commits in commits | group_by(attribute="group") %}
 ### {{ group }}
 {% for commit in commits %}\
-- {{ commit.message | upper_first }} ([`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/Vit129/agy-plugin-cc/commit/{{ commit.id }}))\
+- {{ commit.message | upper_first }} ([`{{ commit.id | truncate(length=7, end="") }}`](https://github.com/Vit129/agent-bridge/commit/{{ commit.id }}))\
 {% if commit.breaking %} ⚠️ BREAKING{% endif %}
 {% endfor %}\
 {% endfor %}\n
@@ -27,7 +27,7 @@ conventional_commits = true
 filter_unconventional = true
 split_commits = false
 commit_preprocessors = [
-  { pattern = "\\(#([0-9]+)\\)", replace = "([#$1](https://github.com/Vit129/agy-plugin-cc/pull/$1))" },
+  { pattern = "\\(#([0-9]+)\\)", replace = "([#$1](https://github.com/Vit129/agent-bridge/pull/$1))" },
 ]
 commit_parsers = [
   { message = "^feat", group = "Added" },

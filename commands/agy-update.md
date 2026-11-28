@@ -3,7 +3,7 @@ description: Check for a newer git-clone version of this plugin and pull it afte
 allowed-tools: Bash, AskUserQuestion
 ---
 
-This plugin is installed via `git clone`, not npm. Check `version.json` on the `main` branch of `Vit129/agy-plugin-cc` on GitHub against the `CURRENT_VERSION` constant in `plugins/agy/scripts/lib/git-update-check.mjs`, and pull only with explicit confirmation.
+This plugin is installed via `git clone`, not npm. Check `version.json` on the `main` branch of `Vit129/agent-bridge` on GitHub against the `CURRENT_VERSION` constant in `plugins/agy/scripts/lib/git-update-check.mjs`, and pull only with explicit confirmation.
 
 Steps:
 
@@ -20,7 +20,7 @@ If the working tree is not clean (the status command prints anything), stop and 
 2. Fetch the remote version file:
 
 ```bash
-curl -fsSL --max-time 3 https://raw.githubusercontent.com/Vit129/agy-plugin-cc/main/version.json
+curl -fsSL --max-time 3 https://raw.githubusercontent.com/Vit129/agent-bridge/main/version.json
 ```
 
 If this fails (offline/blocked/timeout), tell the user the version check failed and why, and stop.
@@ -35,6 +35,6 @@ If this fails (offline/blocked/timeout), tell the user the version check failed 
 5. If the user chooses "Not now" (or the question is answered in a non-interactive context with no reply), do not pull. Instead remember the dismissal so the session-start hook stops repeating this notice until a newer version ships:
 
 ```bash
-mkdir -p "$HOME/.config/agy-plugin-cc"
-printf '%s\n' "<remote version number>" > "$HOME/.config/agy-plugin-cc/update-dismissed"
+mkdir -p "$HOME/.config/agent-bridge"
+printf '%s\n' "<remote version number>" > "$HOME/.config/agent-bridge/update-dismissed"
 ```

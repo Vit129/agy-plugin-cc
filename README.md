@@ -1,4 +1,4 @@
-# agy-plugin-cc
+# agent-bridge
 
 > Unofficial community project. Not affiliated with, sponsored or endorsed by Google. "Antigravity" and "Google" are trademarks of Google LLC.
 
@@ -37,7 +37,7 @@ The Antigravity CLI must be installed and authenticated before using this plugin
 
 ### Interactive installer
 
-From a local clone, run the interactive multi-select installer to set up or update **Claude Code**, **Codex**, and **agy** (`cc-for-agy`) in one pass:
+From a local clone, run the interactive multi-select installer to set up or update **Claude Code**, **Codex**, and **agy** (`agent-bridge`) in one pass:
 
 ```bash
 npm run setup
@@ -57,8 +57,8 @@ node scripts/install.mjs --claude --codex --agy
 Install from GitHub in your terminal:
 
 ```bash
-claude plugin marketplace add Vit129/agy-plugin-cc
-claude plugin install agy@agy-plugin-cc
+claude plugin marketplace add Vit129/agent-bridge
+claude plugin install agy@agent-bridge
 ```
 
 Start Claude Code, or run `/reload-plugins` in an open session to load the plugin.
@@ -66,24 +66,24 @@ Start Claude Code, or run `/reload-plugins` in an open session to load the plugi
 To update manually, refresh the marketplace and update the installed plugin:
 
 ```bash
-claude plugin marketplace update agy-plugin-cc
-claude plugin update agy@agy-plugin-cc
+claude plugin marketplace update agent-bridge
+claude plugin update agy@agent-bridge
 ```
 
-Restart Claude Code to apply the update. You can also enable marketplace auto-update under `/plugin` → Marketplaces → `agy-plugin-cc`.
+Restart Claude Code to apply the update. You can also enable marketplace auto-update under `/plugin` → Marketplaces → `agent-bridge`.
 
 To uninstall the plugin and remove its marketplace:
 
 ```bash
-claude plugin uninstall agy@agy-plugin-cc
-claude plugin marketplace remove agy-plugin-cc
+claude plugin uninstall agy@agent-bridge
+claude plugin marketplace remove agent-bridge
 ```
 
 Plugin install and uninstall default to `--scope user`. If you installed at project or local scope, pass `--scope project` or `--scope local` to the uninstall command. The update command detects the installation scope by default and accepts the same options to target a specific scope. Marketplace removal without `--scope` removes its declaration from every scope.
 
-If you already use `agy@agy-plugin-cc` in Claude Code, follow the update steps above to move to the shared release. If you also installed the separate `agy-plugin-codex` in Codex, follow the [Codex migration steps](#migrate-from-agy-plugin-codex) in that host.
+Upgrading from 1.x requires a reinstall under the new marketplace name. Follow the [2.0.0 migration steps](CHANGELOG.md#200---2026-11-28) for each host you use.
 
-### agy plugin (cc-for-agy)
+### Antigravity (agy)
 
 Install the Antigravity-native plugin (`plugins/cc-for-agy`) to call Claude Code CLI (`ask_claude` MCP tool, `review`, `adversarial-review`, `handoff`, `transfer`, and shared quota routing) from `agy`.
 
@@ -96,7 +96,7 @@ agy plugin install <repo>/plugins/cc-for-agy
 Or install from the published marketplace manifest (backed by the GitHub release zip):
 
 ```bash
-agy plugin install cc-for-agy@https://raw.githubusercontent.com/Vit129/agy-plugin-cc/main/.agy-plugin/marketplace.json
+agy plugin install agent-bridge@https://raw.githubusercontent.com/Vit129/agent-bridge/main/.agy-plugin/marketplace.json
 ```
 
 Validate the local plugin directory at any time with `agy plugin validate --strict plugins/cc-for-agy`.
@@ -301,8 +301,8 @@ When a session ends with the gate enabled:
 In your terminal, add the GitHub marketplace and install the plugin:
 
 ```bash
-codex plugin marketplace add Vit129/agy-plugin-cc
-codex plugin add agy@agy-plugin-cc
+codex plugin marketplace add Vit129/agent-bridge
+codex plugin add agy@agent-bridge
 ```
 
 Start a new Codex session to load the plugin. Try `$agy task --tier low "Reply with exactly: hello ok"`, then `$agy status` to see the result and token usage.
@@ -312,7 +312,7 @@ Start a new Codex session to load the plugin. Try `$agy task --tier low "Reply w
 Refresh the Git marketplace and its installed plugins with Codex CLI 0.171.0:
 
 ```bash
-codex plugin marketplace upgrade agy-plugin-cc
+codex plugin marketplace upgrade agent-bridge
 ```
 
 Start a new Codex session to load the updated plugin.
@@ -322,8 +322,8 @@ Start a new Codex session to load the updated plugin.
 Remove the plugin, then remove the marketplace if you no longer use it:
 
 ```bash
-codex plugin remove agy@agy-plugin-cc
-codex plugin marketplace remove agy-plugin-cc
+codex plugin remove agy@agent-bridge
+codex plugin marketplace remove agent-bridge
 ```
 
 Start a new Codex session to apply the change.
@@ -335,15 +335,15 @@ Remove the old plugin and marketplace, then install from the GitHub marketplace.
 ```bash
 codex plugin remove agy@agy-plugin-codex
 codex plugin marketplace remove agy-plugin-codex
-codex plugin marketplace add Vit129/agy-plugin-cc
-codex plugin add agy@agy-plugin-cc
+codex plugin marketplace add Vit129/agent-bridge
+codex plugin add agy@agent-bridge
 ```
 
 If `~/.codex/config.toml` still contains `[[skills.config]]` entries whose `path` points to missing skills under `~/.codex/plugins/cache/agy-plugin-codex/`, remove those entries. You can also remove the old cache directory if it is empty. Start a new Codex session and run `$agy status`.
 
 Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds shared skills (loaded by Claude Code by default and listed in the Codex manifest), `plugins/agy/cc/skills/` holds Claude-only skills (`skills` in `.claude-plugin/plugin.json`, which adds to the default), and `plugins/agy/codex/skills/` holds Codex-only skills (`skills` in `.codex-plugin/plugin.json` lists `./skills/` and `./codex/skills/`, because a Codex `skills` list replaces the default).
 
-`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agy-plugin-cc`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code. `tests/skills-layout.test.mjs` checks that each host resolves its skills.
+`plugins/agy` also carries a Codex manifest (`.codex-plugin/plugin.json`), Codex hooks (`hooks.json`) and Codex skills (`codex/skills/`), and the repo root has a Codex marketplace (`.agents/plugins/marketplace.json`, name `agent-bridge`). In Codex, use `$agy setup`, `$agy task ...`, `$agy review`, `$agy handoff ...`, `$agy status`, `$agy update`. The runtime scripts are shared with Claude Code. `tests/skills-layout.test.mjs` checks that each host resolves its skills.
 
 ## Development and delivery
 
