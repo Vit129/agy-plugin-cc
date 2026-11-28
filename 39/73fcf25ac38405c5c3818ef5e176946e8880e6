@@ -1,0 +1,19 @@
+apps/agent-usage/menubar/UsagePanel.swift
+  s_162efa8565b211::t_56aa8bd9f52f36 256
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "3973fcf25ac38405c5c3818ef5e176946e8880e6",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
