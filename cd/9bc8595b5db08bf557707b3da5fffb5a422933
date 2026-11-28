@@ -1,0 +1,57 @@
+tests/agent-usage-accounts.test.mjs
+  s_28c33757952f57::t_6d8f92c639216c 217-360
+  s_28c33757952f57::t_621b3b6aff84e8 361-376,378,380-399
+  s_28c33757952f57::t_bce62ffadec9d4 377,379
+apps/agent-usage/menubar/UsagePanel.swift
+  s_28c33757952f57::t_f576229b8b0509 58-59,295-298
+  s_28c33757952f57::t_ca226753c15f82 299
+apps/agent-usage/menubar/UsageSnapshot.swift
+  s_28c33757952f57::t_f576229b8b0509 7,11-15,85-90,97
+ARCHITECTURE.md
+  s_28c33757952f57::t_d9452a2e18861e 41
+apps/agent-usage/README.md
+  s_28c33757952f57::t_d9452a2e18861e 14,31-32,45
+apps/agent-usage/reset-credits.mjs
+  s_28c33757952f57::t_fe240eb16f7482 2-3,22
+  s_28c33757952f57::t_dd99a6e7d6fe6c 5-9,12,26,41-43,46,48-49
+CHANGELOG.md
+  s_28c33757952f57::t_d9452a2e18861e 9-11
+apps/agent-usage/ui/styles.css
+  s_28c33757952f57::t_fe240eb16f7482 172-176,228
+DESIGN.md
+  s_28c33757952f57::t_d9452a2e18861e 18,22
+apps/agent-usage/server.mjs
+  s_28c33757952f57::t_fffd487b674ff5 11,16,80-85,143,145,148-150,158-162,169,215,220-227,269,278-280
+  s_28c33757952f57::t_4f529d3863053d 111,113,146-147
+apps/agent-usage/ui/dashboard.mjs
+  s_28c33757952f57::t_f576229b8b0509 241,255-263,333-335
+  s_28c33757952f57::t_fe240eb16f7482 19,23,67,76-78,80,85,90,229-240,242-254,264-282,303,330-332,336-343
+apps/agent-usage/quota.mjs
+  s_28c33757952f57::t_dd99a6e7d6fe6c 5,9-11,43-46
+apps/agent-usage/claude-reset-credit.mjs
+  s_28c33757952f57::t_dd99a6e7d6fe6c 1-62
+apps/agent-usage/account-identity.mjs
+  s_28c33757952f57::t_dd99a6e7d6fe6c 24-25,29-33,38-45,95
+PRODUCT.md
+  s_28c33757952f57::t_d9452a2e18861e 15
+apps/agent-usage/ui/index.html
+  s_28c33757952f57::t_fe240eb16f7482 42,44,93
+CONTEXT.md
+  s_28c33757952f57::t_d9452a2e18861e 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "cd9bc8595b5db08bf557707b3da5fffb5a422933",
+  "prompts": {},
+  "sessions": {
+    "s_28c33757952f57": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a22232-e035-76e3-a162-26cab7c8941c",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
