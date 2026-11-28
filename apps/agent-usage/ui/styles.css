@@ -38,6 +38,9 @@
   --text-display: 26px;
   --text-hero: clamp(2.25rem, 4.5vw, 3.05rem);
   --text-tab-narrow: clamp(10px, 3vw, 13px);
+  --mark-bg: #cbead7;
+  --mark-ink: #234d40;
+  --backdrop: #08080ab8;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 :root[data-theme="dark"] {
@@ -72,8 +75,8 @@ button:focus-visible, summary:focus-visible, input:focus-visible { outline: 2px 
 .masthead .shell { min-height: 66px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .wordmark, .mast-actions, .overview-actions { display: flex; align-items: center; gap: 12px; }
 .wordmark { font-size: var(--text-brand); font-weight: 700; letter-spacing: -.025em; white-space: nowrap; }
-.mark { width: 31px; height: 31px; border-radius: 9px; display: grid; place-items: center; background: #cbead7; }
-.mark::before { content: ""; width: 17px; height: 13px; background: #234d40; clip-path: polygon(0 41%, 23% 41%, 35% 0, 48% 71%, 60% 23%, 72% 52%, 100% 52%, 100% 75%, 66% 75%, 63% 63%, 44% 100%, 33% 48%, 27% 64%, 0 64%); }
+.mark { width: 31px; height: 31px; border-radius: 9px; display: grid; place-items: center; background: var(--mark-bg); }
+.mark::before { content: ""; width: 17px; height: 13px; background: var(--mark-ink); clip-path: polygon(0 41%, 23% 41%, 35% 0, 48% 71%, 60% 23%, 72% 52%, 100% 52%, 100% 75%, 66% 75%, 63% 63%, 44% 100%, 33% 48%, 27% 64%, 0 64%); }
 .theme { border: 1px solid var(--mast-line); color: var(--mast-ink); background: transparent; border-radius: 8px; min-height: 36px; padding: 0 10px; }
 .theme:hover { background: var(--mast-line); }
 .theme:focus-visible { outline-color: var(--mast-ink); }
@@ -174,7 +177,7 @@ h2 { font-size: var(--text-title); letter-spacing: -.038em; line-height: 1.2; }
 .startup-content { display: flex; flex-wrap: wrap; align-items: center; padding: 0 16px 12px; gap: 5px 8px; color: var(--muted); font-size: var(--text-body); }
 .startup-content code { background: var(--inset); color: var(--ink); border-radius: 4px; padding: 2px 5px; font: 12px var(--mono); }
 .settings-dialog { color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; width: min(840px, calc(100% - 32px)); max-block-size: calc(100dvh - 32px); padding: 0; }
-.settings-dialog::backdrop { background: #08080ab8; }
+.settings-dialog::backdrop { background: var(--backdrop); }
 .settings-header, .settings-footer { padding: 16px 22px; }
 .settings-header { border-bottom: 1px solid var(--line); }
 .settings-header h2 { font-size: var(--text-heading-lg); }

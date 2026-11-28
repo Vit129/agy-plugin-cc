@@ -14,7 +14,7 @@ const quota = (claude, agy) => ({
   agy: { pools: { gemini: { "5h": agy, "7d": live(90) } } }
 });
 
-test("[TC-QAR-01][BE-UT] diverts a critical destination only to a fresh provider above low", () => {
+test("[TC-QAR-05][BE-UT] diverts a critical destination only to a fresh provider above low", () => {
   const settings = { critical: 20, low: 40 };
   assert.deepEqual(chooseRoute(quota(live(41), live(20)), settings), {
     target: "claude",
@@ -25,7 +25,7 @@ test("[TC-QAR-01][BE-UT] diverts a critical destination only to a fresh provider
   assert.equal(chooseRoute(quota(live(20), live(80)), { ...settings, requested: "claude" }).target, "agy");
 });
 
-test("[TC-QAR-02][BE-UT] keeps the destination with unavailable, stale, reset or critical alternate quota", () => {
+test("[TC-QAR-06][BE-UT] keeps the destination with unavailable, stale, reset or critical alternate quota", () => {
   const settings = { critical: 20, low: 40 };
   for (const alternate of [undefined, { state: "aging", effectiveRemainingPct: 100 }, { state: "reset_assumed", effectiveRemainingPct: 100 }, live(20)]) {
     assert.equal(chooseRoute(quota(alternate, live(0)), settings).target, "agy");
@@ -34,7 +34,7 @@ test("[TC-QAR-02][BE-UT] keeps the destination with unavailable, stale, reset or
   assert.equal(chooseRoute(quota(live(0), live(0)), { ...settings, requested: "claude" }).target, "claude");
 });
 
-test("[TC-QAR-03][BE-IT] companion and ask_claude refuse the critical destination before spawning Claude", t => {
+test("[TC-QAR-07][BE-IT] companion and ask_claude refuse the critical destination before spawning Claude", t => {
   const dir = fs.mkdtempSync(path.join(tmpdir(), "claude-auto-route-"));
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
   const binary = path.join(dir, "claude");
@@ -86,7 +86,7 @@ printf '%s\\n' '{"result":"ok"}'
   assert.equal(fs.readFileSync(calls, "utf8"), "called\ncalled\n");
 });
 
-test("plugins/cc-for-agy shared libs match plugins/agy/scripts/lib/", () => {
+test("[TC-QAR-08][BE-IT] plugins/cc-for-agy shared libs match plugins/agy/scripts/lib/", () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   for (const file of ["quota-route.mjs", "quota-state.mjs"]) {
     const src = fs.readFileSync(path.join(root, "plugins/agy/scripts/lib", file), "utf8");

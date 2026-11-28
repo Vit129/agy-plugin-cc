@@ -15,7 +15,7 @@ const COMPANION = fileURLToPath(new URL("../plugins/agy/scripts/agy-companion.mj
 const SUCCESS = '{"conversation_id":"c1","status":"SUCCESS","response":"ok\\n","duration_seconds":5.88,"num_turns":1,"usage":{"input_tokens":23692,"output_tokens":1,"thinking_tokens":0,"cache_read_tokens":100,"total_tokens":23693}}';
 const TIMEOUT = '{"conversation_id":"c2","status":"ERROR","response":"","error":"print timeout after 1s","duration_seconds":0,"num_turns":0,"usage":{"input_tokens":0,"output_tokens":0,"thinking_tokens":0,"cache_read_tokens":0,"total_tokens":0},"finished_reason":"print_timeout"}';
 
-test("parseAgyJsonOutput: success envelope", () => {
+test("[TC-USG-01][BE-UT] parseAgyJsonOutput: success envelope", () => {
   const parsed = parseAgyJsonOutput(SUCCESS);
   assert.equal(parsed.response, "ok\n");
   assert.equal(parsed.conversationId, "c1");
@@ -23,20 +23,20 @@ test("parseAgyJsonOutput: success envelope", () => {
   assert.equal(parsed.tokens.cache_read_tokens, 100);
 });
 
-test("parseAgyJsonOutput: error envelope after log lines", () => {
+test("[TC-USG-02][BE-UT] parseAgyJsonOutput: error envelope after log lines", () => {
   const parsed = parseAgyJsonOutput(`[agy] print timeout\n${TIMEOUT}\n`);
   assert.equal(parsed.status, "ERROR");
   assert.equal(parsed.finishedReason, "print_timeout");
   assert.equal(parsed.error, "print timeout after 1s");
 });
 
-test("parseAgyJsonOutput: plain text or foreign JSON falls back to null", () => {
+test("[TC-USG-03][BE-UT] parseAgyJsonOutput: plain text or foreign JSON falls back to null", () => {
   assert.equal(parseAgyJsonOutput("just text"), null);
   assert.equal(parseAgyJsonOutput('["--print","x"]'), null);
   assert.equal(parseAgyJsonOutput(""), null);
 });
 
-test("sumUsage and formatUsage: totals across calls", () => {
+test("[TC-USG-04][BE-UT] sumUsage and formatUsage: totals across calls", () => {
   const one = { model: "m", durationSeconds: 2, numTurns: 1, tokens: { input_tokens: 10, output_tokens: 2, thinking_tokens: 1, cache_read_tokens: 5, total_tokens: 13 } };
   const total = sumUsage([one, null, one]);
   assert.equal(total.calls, 2);
@@ -45,7 +45,7 @@ test("sumUsage and formatUsage: totals across calls", () => {
   assert.equal(sumUsage([null]), null);
 });
 
-test("task command: records usage on the job and in usage.jsonl", () => {
+test("[TC-USG-05][BE-IT] task command: records usage on the job and in usage.jsonl", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "agy-usage-"));
   const bin = path.join(root, "bin");
   const data = path.join(root, "data");
@@ -80,7 +80,7 @@ const STREAM = [
 ];
 const STREAM_RESULT = '{"event":"result","result":{"conversation_id":"s1","status":"SUCCESS","response":"Running ls.","duration_seconds":3.5,"num_turns":1,"usage":{"input_tokens":300,"output_tokens":9,"thinking_tokens":2,"cache_read_tokens":50,"total_tokens":309}}}';
 
-test("parseAgyJsonOutput: stream-json result event", () => {
+test("[TC-USG-06][BE-UT] parseAgyJsonOutput: stream-json result event", () => {
   const parsed = parseAgyJsonOutput([...STREAM, STREAM_RESULT].join("\n"));
   assert.equal(parsed.status, "SUCCESS");
   assert.equal(parsed.response, "Running ls.");
@@ -89,7 +89,7 @@ test("parseAgyJsonOutput: stream-json result event", () => {
   assert.equal(parsed.tokens.cache_read_tokens, 50);
 });
 
-test("parseAgyJsonOutput: stream cut off before result keeps partial reply and tokens", () => {
+test("[TC-USG-07][BE-UT] parseAgyJsonOutput: stream cut off before result keeps partial reply and tokens", () => {
   const parsed = parseAgyJsonOutput(STREAM.join("\n"));
   assert.equal(parsed.status, null);
   assert.equal(parsed.response, "Running ls.");
@@ -98,7 +98,7 @@ test("parseAgyJsonOutput: stream cut off before result keeps partial reply and t
   assert.match(parsed.error, /before reporting a result/);
 });
 
-test("progressFromStreamLine: only tool starts produce a message", () => {
+test("[TC-USG-08][BE-UT] progressFromStreamLine: only tool starts produce a message", () => {
   assert.equal(progressFromStreamLine(STREAM[3]), "run_command: ls -la");
   assert.equal(progressFromStreamLine(STREAM[1]), null);
   assert.equal(progressFromStreamLine("not json"), null);

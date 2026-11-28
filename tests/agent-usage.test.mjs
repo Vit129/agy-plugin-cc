@@ -459,7 +459,7 @@ test('[TC-AGU-16][BE-IT] dashboard publishes native quota and shows both cache-o
   }
 });
 
-test('[TC-AGU-NOTIFY] alert text names reset time and route', async () => {
+test('[TC-AGU-95][BE-IT] alert text names reset time and route', async () => {
   const { alertMessage, quotaSummary } = await import('../apps/agent-usage/server.mjs');
   const alert = { provider: 'Antigravity · Gemini', short: '5h', remaining: 12.7, level: 'critical', resetsAt: 1795849408 };
   const diverted = alertMessage(alert, { claudeToAgy: { requested: 'agy', target: 'claude' } });

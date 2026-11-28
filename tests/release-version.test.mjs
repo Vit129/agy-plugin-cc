@@ -4,7 +4,7 @@ import path from "node:path";
 import test from "node:test";
 import { updateReleaseVersion } from "../scripts/set-release-version.mjs";
 
-test("release metadata updates semver and build surfaces together", (t) => {
+test("[TC-REL-01][BE-IT] release metadata updates semver and build surfaces together", (t) => {
   const tempRoot = path.join(process.cwd(), ".tmp");
   fs.mkdirSync(tempRoot, { recursive: true });
   const root = fs.mkdtempSync(path.join(tempRoot, "agy-release-version-"));

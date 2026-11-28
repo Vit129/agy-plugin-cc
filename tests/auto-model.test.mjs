@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { selectAgyModel } from "../plugins/agy/scripts/lib/agy.mjs";
 
-test("selectAgyModel picks by task size when model/tier omitted and respects explicit/env overrides", () => {
+test("[TC-AUT-01][BE-UT] selectAgyModel picks by task size when model/tier omitted and respects explicit/env overrides", () => {
   assert.deepEqual(selectAgyModel({ kind: "task", promptLength: 100 }), {
     model: "gemini-4-hydrogen-low",
     tier: "small",

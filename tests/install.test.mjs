@@ -11,7 +11,7 @@ import {
   runInstallPlan
 } from "../scripts/install.mjs";
 
-test("findOnPath and detectInstalledClis detect executable binaries on PATH", () => {
+test("[TC-INS-01][BE-UT] findOnPath and detectInstalledClis detect executable binaries on PATH", () => {
   const env = { PATH: ["/usr/local/bin", "/opt/bin"].join(path.delimiter) };
   const files = new Map([
     ["/usr/local/bin/claude", { isFile: () => true, mode: 0o755 }],
@@ -39,7 +39,7 @@ test("findOnPath and detectInstalledClis detect executable binaries on PATH", ()
   assert.equal(detectInstalledClis({ ...deps, platform: "linux" }).usage, false);
 });
 
-test("parseInstallArgs handles target flags, --all, --dry-run, --help, and unknown flags", () => {
+test("[TC-INS-02][BE-UT] parseInstallArgs handles target flags, --all, --dry-run, --help, and unknown flags", () => {
   assert.deepEqual(parseInstallArgs(["--agy", "--claude", "--agy"]), {
     targets: ["claude", "agy"],
     dryRun: false,
@@ -70,7 +70,7 @@ test("parseInstallArgs handles target flags, --all, --dry-run, --help, and unkno
   assert.throws(() => parseInstallArgs(["--bogus"]), /Unknown option: --bogus/);
 });
 
-test("buildInstallPlan generates expected commands per target", () => {
+test("[TC-INS-03][BE-UT] buildInstallPlan generates expected commands per target", () => {
   const repoRoot = "/tmp/agent-bridge";
   const plan = buildInstallPlan(["claude", "codex", "agy", "usage"], repoRoot);
 
@@ -145,7 +145,7 @@ test("[TC-AGU-50][BE-UT] includes Usage on macOS only and leaves dry-run homes u
   assert.match(logs.join("\n"), /menubar:install/);
 });
 
-test("runInstallPlan supports dry-run without invoking commands", () => {
+test("[TC-INS-04][BE-IT] runInstallPlan supports dry-run without invoking commands", () => {
   const plan = buildInstallPlan(["claude", "agy"], "/repo");
   const calls = [];
   const logs = [];
@@ -168,7 +168,7 @@ test("runInstallPlan supports dry-run without invoking commands", () => {
   assert.match(logs.join("\n"), /agy plugin install \/repo\/plugins\/cc-for-agy/);
 });
 
-test("runInstallPlan uses fallback on failure and continues after target failure", () => {
+test("[TC-INS-05][BE-IT] runInstallPlan uses fallback on failure and continues after target failure", () => {
   const plan = buildInstallPlan(["claude", "codex", "agy"], "/repo");
   const calls = [];
 
@@ -209,7 +209,7 @@ test("runInstallPlan uses fallback on failure and continues after target failure
   assert.match(summary, /Hint: Restart Claude Code to load the plugin\./);
 });
 
-test("main prints usage and exits 1 in non-TTY without target flags", async () => {
+test("[TC-INS-06][BE-IT] main prints usage and exits 1 in non-TTY without target flags", async () => {
   const logs = [];
   const code = await main({
     argv: [],

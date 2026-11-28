@@ -10,7 +10,7 @@ import { handlePreInvocation, handleStop } from "../plugins/cc-for-agy/scripts/q
 import { resolveStateDir } from "../plugins/cc-for-agy/scripts/lib/state.mjs";
 import { readAllQuota } from "../plugins/cc-for-agy/scripts/lib/quota-state.mjs";
 
-test("buildClaudeArgs supports default no-persistence, persist, resume, noTools, and edit", () => {
+test("[TC-CFA-01][BE-UT] buildClaudeArgs supports default no-persistence, persist, resume, noTools, and edit", () => {
   const args = buildClaudeArgs({});
   assert.ok(args.includes("-p"));
   assert.ok(args.includes("--strict-mcp-config"));
@@ -32,7 +32,7 @@ test("buildClaudeArgs supports default no-persistence, persist, resume, noTools,
   assert.equal(editArgs[editArgs.indexOf("--permission-mode") + 1], "acceptEdits");
 });
 
-test("parseClaudeJsonOutput extracts result, sessionId, and normalized usage", () => {
+test("[TC-CFA-02][BE-UT] parseClaudeJsonOutput extracts result, sessionId, and normalized usage", () => {
   const parsed = parseClaudeJsonOutput(
     JSON.stringify({
       result: "LGTM",
@@ -53,7 +53,7 @@ test("parseClaudeJsonOutput extracts result, sessionId, and normalized usage", (
   assert.equal(parsed.usage.tokens.total_tokens, 170);
 });
 
-test("runClaudePrompt blocks recursive calls when CC_PLUGIN_AGY_ACTIVE=1", async () => {
+test("[TC-CFA-03][BE-IT] runClaudePrompt blocks recursive calls when CC_PLUGIN_AGY_ACTIVE=1", async () => {
   await assert.rejects(
     () => runClaudePrompt("hello", { env: { ...process.env, [RECURSION_GUARD_ENV]: "1" } }),
     /Blocked recursive/
@@ -126,7 +126,7 @@ test("[TC-QAR-04][BE-IT] PreInvocation never blocks ordinary agy prompts; it onl
   }
 });
 
-test("ask-claude-mcp responds to initialize and tools/list including resume and persist", async () => {
+test("[TC-CFA-04][BE-IT] ask-claude-mcp responds to initialize and tools/list including resume and persist", async () => {
   const mcpPath = path.resolve("plugins/cc-for-agy/scripts/ask-claude-mcp.mjs");
   const child = spawn(process.execPath, [mcpPath], { stdio: ["pipe", "pipe", "pipe"] });
   let out = "";
@@ -149,7 +149,7 @@ test("ask-claude-mcp responds to initialize and tools/list including resume and 
   assert.deepEqual(tool.inputSchema.properties.route.enum, ["auto", "off"]);
 });
 
-test("selectClaudeModel picks by task size when model is omitted and respects explicit/env overrides", () => {
+test("[TC-CFA-05][BE-UT] selectClaudeModel picks by task size when model is omitted and respects explicit/env overrides", () => {
   assert.deepEqual(selectClaudeModel({ kind: "ask", promptLength: 100 }), {
     model: "haiku",
     effort: "low",
