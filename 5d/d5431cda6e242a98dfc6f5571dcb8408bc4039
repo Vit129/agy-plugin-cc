@@ -1,0 +1,27 @@
+apps/agent-usage/cli.mjs
+  s_162efa8565b211::t_7f6fbe79e6aeaf 10-11,13-15,30,32-42,44,63-66,72,74,79-90,93,120
+apps/agent-usage/launcher.mjs
+  s_162efa8565b211::t_7ef1c4292cba6c 1-3,5,8,10-26,29,35-36
+apps/agent-usage/server.mjs
+  s_162efa8565b211::t_3b3365b377e882 25
+tests/agent-usage-launcher.test.mjs
+  s_162efa8565b211::t_961688f1decd7a 2-3,8,10-11,13-103,108-109
+tests/agent-usage.test.mjs
+  s_162efa8565b211::t_962b632e86ae64 26-37,41,43,45,47,49
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "5dd5431cda6e242a98dfc6f5571dcb8408bc4039",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
