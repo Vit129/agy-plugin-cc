@@ -8,25 +8,29 @@ import { fileURLToPath } from "node:url";
 export const TARGETS = [
   { id: "claude", label: "Claude Code", bin: "claude" },
   { id: "codex", label: "Codex", bin: "codex" },
-  { id: "agy", label: "agy", bin: "agy" }
+  { id: "agy", label: "agy", bin: "agy" },
+  { id: "usage", label: "Agent Usage dashboard + menu bar", platform: "darwin" }
 ];
 
 const REPO_SLUG = "Vit129/agent-bridge";
 const MARKETPLACE_NAME = "agent-bridge";
 const PLUGIN_REF = `agy@${MARKETPLACE_NAME}`;
+const missingXcodeTools = "Xcode Command Line Tools are required. Run: xcode-select --install";
 
 export function getUsage() {
   return [
     "Usage: node scripts/install.mjs [options]",
     "",
     "Interactive mode (TTY with no target flags):",
-    "  Shows a checkbox list pre-selecting CLIs found on PATH.",
+    "  Shows a checkbox list pre-selecting CLIs found on PATH and Agent Usage on macOS.",
     "",
     "Options:",
     "  --claude    Install/update plugin for Claude Code",
     "  --codex     Install/update plugin for Codex",
     "  --agy       Install/update agent-bridge plugin for agy",
-    "  --all       Select all targets (Claude Code, Codex, agy)",
+    "  --usage     Install the Agent Usage dashboard and menu bar (macOS)",
+    "  --all       Select all targets supported on this platform",
+    "  --allow-worktree  Allow Agent Usage installation from a linked Git worktree",
     "  --dry-run   Print planned commands without executing them",
     "  -h, --help  Show this help message"
   ].join("\n");
@@ -65,7 +69,9 @@ export function findOnPath(
 export function detectInstalledClis(deps = {}) {
   const detected = {};
   for (const target of TARGETS) {
-    detected[target.id] = Boolean(findOnPath(target.bin, deps));
+    detected[target.id] = target.platform
+      ? target.platform === (deps.platform ?? process.platform)
+      : Boolean(findOnPath(target.bin, deps));
   }
   return detected;
 }
@@ -74,6 +80,8 @@ export function parseInstallArgs(argv = []) {
   const selected = new Set();
   let dryRun = false;
   let help = false;
+  let allowWorktree = false;
+  let all = false;
 
   for (const arg of argv) {
     if (arg === "--claude") {
@@ -82,8 +90,12 @@ export function parseInstallArgs(argv = []) {
       selected.add("codex");
     } else if (arg === "--agy") {
       selected.add("agy");
+    } else if (arg === "--usage") {
+      selected.add("usage");
     } else if (arg === "--all") {
-      for (const target of TARGETS) selected.add(target.id);
+      all = true;
+    } else if (arg === "--allow-worktree") {
+      allowWorktree = true;
     } else if (arg === "--dry-run") {
       dryRun = true;
     } else if (arg === "-h" || arg === "--help") {
@@ -93,11 +105,11 @@ export function parseInstallArgs(argv = []) {
     }
   }
 
-  const targets = TARGETS.map((t) => t.id).filter((id) => selected.has(id));
-  return { targets, dryRun, help };
+  const targets = TARGETS.map((t) => t.id).filter((id) => all || selected.has(id));
+  return { targets, dryRun, help, allowWorktree, usageExplicit: selected.has("usage") };
 }
 
-export function buildTargetPlan(targetId, repoRoot) {
+export function buildTargetPlan(targetId, repoRoot, { allowWorktree = false } = {}) {
   if (targetId === "claude") {
     return [
       {
@@ -145,10 +157,23 @@ export function buildTargetPlan(targetId, repoRoot) {
     ];
   }
 
+  if (targetId === "usage") {
+    const cli = path.join(repoRoot, "apps", "agent-usage", "cli.mjs");
+    const worktreeFlags = allowWorktree ? ["--allow-worktree"] : [];
+    return [
+      { cmd: "/usr/bin/xcode-select", args: ["-p"], failureMessage: missingXcodeTools },
+      { cmd: process.execPath, args: [cli, "install-launcher", ...worktreeFlags] },
+      { cmd: process.execPath, args: [cli, "install-launch-agents", ...worktreeFlags] },
+      { cmd: "npm", args: ["--prefix", repoRoot, "run", "menubar:install", ...(allowWorktree ? ["--", ...worktreeFlags] : [])] },
+      { cmd: process.execPath, args: [cli, "ensure-running", ...worktreeFlags] },
+      { cmd: process.execPath, args: [cli, "health"] }
+    ];
+  }
+
   throw new Error(`Unknown target: ${targetId}`);
 }
 
-export function buildInstallPlan(targetIds, repoRoot) {
+export function buildInstallPlan(targetIds, repoRoot, options) {
   const byId = new Map(TARGETS.map((t) => [t.id, t]));
   return targetIds.map((id) => {
     const target = byId.get(id);
@@ -156,7 +181,7 @@ export function buildInstallPlan(targetIds, repoRoot) {
     return {
       id: target.id,
       label: target.label,
-      steps: buildTargetPlan(target.id, repoRoot)
+      steps: buildTargetPlan(target.id, repoRoot, options)
     };
   });
 }
@@ -208,7 +233,7 @@ export function runInstallPlan(plan, { dryRun = false, runCommand = defaultRunCo
       }
       if (!res.ok) {
         targetOk = false;
-        targetError = res.error || "Command failed";
+        targetError = step.failureMessage || res.error || "Command failed";
         break;
       }
     }
@@ -251,7 +276,7 @@ function renderCheckboxes(items, cursor) {
     const pointer = i === cursor ? ">" : " ";
     const box = item.checked ? "[x]" : "[ ]";
     if (!item.installed) {
-      lines.push(`\x1b[2m${pointer} ${box} ${item.label} (not installed)\x1b[0m`);
+      lines.push(`\x1b[2m${pointer} ${box} ${item.label} (${item.platform ? "macOS only" : "not installed"})\x1b[0m`);
     } else if (i === cursor) {
       lines.push(`\x1b[36m${pointer} ${box} ${item.label}\x1b[0m`);
     } else {
@@ -344,6 +369,7 @@ export function promptTargets(installed, { stdin = process.stdin, stdout = proce
 export async function main({
   argv = process.argv.slice(2),
   repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."),
+  platform = process.platform,
   isTTY = Boolean(process.stdin.isTTY),
   detectClis = detectInstalledClis,
   prompt = promptTargets,
@@ -372,7 +398,7 @@ export async function main({
       log(getUsage());
       return 1;
     }
-    const installed = detectClis();
+    const installed = detectClis({ platform });
     selectedTargets = await prompt(installed);
     if (selectedTargets === null) {
       log("Aborted.");
@@ -384,7 +410,14 @@ export async function main({
     }
   }
 
-  const plan = buildInstallPlan(selectedTargets, repoRoot);
+  if (platform !== "darwin") {
+    if (parsed.usageExplicit) {
+      errorLog("Agent Usage dashboard + menu bar setup requires macOS.");
+      return 1;
+    }
+    selectedTargets = selectedTargets.filter(id => id !== "usage");
+  }
+  const plan = buildInstallPlan(selectedTargets, repoRoot, parsed);
   const results = runInstallPlan(plan, { dryRun: parsed.dryRun, runCommand, log });
   log(formatSummary(results));
 

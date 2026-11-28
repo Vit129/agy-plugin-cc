@@ -33,27 +33,38 @@ test("findOnPath and detectInstalledClis detect executable binaries on PATH", ()
   assert.deepEqual(detectInstalledClis(deps), {
     claude: true,
     codex: false,
-    agy: true
+    agy: true,
+    usage: true
   });
+  assert.equal(detectInstalledClis({ ...deps, platform: "linux" }).usage, false);
 });
 
 test("parseInstallArgs handles target flags, --all, --dry-run, --help, and unknown flags", () => {
   assert.deepEqual(parseInstallArgs(["--agy", "--claude", "--agy"]), {
     targets: ["claude", "agy"],
     dryRun: false,
-    help: false
+    help: false,
+    allowWorktree: false,
+    usageExplicit: false
   });
 
   assert.deepEqual(parseInstallArgs(["--all", "--dry-run"]), {
-    targets: ["claude", "codex", "agy"],
+    targets: ["claude", "codex", "agy", "usage"],
     dryRun: true,
-    help: false
+    help: false,
+    allowWorktree: false,
+    usageExplicit: false
   });
 
   assert.deepEqual(parseInstallArgs(["--help"]), {
     targets: [],
     dryRun: false,
-    help: true
+    help: true,
+    allowWorktree: false,
+    usageExplicit: false
+  });
+  assert.deepEqual(parseInstallArgs(["--usage", "--allow-worktree"]), {
+    targets: ["usage"], dryRun: false, help: false, allowWorktree: true, usageExplicit: true
   });
 
   assert.throws(() => parseInstallArgs(["--bogus"]), /Unknown option: --bogus/);
@@ -61,9 +72,9 @@ test("parseInstallArgs handles target flags, --all, --dry-run, --help, and unkno
 
 test("buildInstallPlan generates expected commands per target", () => {
   const repoRoot = "/tmp/agent-bridge";
-  const plan = buildInstallPlan(["claude", "codex", "agy"], repoRoot);
+  const plan = buildInstallPlan(["claude", "codex", "agy", "usage"], repoRoot);
 
-  assert.equal(plan.length, 3);
+  assert.equal(plan.length, 4);
   assert.deepEqual(plan[0].steps, [
     {
       cmd: "claude",
@@ -95,6 +106,48 @@ test("buildInstallPlan generates expected commands per target", () => {
       args: ["plugin", "install", path.join(repoRoot, "plugins", "cc-for-agy")]
     }
   ]);
+
+  const cli = path.join(repoRoot, "apps", "agent-usage", "cli.mjs");
+  assert.deepEqual(plan[3].steps.map(({ cmd, args }) => [cmd, ...args]), [
+    ["/usr/bin/xcode-select", "-p"],
+    [process.execPath, cli, "install-launcher"],
+    [process.execPath, cli, "install-launch-agents"],
+    ["npm", "--prefix", repoRoot, "run", "menubar:install"],
+    [process.execPath, cli, "ensure-running"],
+    [process.execPath, cli, "health"]
+  ]);
+  const [usage] = buildInstallPlan(["usage"], repoRoot, { allowWorktree: true });
+  assert.deepEqual(usage.steps.map(({ args }) => args.at(-1)), [
+    "-p", "--allow-worktree", "--allow-worktree", "--allow-worktree", "--allow-worktree", "health"
+  ]);
+});
+
+test("[TC-AGU-55][BE-UT] stops before installation when xcode-select cannot find developer tools", async () => {
+  const calls = [];
+  const logs = [];
+  const code = await main({
+    argv: ["--usage"], platform: "darwin",
+    runCommand: (cmd, args) => {
+      calls.push([cmd, ...args]);
+      return { ok: false, error: "no developer tools" };
+    },
+    log: line => logs.push(line)
+  });
+  assert.equal(code, 1);
+  assert.deepEqual(calls, [["/usr/bin/xcode-select", "-p"]]);
+  assert.match(logs.join("\n"), /xcode-select --install/);
+});
+
+test("[TC-AGU-50][BE-UT] includes Usage on macOS only and leaves dry-run homes untouched", async () => {
+  const logs = [];
+  const options = { log: line => logs.push(line), errorLog: line => logs.push(line),
+    runCommand: () => assert.fail("dry run executed a command") };
+  assert.equal(await main({ ...options, argv: ["--all", "--dry-run"], platform: "linux" }), 0);
+  assert.doesNotMatch(logs.join("\n"), /menubar:install/);
+  assert.equal(await main({ ...options, argv: ["--usage", "--dry-run"], platform: "linux" }), 1);
+  assert.match(logs.join("\n"), /requires macOS/);
+  assert.equal(await main({ ...options, argv: ["--usage", "--dry-run"], platform: "darwin" }), 0);
+  assert.match(logs.join("\n"), /menubar:install/);
 });
 
 test("runInstallPlan supports dry-run without invoking commands", () => {
