@@ -1,0 +1,42 @@
+apps/agent-usage/usage.mjs
+  s_673a52416b7659::t_33e919720a1ac1 2,5,86,88-100,103-110,112-121,153,202,209
+  s_673a52416b7659::t_fa4579fc3028f7 87,101-102,111,182
+apps/agent-usage/live-quota.mjs
+  s_673a52416b7659::t_7f3f45e8fdc48d 3,12-13,15
+apps/agent-usage/managed-accounts.mjs
+  s_673a52416b7659::t_7f3f45e8fdc48d 1-100
+apps/agent-usage/provider-quota.mjs
+  s_673a52416b7659::t_7f3f45e8fdc48d 15
+apps/agent-usage/quota.mjs
+  s_673a52416b7659::t_7f3f45e8fdc48d 65
+apps/agent-usage/menu-model.mjs
+  s_673a52416b7659::t_33e919720a1ac1 1-51
+apps/agent-usage/accounts.mjs
+  s_673a52416b7659::t_7f3f45e8fdc48d 8-20,24,62-68,75
+tests/agent-usage-menu.test.mjs
+  s_673a52416b7659::t_78249fe2a9f0c0 1-33
+tests/agent-usage-accounts.test.mjs
+  s_673a52416b7659::t_78249fe2a9f0c0 2,31-34,183-221,228-256,263-264,267-324,329-339,342-345
+  s_673a52416b7659::t_fa4579fc3028f7 28,222-227,257-262,265-266,325-328,340-341
+apps/agent-usage/server.mjs
+  s_673a52416b7659::t_33e919720a1ac1 9-12,16,62,71,77-88,104-124,128-133,141-144,152,197-205,211-215,257-271
+  s_673a52416b7659::t_fa4579fc3028f7 125-127
+apps/agent-usage/account-identity.mjs
+  s_673a52416b7659::t_7f3f45e8fdc48d 1-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "b5b28051d44f6a6e067f3fadccc280269da6c5bb",
+  "prompts": {},
+  "sessions": {
+    "s_673a52416b7659": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a220a2-a7e1-75c0-9c4b-d250cd39b337",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
