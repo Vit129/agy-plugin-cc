@@ -6,6 +6,12 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.9.2] - 2026-11-28
+
+### Fixed
+- `cc-for-agy` reports Claude's exit code and stderr when Claude closes stdin before the prompt can be delivered, avoiding an unhandled `EPIPE` crash.
+- The Claude stub in `TC-QAR-03` drains stdin, eliminating the test's pipe race on Ubuntu CI ([#51](https://github.com/Vit129/agy-plugin-cc/pull/51)).
+
 ## [1.9.1] - 2026-11-28
 
 ### Fixed

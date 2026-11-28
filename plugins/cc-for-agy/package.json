@@ -1,6 +1,6 @@
 {
   "name": "@vit129/cc-plugin-agy",
-  "version": "1.9.1",
+  "version": "1.9.2",
   "description": "Antigravity (agy) native plugin to delegate, cold-review, handoff, and quota-route tasks to Claude Code CLI.",
   "type": "module",
   "scripts": {

@@ -6,17 +6,17 @@
   },
   "metadata": {
     "description": "Claude Code CLI integration for Antigravity (agy)",
-    "version": "1.9.1"
+    "version": "1.9.2"
   },
   "plugins": [
     {
       "name": "cc-for-agy",
       "description": "Antigravity (agy) native plugin to delegate, cold-review, handoff, and quota-route tasks to Claude Code CLI.",
-      "version": "1.9.1",
+      "version": "1.9.2",
       "author": "Vit129",
       "source": {
-        "url": "https://github.com/Vit129/agy-plugin-cc/releases/download/v1.9.1/cc-for-agy-1.9.1.zip",
-        "sha256": "088eaa880b977537992b2ea1da265d5eb903107649a4befdad27d03ca719a4a8"
+        "url": "https://github.com/Vit129/agy-plugin-cc/releases/download/v1.9.2/cc-for-agy-1.9.2.zip",
+        "sha256": "4dac54eb2e8b98977e09a55e5660b011d0e3710e10a941b6395f6e8f4f9e2d64"
       }
     }
   ]
