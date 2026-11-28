@@ -5,6 +5,7 @@ import path from 'node:path';
 import { test } from 'node:test';
 import { parseCodexQuota } from '../apps/agent-usage/provider-quota.mjs';
 import { defaultSettings } from '../apps/agent-usage/quota.mjs';
+import { createLiveQuotaReader } from '../apps/agent-usage/live-quota.mjs';
 import { startServer } from '../apps/agent-usage/server.mjs';
 
 const hour = 3_600_000;
@@ -176,4 +177,36 @@ test('[TC-AGU-19][BE-IT] rereads Codex at both reminder boundaries and persists 
   assert.equal(delivered.length, 5);
   const state = JSON.parse(await readFile(path.join(app.directory, 'alerts.json')));
   assert.ok(delivered.every(alert => state[alert.key]));
+});
+
+test('[TC-AGU-20][BE-UT] drops malformed reset credits and coerces the fields the menu bar decodes', () => {
+  const bad = { id: 'no-status', expiresAt: null, title: 7 };
+  const payload = withCredits([credit('ok'), bad, { status: 'available' }, null]);
+  const { credits } = parseCodexQuota(payload, timestamp).rateLimitResetCredits;
+  assert.deepEqual(credits.map(item => item.id), ['ok', 'no-status']);
+  assert.deepEqual(credits[1], { id: 'no-status', resetType: null, status: 'unknown', grantedAt: null, expiresAt: null, title: null, description: null });
+});
+
+test('[TC-AGU-21][BE-IT] a failed re-probe keeps the last good reset credits and their captured time', async t => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'agent-usage-credits-'));
+  t.after(() => rm(directory, { recursive: true, force: true }));
+  let time = timestamp;
+  let fail = false;
+  const read = createLiveQuotaReader({
+    env: { ...process.env, AGENT_USAGE_STATE_DIR: directory, AI_QUOTA_DIR: directory },
+    now: () => time, log: () => {},
+    probe: async () => {
+      if (fail) throw new Error('probe down');
+      return parseCodexQuota(withCredits([credit('keep')]), time);
+    },
+  });
+  const settings = { ...defaultSettings, providers: { ...off, codex: true }, refreshMinutes: 5 };
+  const row = async () => (await read(settings)).find(item => item.provider === 'codex');
+  const first = await row();
+  assert.equal(first.rateLimitResetCredits.credits[0].id, 'keep');
+  fail = true;
+  time += 10 * 60_000;
+  const second = await row();
+  assert.equal(second.rateLimitResetCredits.credits[0].id, 'keep');
+  assert.equal(second.creditsObservedAt, first.creditsObservedAt);
 });
