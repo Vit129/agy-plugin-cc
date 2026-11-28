@@ -35,6 +35,23 @@ The Antigravity CLI must be installed and authenticated before using this plugin
 
 ## Installation
 
+### Interactive installer
+
+From a local clone, run the interactive multi-select installer to set up or update **Claude Code**, **Codex**, and **agy** (`cc-for-agy`) in one pass:
+
+```bash
+npm run setup
+```
+
+Detected CLIs on `PATH` are pre-selected. Use arrow keys or `j`/`k` to move, `space` to toggle, `a` to toggle all, `enter` to confirm, and `q` or `Ctrl-C` to abort.
+
+For non-interactive or CI usage, pass target flags directly:
+
+```bash
+node scripts/install.mjs --all --dry-run
+node scripts/install.mjs --claude --codex --agy
+```
+
 ### Claude Code
 
 Install from GitHub in your terminal:
