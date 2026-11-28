@@ -22,13 +22,28 @@ function collectVersions(value, found = []) {
 for (const surface of [
   ".claude-plugin/plugin.json",
   ".claude-plugin/marketplace.json",
+  ".agy-plugin/marketplace.json",
   "plugins/agy/.claude-plugin/plugin.json",
-  "plugins/agy/.codex-plugin/plugin.json"
+  "plugins/agy/.codex-plugin/plugin.json",
+  "plugins/cc-for-agy/plugin.json",
+  "plugins/cc-for-agy/package.json"
 ]) {
   const versions = collectVersions(readJson(surface));
   if (!versions.length || versions.some((version) => version !== packageVersion)) {
     throw new Error(`${surface} version(s) must match package.json ${packageVersion}; found ${versions.join(", ") || "none"}`);
   }
+}
+
+const ccReadme = fs.readFileSync(path.join(root, "plugins/cc-for-agy/README.md"), "utf8");
+const ccReadmeVersion = ccReadme.match(/`v(\d+\.\d+\.\d+)`/)?.[1];
+if (ccReadmeVersion !== packageVersion) {
+  throw new Error(`plugins/cc-for-agy/README.md version ${ccReadmeVersion ?? "missing"} does not match ${packageVersion}`);
+}
+
+const mcpServer = fs.readFileSync(path.join(root, "plugins/cc-for-agy/scripts/ask-claude-mcp.mjs"), "utf8");
+const mcpVersion = mcpServer.match(/serverInfo:\s*\{\s*name:\s*"cc-plugin-agy",\s*version:\s*"(\d+\.\d+\.\d+)"/)?.[1];
+if (mcpVersion !== packageVersion) {
+  throw new Error(`plugins/cc-for-agy/scripts/ask-claude-mcp.mjs version ${mcpVersion ?? "missing"} does not match ${packageVersion}`);
 }
 
 const changelog = fs.readFileSync(path.join(root, "CHANGELOG.md"), "utf8");

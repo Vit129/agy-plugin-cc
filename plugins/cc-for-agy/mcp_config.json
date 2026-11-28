@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "claude": {
+      "command": "sh",
+      "args": [
+        "-c",
+        "exec node \"${PLUGIN_ROOT}/scripts/ask-claude-mcp.mjs\""
+      ]
+    }
+  }
+}

@@ -66,6 +66,24 @@ Plugin install and uninstall default to `--scope user`. If you installed at proj
 
 If you already use `agy@agy-plugin-cc` in Claude Code, follow the update steps above to move to the shared release. If you also installed the separate `agy-plugin-codex` in Codex, follow the [Codex migration steps](#migrate-from-agy-plugin-codex) in that host.
 
+### agy plugin (cc-for-agy)
+
+Install the Antigravity-native plugin (`plugins/cc-for-agy`) to call Claude Code CLI (`ask_claude` MCP tool, `review`, `adversarial-review`, `handoff`, `transfer`, and shared quota routing) from `agy`.
+
+Install from a local clone:
+
+```bash
+agy plugin install <repo>/plugins/cc-for-agy
+```
+
+Or install from the published marketplace manifest (backed by the GitHub release zip):
+
+```bash
+agy plugin install cc-for-agy@https://raw.githubusercontent.com/Vit129/agy-plugin-cc/main/.agy-plugin/marketplace.json
+```
+
+Validate the local plugin directory at any time with `agy plugin validate --strict plugins/cc-for-agy`.
+
 ## Commands & Usage
 
 ### `/agy:setup`
@@ -312,7 +330,7 @@ Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds s
 
 ## Development and delivery
 
-`npm start` and `make start` run the package preview gate with syntax checks, unit tests, and `npm pack --dry-run`. Use a separate test Claude Code profile to verify the plugin lifecycle. Start the optional local quota dashboard with `npm run dashboard` or build its macOS menu bar companion with `npm run menubar:build`. The [Agent Usage instructions](apps/agent-usage/README.md) cover CLI accounts, Codex reset-credit reminders, and scheduled checks. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
+`npm start` and `make start` run the package preview gate with syntax checks, unit tests, and `npm pack --dry-run`. Use a separate test Claude Code profile to verify the plugin lifecycle. Start the optional local quota dashboard with `npm run dashboard` or build its macOS menu bar companion with `npm run menubar:build`. The [Agent Usage instructions](apps/agent-usage/README.md) cover CLI accounts, Codex reset-credit reminders, and scheduled checks. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. Before publishing a release, run `npm run package:cc-for-agy` (`node scripts/package-cc-for-agy.mjs`) to sync shared libs, zip `plugins/cc-for-agy` to `dist/cc-for-agy-<version>.zip`, print its SHA-256, and update `.agy-plugin/marketplace.json` for the release asset URL (and attach the zip to the GitHub release). CI runs the same gate on pull requests and pushes to `main`.
 
 ## Architecture
 

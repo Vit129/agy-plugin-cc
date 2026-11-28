@@ -16,15 +16,37 @@ export function updateReleaseVersion(root, version) {
     "package.json",
     ".claude-plugin/plugin.json",
     ".claude-plugin/marketplace.json",
+    ".agy-plugin/marketplace.json",
     "plugins/agy/.claude-plugin/plugin.json",
     "plugins/agy/.codex-plugin/plugin.json",
+    "plugins/cc-for-agy/plugin.json",
+    "plugins/cc-for-agy/package.json",
   ].filter((relative) => fs.existsSync(path.join(root, relative)));
   for (const relative of semverFiles) {
     const file = path.join(root, relative);
     const value = JSON.parse(fs.readFileSync(file, "utf8"));
-    if (relative === "package.json") value.version = version;
+    if (relative === "package.json" || relative === "plugins/cc-for-agy/package.json") value.version = version;
     else setVersion(value, version);
     fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`);
+  }
+
+  const ccReadmeFile = path.join(root, "plugins/cc-for-agy/README.md");
+  if (fs.existsSync(ccReadmeFile)) {
+    const ccReadme = fs.readFileSync(ccReadmeFile, "utf8");
+    const updatedReadme = ccReadme.replace(/(`v)\d+\.\d+\.\d+(`)/, `$1${version}$2`);
+    if (updatedReadme === ccReadme) throw new Error("Could not update version in plugins/cc-for-agy/README.md");
+    fs.writeFileSync(ccReadmeFile, updatedReadme);
+  }
+
+  const mcpFile = path.join(root, "plugins/cc-for-agy/scripts/ask-claude-mcp.mjs");
+  if (fs.existsSync(mcpFile)) {
+    const mcp = fs.readFileSync(mcpFile, "utf8");
+    const updatedMcp = mcp.replace(
+      /(serverInfo:\s*\{\s*name:\s*"cc-plugin-agy",\s*version:\s*")\d+\.\d+\.\d+(")/,
+      `$1${version}$2`
+    );
+    if (updatedMcp === mcp) throw new Error("Could not update serverInfo version in ask-claude-mcp.mjs");
+    fs.writeFileSync(mcpFile, updatedMcp);
   }
 
   const buildFile = path.join(root, "version.json");

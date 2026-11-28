@@ -1,0 +1,15 @@
+{
+  "name": "@vit129/cc-plugin-agy",
+  "version": "1.8.1",
+  "description": "Antigravity (agy) native plugin to delegate, cold-review, handoff, and quota-route tasks to Claude Code CLI.",
+  "type": "module",
+  "scripts": {
+    "check": "node --check scripts/claude-companion.mjs && node --check scripts/ask-claude-mcp.mjs && node --check scripts/quota-hook.mjs && node --check scripts/lib/claude.mjs && node --check scripts/lib/quota-state.mjs && node --check scripts/lib/state.mjs && node --check scripts/lib/handoff.mjs",
+    "test": "npm run check && node --test tests/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  },
+  "license": "Apache-2.0",
+  "private": true
+}
