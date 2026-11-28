@@ -1,5 +1,5 @@
 {
-  "version": 11,
+  "version": 12,
   "updated": "2026-11-28",
-  "summary": "Native multi-provider quota, Auto-Route for critical sides, route display and richer notifications"
+  "summary": "Named accounts per provider, Codex reset-credit reminders and a native macOS menu bar app"
 }
