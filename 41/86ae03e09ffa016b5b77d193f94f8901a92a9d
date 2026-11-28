@@ -1,0 +1,21 @@
+apps/agent-usage/server.mjs
+  s_162efa8565b211::t_df78b1e7cbaa38 28-50,98-102,110,137,187
+tests/agent-usage.test.mjs
+  s_162efa8565b211::t_c2741ac00e28d8 131,133,146,418-427
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "4186ae03e09ffa016b5b77d193f94f8901a92a9d",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
