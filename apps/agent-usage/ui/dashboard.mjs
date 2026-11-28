@@ -344,12 +344,19 @@ async function applySettingsHash() {
   if (dialog.open && link.tab) selectSettingsTab(document.getElementById(`settings-tab-${link.tab}`));
   else openSettings(link.tab);
 }
-dialog.addEventListener('close', () => {
+function clearSettingsHash() {
   if (parseSettingsHash(location.hash)) history.replaceState(null, '', location.pathname + location.search);
-});
+}
+// The dialog's `close` event is queued as a task and can run after a new deep link was set, wiping it, so the
+// hash is cleared synchronously: by closeSettings() for the buttons and by `cancel` (fired before Esc closes it).
+function closeSettings() {
+  dialog.close();
+  clearSettingsHash();
+}
+dialog.addEventListener('cancel', clearSettingsHash);
 window.addEventListener('hashchange', () => void applySettingsHash());
 
-document.querySelector('#cancel-settings').addEventListener('click', () => dialog.close());
+document.querySelector('#cancel-settings').addEventListener('click', closeSettings);
 const testNotification = document.querySelector('#test-notification');
 testNotification.addEventListener('click', async () => {
   const result = document.querySelector('#notification-result');
@@ -423,7 +430,7 @@ form.addEventListener('submit', async event => {
     const response = await request('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values) });
     if (quotaRequest === current) renderQuota(response);
     void loadModels(Number(modelButtons.find(button => button.getAttribute('aria-pressed') === 'true').dataset.modelDays));
-    dialog.close();
+    closeSettings();
   } catch (error) {
     formError.textContent = error.message;
   } finally {
