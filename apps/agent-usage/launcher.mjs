@@ -17,7 +17,7 @@ export function requirePersistentCheckout({ root = repoRoot, allowWorktree = fal
 }
 
 const versionedDirs = ['/Cellar/', '/.volta/tools/image/', '/.nvm/versions/', '/.fnm/'];
-const isVersioned = dir => versionedDirs.some(marker => `${dir}/`.includes(marker));
+export const isVersioned = dir => versionedDirs.some(marker => `${dir}/`.includes(marker));
 
 // Prefer a node path that survives upgrades (Cellar, Volta image, nvm and fnm paths embed the version).
 // Order: Volta shim, Homebrew, /usr/local, then an unversioned PATH entry, else the running binary.
