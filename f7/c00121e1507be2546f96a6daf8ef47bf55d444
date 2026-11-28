@@ -1,0 +1,79 @@
+docs/README.md
+  s_c05b716a2358fb::t_884b525360d5ad 3
+SECURITY.md
+  s_c05b716a2358fb::t_884b525360d5ad 20
+plugins/cc-for-agy/scripts/ask-claude-mcp.mjs
+  s_c05b716a2358fb::t_884b525360d5ad 44
+AGENTS.md
+  s_c05b716a2358fb::t_884b525360d5ad 1,5
+.agy-plugin/marketplace.json
+  s_c05b716a2358fb::t_884b525360d5ad 2,9,13,15,18-19
+scripts/package-cc-for-agy.mjs
+  s_c05b716a2358fb::t_884b525360d5ad 9,35,46
+ARCHITECTURE.md
+  s_c05b716a2358fb::t_884b525360d5ad 1
+plugins/cc-for-agy/README.md
+  s_c05b716a2358fb::t_884b525360d5ad 1,3
+.claude-plugin/marketplace.json
+  s_c05b716a2358fb::t_884b525360d5ad 2,9,15
+plugins/agy/scripts/features/info.mjs
+  s_c05b716a2358fb::t_884b525360d5ad 41,51,62
+scripts/install.mjs
+  s_c05b716a2358fb::t_884b525360d5ad 14-15,28
+plugins/agy/.codex-plugin/plugin.json
+  s_c05b716a2358fb::t_884b525360d5ad 3,9-10
+version.json
+  s_c05b716a2358fb::t_884b525360d5ad 2,4
+NOTICE
+  s_c05b716a2358fb::t_884b525360d5ad 1
+plugins/cc-for-agy/plugin.json
+  s_c05b716a2358fb::t_884b525360d5ad 2-3,7
+plugins/agy/.claude-plugin/plugin.json
+  s_c05b716a2358fb::t_884b525360d5ad 3
+plugins/cc-for-agy/package.json
+  s_c05b716a2358fb::t_884b525360d5ad 3
+plugins/cc-for-agy/rules/AGENTS.md
+  s_c05b716a2358fb::t_884b525360d5ad 1
+README.md
+  s_c05b716a2358fb::t_884b525360d5ad 1,40,60-61,69-70,73,78-79,84,86,99,304-305,315,325-326,338-339,346
+package.json
+  s_c05b716a2358fb::t_884b525360d5ad 2-3
+.agents/plugins/marketplace.json
+  s_c05b716a2358fb::t_884b525360d5ad 2,4
+CONTEXT.md
+  s_c05b716a2358fb::t_884b525360d5ad 1
+plugins/agy/scripts/lib/git-update-check.mjs
+  s_c05b716a2358fb::t_884b525360d5ad 10,12,15,123,125
+.claude-plugin/plugin.json
+  s_c05b716a2358fb::t_884b525360d5ad 3
+scripts/release.sh
+  s_c05b716a2358fb::t_884b525360d5ad 63,65
+cliff.toml
+  s_c05b716a2358fb::t_884b525360d5ad 5-6,18,30
+tests/install.test.mjs
+  s_c05b716a2358fb::t_884b525360d5ad 63,71,75-76,83-84,88,140-143
+CHANGELOG.md
+  s_c05b716a2358fb::t_884b525360d5ad 9-41
+plugins/cc-for-agy/CONTEXT.md
+  s_c05b716a2358fb::t_884b525360d5ad 1
+plugins/agy/commands/update.md
+  s_c05b716a2358fb::t_884b525360d5ad 2
+commands/agy-update.md
+  s_c05b716a2358fb::t_884b525360d5ad 6,23,38-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "f7c00121e1507be2546f96a6daf8ef47bf55d444",
+  "prompts": {},
+  "sessions": {
+    "s_c05b716a2358fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a22206-6bbd-7482-ba61-b22d220c0032",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
