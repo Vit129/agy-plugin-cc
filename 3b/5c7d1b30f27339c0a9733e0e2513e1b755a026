@@ -1,0 +1,70 @@
+apps/agent-usage/live-quota.mjs
+  s_b3a04804e19838::t_d4c565e542d95f 2,4-5,9-13,15-24,26-27,29-38,40,42,46,49-50,52-53,55
+apps/agent-usage/state.mjs
+  s_b3a04804e19838::t_e79545a734d573 4
+plugins/agy/scripts/lib/quota-route.mjs
+  s_b3a04804e19838::t_2ecbcce03736ac 1-38,40-58
+  s_b3a04804e19838::t_58be314d351e64 39
+apps/agent-usage/quota.mjs
+  s_b3a04804e19838::t_af543d1d9f2dfb 1-3,5-7,9,13-14,17-20,22-33,55-56,59,71-72,75,80-81,85-88,92
+tests/agent-usage.test.mjs
+  s_b3a04804e19838::t_4b0075e941b6ac 366-368,372-389
+  s_b3a04804e19838::t_58be314d351e64 2,9
+  s_b3a04804e19838::t_f4bd759f5aadfa 392-415
+  s_b3a04804e19838::t_cf60ca781f52ad 3,5-6,8,13-14,22-57,130-132,137,142-145,152,154-168,170-175,179-180,182-183,185-365,369-371,390-391
+tests/fixtures/claude-usage-changed-panel.txt
+  s_b3a04804e19838::t_cf60ca781f52ad 1-6
+tests/fixtures/claude-usage-panel.txt
+  s_b3a04804e19838::t_cf60ca781f52ad 1-6
+apps/agent-usage/claude-usage.py
+  s_b3a04804e19838::t_269511deb34aa1 1-185
+apps/agent-usage/provider-quota.mjs
+  s_b3a04804e19838::t_4e059d31868ead 1-195
+plugins/agy/scripts/lib/quota-state.mjs
+  s_b3a04804e19838::t_8769499c65d66d 161-171
+  s_b3a04804e19838::t_8fe6f5f1497cb4 127-137,139-140
+  s_b3a04804e19838::t_fa412a0ed74216 120,138,141,146-147
+apps/agent-usage/README.md
+  s_b3a04804e19838::t_1d2601d8ed2d89 3,6-9,11-12
+apps/agent-usage/ui/index.html
+  s_b3a04804e19838::t_b05906bffabd09 22,25,40,63-67,73-82,89,93-94
+apps/agent-usage/ui/dashboard.mjs
+  s_b3a04804e19838::t_4182ba72c7d8cd 73-74
+  s_b3a04804e19838::t_8ab306d3d04030 4-5,11,17,45,56,58,69,76-82,87-89,93-95,100,137-138,143-155,158,160,162,168,173
+  s_b3a04804e19838::t_9ae752a8352a65 75
+apps/agent-usage/server.mjs
+  s_b3a04804e19838::t_2959c076ada5a1 2,5,53-60
+  s_b3a04804e19838::t_2f837843715f74 7-9,24-25,43,51,69-71,75-77,98,101,105-120,127-132,135,137,163-165
+apps/agent-usage/cli.mjs
+  s_162efa8565b211::t_4a9f0b76bbbe54 8,54-57,81
+apps/agent-usage/ui/styles.css
+  s_162efa8565b211::t_369c624f8d1b27 159-167,203-209
+apps/agent-usage/usage.mjs
+  s_162efa8565b211::t_c80adc16fd308a 42-57,108-143,149-150,156,169,175-182
+plugins/agy/hooks/hooks.json
+  s_162efa8565b211::t_d59e36dde2bb3f 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "3b5c7d1b30f27339c0a9733e0e2513e1b755a026",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    },
+    "s_b3a04804e19838": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21fea-18ae-7073-b1a0-913d03334c3d",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
