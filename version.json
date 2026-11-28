@@ -1,5 +1,5 @@
 {
-  "version": 17,
+  "version": 18,
   "updated": "2026-11-28",
-  "summary": "Agent Bridge 2.0.0 renames the repository and plugin marketplaces. Reinstall under the new identities."
+  "summary": "Agent Bridge 2.1.0 adds a tabbed Agent Usage quota panel, two-line menu bar titles, Claude full reset credit tracking and simplified settings."
 }
