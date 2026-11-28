@@ -1,0 +1,44 @@
+version.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 2
+CHANGELOG.md
+  s_cdbdea09973197::t_63ddd508b8df4c 9-14
+plugins/agy/.claude-plugin/plugin.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 3
+plugins/cc-for-agy/plugin.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 3
+plugins/agy/.codex-plugin/plugin.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 3
+plugins/agy/scripts/lib/git-update-check.mjs
+  s_cdbdea09973197::t_2cc344c7c2d4d3 10
+.claude-plugin/plugin.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 3
+plugins/cc-for-agy/README.md
+  s_cdbdea09973197::t_2cc344c7c2d4d3 3
+.agy-plugin/marketplace.json
+  s_cdbdea09973197::t_7a41368e651def 18-19
+  s_cdbdea09973197::t_2cc344c7c2d4d3 9,15
+package.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 3
+plugins/cc-for-agy/package.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 3
+.claude-plugin/marketplace.json
+  s_cdbdea09973197::t_2cc344c7c2d4d3 9,15
+plugins/cc-for-agy/scripts/ask-claude-mcp.mjs
+  s_cdbdea09973197::t_2cc344c7c2d4d3 44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "c0e50750ebcd7ac3edc619e7b1321d7f279cc14b",
+  "prompts": {},
+  "sessions": {
+    "s_cdbdea09973197": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a22114-6624-7fd1-b6eb-8ea25347ed9b",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
