@@ -10,7 +10,9 @@ Domain terms as used in `plugins/agy/scripts/`.
 - **Session lifecycle hook** — `session-lifecycle-hook.mjs`, runs on SessionStart/SessionEnd and checks for plugin updates.
 - **Host** — Claude Code or Codex; detected from `CLAUDECODE`. Both load the same `plugins/agy` tree through their own manifest.
 - **Monitored provider** — A CLI whose configured accounts Agent Usage tracks when its Settings switch is on.
-- **Named account** — A labeled CLI configuration directory with a stable ID for quota observations and alerts. With no named accounts, the provider uses the current CLI environment.
+- **Named account** — A CLI configuration directory with a stable ID for quota observations and alerts. A manual list replaces the implicit account for that provider.
+- **Managed account** — A signed-in CLI home created by Agent Usage under its state directory and monitored automatically.
+- **Active provider** — An enabled CLI with a transcript write in the past two minutes.
 - **Reset credit** — A Codex account entitlement to reset eligible rate-limit windows. Available credits with an expiry can trigger two reminders.
 - **Hand-off** — a test-gated delegation (`handoff`): agy implements, the companion runs the test command, sends fix-ups, and checks test files were not edited.
 - **Usage ledger** — `usage.jsonl` in the state dir records token counts for finished jobs and quota diversions with their reason.
