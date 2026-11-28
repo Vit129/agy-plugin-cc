@@ -33,7 +33,7 @@ struct UsagePanel: View {
     let quit: () -> Void
     let startServer: () -> Void
     var selectionChanged: () -> Void = {}
-    @AppStorage("tabLabels") private var tabLabels = true
+    @AppStorage("tabLabels") private var tabLabels = false
 
     static let width: CGFloat = 406
 
