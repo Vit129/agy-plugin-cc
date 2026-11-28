@@ -6,17 +6,17 @@
   },
   "metadata": {
     "description": "Claude Code CLI integration for Antigravity (agy)",
-    "version": "2.2.0"
+    "version": "2.3.0"
   },
   "plugins": [
     {
       "name": "agent-bridge",
       "description": "Antigravity (agy) native plugin to delegate, cold-review, handoff, and quota-route tasks to Claude Code CLI.",
-      "version": "2.2.0",
+      "version": "2.3.0",
       "author": "Vit129",
       "source": {
-        "url": "https://github.com/Vit129/agent-bridge/releases/download/v2.2.0/cc-for-agy-2.2.0.zip",
-        "sha256": "cf1b117757eafc7690214c6d4422b1c7c3292edc4a217495e7d95f0bf83484d2"
+        "url": "https://github.com/Vit129/agent-bridge/releases/download/v2.3.0/cc-for-agy-2.3.0.zip",
+        "sha256": "2cfcfd9176ca38f9be210f8835faee3339470ff4a3139c7fea4bc64e08bff0d0"
       }
     }
   ]

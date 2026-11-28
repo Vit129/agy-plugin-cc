@@ -1,5 +1,5 @@
 {
-  "version": 19,
+  "version": 20,
   "updated": "2026-11-28",
   "summary": "Agent Bridge 2.2.0 adds one-command Agent Usage setup with dashboard and menu bar services, vector provider marks, remaining-quota tab underlines and per-window reset times on the overview."
 }

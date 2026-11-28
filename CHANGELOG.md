@@ -6,6 +6,23 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-11-28
+
+### Added
+- Agent Usage has a Settings button and a `#settings` deep link.
+- Playwright QA suite for the dashboard, run in a new web CI job, plus an architecture guard and tags on every test (`[BE|FE-BL|UT|IT]`).
+
+### Changed
+- Agent Usage provider tabs show icons only by default (PR #61).
+- Agent Usage view-model logic is separated from rendering; UI strings and font tokens are centralized.
+- The installer always upgrades Codex and verifies the installed version afterwards.
+- The unversioned LaunchAgent sets its PATH explicitly.
+
+### Fixed
+- Agent Usage timezone handling for reset times (PR #62).
+- Test runs isolate launchctl state so they do not touch the live LaunchAgents.
+- Duplicate test ids are resolved.
+
 ## [2.2.0] - 2026-11-28
 
 ### Added
