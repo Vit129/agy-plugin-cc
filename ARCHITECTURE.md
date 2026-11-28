@@ -40,7 +40,7 @@ Named profiles scope native samples, transcript reads, and alerts by provider an
 
 The serialized refresh checks Codex credit status at reminder boundaries and saves delivery markers in the local alerts file. Recent transcript modification times report provider activity without parsing the logs. The loopback quota API supplies activity and account identities to the dashboard and a grouped presentation model to the AppKit status item.
 
-The Zsh integration and the Claude Code and Antigravity plugin startup hooks check the saved provider switch through `agent-usage on-provider-start` before starting the server. Manual startup and scheduled checks use their own entry points.
+The Claude Code and Antigravity plugin startup hooks check the saved provider switch through `agent-usage on-provider-start` before starting the server. Manual startup and scheduled checks use their own entry points.
 
 ## Verification Invariants
 
