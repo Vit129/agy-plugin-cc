@@ -18,13 +18,17 @@ const stripComments = text => text.replace(/\/\*[\s\S]*?\*\//g, match => match.r
 const withoutTokenBlocks = css => css.replace(/:root[^{]*\{[^}]*\}/g, match => match.replace(/[^\n]/g, ' '));
 const offenders = (file, text, pattern) => lines(text).filter(({ line }) => pattern.test(line)).map(({ line, number }) => `${file}:${number}: ${line.trim()}`);
 
+const hexLiteral = /#[0-9a-fA-F]{3,8}\b(?![-\w])/;
+const nonHexHash = /href="#|\{ '#|#settings\b|#[g-z]/i;
+const findHexOffenders = (file, text) => offenders(file, text, hexLiteral).filter(entry => !nonHexHash.test(entry));
+
 test('[TC-AGU-88][BE-UT][Security] no hex colour outside the :root token blocks of styles.css', () => {
   const found = [
     ...offenders('styles.css', withoutTokenBlocks(stripComments(read(`${ui}/styles.css`))), /#[0-9a-fA-F]{3,8}\b/),
-    ...['dashboard.mjs', 'strings.mjs', 'index.html'].flatMap(file => offenders(file, stripComments(read(`${ui}/${file}`)), /#[0-9a-fA-F]{3,8}\b(?![-\w])/)
-      .filter(entry => !/href="#|\{ '#|#settings|#[a-z]/i.test(entry))),
+    ...['dashboard.mjs', 'strings.mjs', 'index.html'].flatMap(file => findHexOffenders(file, stripComments(read(`${ui}/${file}`)))),
   ];
   assert.deepEqual(found, [], 'Define colours as a token in :root and use var(--token).');
+  assert.equal(findHexOffenders('sample.mjs', "const c = '#deadbeef';").length, 1);
 });
 
 test('[TC-AGU-89][BE-UT] every font-size outside :root is a --text-* token', () => {

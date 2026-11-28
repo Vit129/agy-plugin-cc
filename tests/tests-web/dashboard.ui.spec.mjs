@@ -44,7 +44,7 @@ test('[TC-AGU-71][FE-IT][Success] opens settings with its four tabs and switches
   expect(await view.selectedTabs()).toEqual(['General']);
   await view.selectTab('route');
   expect(await view.selectedTabs()).toEqual(['Auto-Route']);
-  await expect(page.locator('#settings-route-state li')).toHaveCount(2);
+  await expect(view.settingsRouteRows).toHaveCount(2);
 });
 
 test('[TC-AGU-72][FE-IT][Alternative] prompts for the Claude credit expiry when none is saved', async ({ page }) => {

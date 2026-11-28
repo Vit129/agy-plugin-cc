@@ -32,7 +32,7 @@ function zoneLabel(formatter, when) {
   return formatter.formatToParts(when).find(part => part.type === 'timeZoneName')?.value ?? '';
 }
 
-function windowModel(window, row, settings, clock) {
+function windowModel(window, row, clock) {
   const live = window.state === 'live';
   const level = live ? window.level : 'unknown';
   const label = live ? levelLabels[level] : stateLabels[window.state] || stateLabels.unknown;
@@ -53,7 +53,7 @@ function rowModel(row, settings, active, clock) {
   const alerts = [];
   const windows = row.windows.map(window => {
     if (window.state === 'live' && severity[window.level]) alerts.push({ ...window, provider: row.label });
-    return windowModel(window, row, settings, clock);
+    return windowModel(window, row, clock);
   });
   const captured = Number.isFinite(row.capturedAt) ? format.updated(clock.format(row.capturedAt * 1000)) : text.waitingForSnapshot;
   return {

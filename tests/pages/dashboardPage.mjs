@@ -13,6 +13,7 @@ export class DashboardPage {
     this.scheduleRows = page.locator('#reset-checks li');
     this.dialog = page.getByTestId('dlg_alertSettings_monitorPage');
     this.settingsButton = page.getByTestId('btn_openAlertSettings_monitorPage');
+    this.settingsRouteRows = page.locator('#settings-route-state li');
     this.creditPrompt = page.locator('#claude-credit-prompt');
   }
 
