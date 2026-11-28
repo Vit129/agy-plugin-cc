@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { defaultPort, startServer } from './server.mjs';
 import { defaultSettings, enabledProviders, forecastResetChecks, loadSettings } from './quota.mjs';
 import { readState, stateDirectory, writeState } from './state.mjs';
-import { stableNodePath, writeLauncher } from './launcher.mjs';
+import { serverCommand, stableNodePath, writeLauncher } from './launcher.mjs';
 
 const [command = 'ensure-running', input] = process.argv.slice(2);
 const port = Number(process.env.AGENT_USAGE_PORT || defaultPort);
@@ -29,7 +29,8 @@ async function ensureRunning() {
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const log = openSync(path.join(directory, 'server.log'), 'a', 0o600);
   try {
-    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), 'serve'], { detached: true, stdio: ['ignore', log, log] });
+    const { command, args } = serverCommand({ execPath: process.execPath, pathEnv: process.env.PATH, cli: fileURLToPath(import.meta.url) });
+    const child = spawn(command, args, { detached: true, stdio: ['ignore', log, log] });
     child.unref();
   } finally {
     closeSync(log);

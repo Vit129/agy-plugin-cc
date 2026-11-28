@@ -19,6 +19,11 @@ export function stableNodePath({ execPath, pathEnv = '', realpath = realpathSync
   return execPath;
 }
 
+// The server outlives the shell that started it, so it must not inherit a versioned Cellar path.
+export function serverCommand({ execPath, pathEnv = '', cli, realpath = realpathSync }) {
+  return { command: stableNodePath({ execPath, pathEnv, realpath }), args: [cli, 'serve'] };
+}
+
 const quote = value => `'${String(value).replaceAll("'", `'\\''`)}'`;
 
 export function writeLauncher({ file, node, cli }) {
