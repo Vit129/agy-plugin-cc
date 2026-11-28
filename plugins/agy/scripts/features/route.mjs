@@ -1,12 +1,12 @@
 import { decideRoute, readAllQuota, resolveAgyPool } from "../lib/quota-state.mjs";
-import { chooseRoute, loadRouteThresholds, parseRouteMode } from "../lib/quota-route.mjs";
+import { chooseRoute, isRouteOffPersisted, loadRouteThresholds, parseRouteMode } from "../lib/quota-route.mjs";
 import { resolveStateDir } from "../lib/state.mjs";
 import { appendUsageLog } from "../lib/usage.mjs";
 import { outputResult, parseCommandInput } from "./shared.mjs";
 
 export function applyAgyRoute(workspaceRoot, kind, options, model) {
   const mode = parseRouteMode(options.route);
-  if (mode === "off" || options["dry-run"] || !process.env.CLAUDECODE) return false;
+  if (mode === "off" || options["dry-run"] || !process.env.CLAUDECODE || isRouteOffPersisted()) return false;
   const quota = readAllQuota();
   const settings = { ...loadRouteThresholds(), agyPool: resolveAgyPool(model) };
   const decision = chooseRoute(quota, { ...settings, requested: "agy" });
@@ -67,7 +67,9 @@ export function handleRoute(argv) {
     min7d: Number.isFinite(min7d) ? min7d : undefined
   });
   const quota = readAllQuota();
-  const recommendation = chooseRoute(quota, { ...loadRouteThresholds(), requested: "claude", agyPool: resolveAgyPool(options.model) });
+  const recommendation = chooseRoute(quota, {
+    ...loadRouteThresholds(), requested: "claude", agyPool: resolveAgyPool(options.model), enabled: !isRouteOffPersisted()
+  });
   const payload = { ...decision, quota, recommendation };
 
   outputResult(

@@ -16,23 +16,47 @@ function email(value) {
     /^[^\s\p{C}@]+@[^\s\p{C}@]+$/u.test(value) ? value : undefined;
 }
 
-export async function readAccountLogin(provider, home, env) {
+const planLabels = new Map(Object.entries({
+  free: 'Free', go: 'Go', plus: 'Plus', pro: 'Pro', max: 'Max', max_5x: 'Max 5×', max_20x: 'Max 20×',
+  ultra: 'Ultra', team: 'Team', business: 'Business', enterprise: 'Enterprise', edu: 'Edu',
+}));
+
+function claudeIdentity(config) {
+  const account = config?.oauthAccount;
+  const login = email(account?.emailAddress);
+  const organization = account?.organizationType;
+  const tier = typeof organization === 'string' && organization.startsWith('claude_') ? organization.slice(7) : undefined;
+  const accountUuid = typeof account?.accountUuid === 'string' ? account.accountUuid : undefined;
+  return {
+    login, plan: planLabels.get(account?.seatTier) ?? planLabels.get(tier),
+    accountUuid, resetCache: config?.unusedLimitResetStatusCache,
+  };
+}
+
+async function readAccountIdentity(provider, home, env) {
   if (provider === 'claude') {
-    const scoped = await readConfig(path.join(home, '.claude.json'));
-    const login = email(scoped?.oauthAccount?.emailAddress);
-    if (login || home !== defaultCliHome(provider, env)) return login;
-    const legacy = await readConfig(path.join(home, '..', '.claude.json'));
-    return email(legacy?.oauthAccount?.emailAddress);
+    const scoped = claudeIdentity(await readConfig(path.join(home, '.claude.json')));
+    if (home !== defaultCliHome(provider, env)) return scoped;
+    const legacy = claudeIdentity(await readConfig(path.join(home, '..', '.claude.json')));
+    if (!scoped.accountUuid && !scoped.login) return legacy;
+    if (scoped.accountUuid && scoped.accountUuid === legacy.resetCache?.accountUuid && !scoped.resetCache) {
+      return { ...scoped, resetCache: legacy.resetCache };
+    }
+    return scoped;
   }
   if (provider === 'codex') {
     const auth = await readConfig(path.join(home, 'auth.json'));
-    if (typeof auth?.tokens?.id_token !== 'string') return undefined;
+    if (typeof auth?.tokens?.id_token !== 'string') return {};
     const parts = auth.tokens.id_token.split('.');
-    if (parts.length !== 3 || !/^[A-Za-z0-9_-]+$/.test(parts[1])) return undefined;
+    if (parts.length !== 3 || !/^[A-Za-z0-9_-]+$/.test(parts[1])) return {};
     try {
-      return email(JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'))?.email);
+      const payload = JSON.parse(Buffer.from(parts[1], 'base64url').toString('utf8'));
+      return {
+        login: email(payload?.email),
+        plan: planLabels.get(payload?.['https://api.openai.com/auth']?.chatgpt_plan_type),
+      };
     } catch {
-      return undefined;
+      return {};
     }
   }
   if (provider === 'copilot') {
@@ -40,15 +64,15 @@ export async function readAccountLogin(provider, home, env) {
     const user = config?.lastLoggedInUser ??
       (config?.loggedInUsers?.length === 1 ? config.loggedInUsers[0] : undefined);
     const login = user?.login;
-    return typeof login === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(login) ? login : undefined;
+    return { login: typeof login === 'string' && /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/.test(login) ? login : undefined };
   }
   if (provider === 'agy') {
     const scoped = await readConfig(path.join(home, 'google_accounts.json'));
     const login = email(scoped?.active);
-    if (login || home !== defaultCliHome(provider, env)) return login;
-    return email((await readConfig(path.join(home, '..', 'google_accounts.json')))?.active);
+    if (login || home !== defaultCliHome(provider, env)) return { login };
+    return { login: email((await readConfig(path.join(home, '..', 'google_accounts.json')))?.active) };
   }
-  return undefined;
+  return {};
 }
 
 export async function discoverAccounts(provider, manual, managed, env) {
@@ -61,13 +85,13 @@ export async function discoverAccounts(provider, manual, managed, env) {
     ...manual.map(account => ({ ...account, kind: 'manual' })),
     ...managed.map(account => ({ ...account, kind: 'managed' })),
   ];
-  const logins = new Map(profiles.map(({ home }) => [home, undefined]));
-  await Promise.all([...logins.keys()].map(async home => {
-    logins.set(home, await readAccountLogin(provider, home, env));
-  }));
+  const homes = new Set(profiles.map(profile => profile.home));
+  const identities = new Map(await Promise.all([...homes].map(async home => {
+    return [home, await readAccountIdentity(provider, home, env)];
+  })));
   return {
-    currentLogin: logins.get(currentHome),
-    profiles: profiles.map(profile => ({ ...profile, login: logins.get(profile.home) }))
-      .filter(profile => profile.login || profile.kind === 'manual' || profile.kind === 'managed'),
+    current: identities.get(currentHome),
+    profiles: profiles.map(profile => ({ ...profile, ...identities.get(profile.home) }))
+      .filter(profile => profile.login || profile.accountUuid || profile.kind === 'manual' || profile.kind === 'managed'),
   };
 }

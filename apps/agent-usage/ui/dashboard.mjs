@@ -11,14 +11,22 @@ const localClock = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeS
 const notificationError = document.querySelector('#alert-details');
 const form = document.querySelector('#quota-settings');
 const providerSwitches = [...form.querySelectorAll('[data-monitor-provider]')];
+const titleProviders = [...form.querySelectorAll('[data-title-provider]')];
+const settingToggles = [...form.querySelectorAll('[data-setting-toggle]')];
+const settingMirrors = [...form.querySelectorAll('[data-setting-mirror]')];
 const accountSettings = form.querySelector('.account-settings');
 const accountGroups = [...accountSettings.querySelectorAll('[data-account-provider]')];
-const manualGroups = accountGroups.filter(group => group.querySelector('.account-rows'));
+const manualGroups = [...accountSettings.querySelectorAll('[data-manual-provider]')];
 const accountResult = document.querySelector('#account-result');
 const accountTemplate = form.querySelector('#account-row-template');
+const creditSettings = form.querySelector('#claude-credit-settings');
 const dialog = document.querySelector('.settings-dialog');
+const settingsNav = form.querySelector('.settings-nav');
+const settingsTabs = [...settingsNav.querySelectorAll('[role="tab"]')];
+const narrowSettings = matchMedia('(max-width: 620px)');
 const modelButtons = [...document.querySelectorAll('[data-model-days]')];
 let settings;
+let claudeCreditAccounts = [];
 let modelRequest = 0;
 let quotaRequest = 0;
 let savingSettings = false;
@@ -62,6 +70,7 @@ function displayQuotaPercent(remaining) {
 function renderResetCredits(quota) {
   const panel = document.querySelector('#reset-credits');
   const now = Date.now();
+  let showClaudeUsage = false;
   const rows = quota.flatMap(row => {
     const summary = row.rateLimitResetCredits;
     const available = availableResetCredits(summary, now).sort((first, second) =>
@@ -70,18 +79,21 @@ function renderResetCredits(quota) {
       return [`<li><span>${escapeHTML(row.label)}</span><span>${summary.availableCount} available · expiry details unavailable</span></li>`];
     }
     return available.map(credit => {
-      const account = row.accountId ? `${escapeHTML(row.label)} · ` : '';
-      const label = creditExpiryLabel(credit.expiresAt, now);
+      if (credit.provider === 'claude') showClaudeUsage = true;
+      const account = row.accountId || credit.provider === 'claude' ? `${escapeHTML(row.label)} · ` : '';
+      const label = creditExpiryLabel(credit.expiresAt, now).replace(/^expires /, 'Expires ');
       const expiry = credit.expiresAt === null ? label : `<time datetime="${new Date(credit.expiresAt * 1000).toISOString()}">${escapeHTML(label)}</time>`;
-      return `<li><span>${account}${escapeHTML(credit.title || 'Rate limit reset')}</span><span>${expiry}</span></li>`;
+      return `<li><span>${account}${escapeHTML(credit.title || 'Rate limit reset')} · ${expiry}</span></li>`;
     });
   });
   panel.hidden = rows.length === 0;
   panel.querySelector('ul').innerHTML = rows.join('');
+  panel.querySelector('a').hidden = !showClaudeUsage;
 }
 
 function renderQuota(data) {
   settings = data.settings;
+  claudeCreditAccounts = data.claudeFullResetAccounts ?? [];
   const { quota, schedule, checks, routes } = data;
   const active = new Set(data.active?.map(entry => entry.provider));
   renderAccountInventory(data.accounts ?? {});
@@ -109,11 +121,14 @@ function renderQuota(data) {
   const directions = [
     { label: 'Claude→agy', requested: 'agy', decision: routes.claudeToAgy },
     { label: 'agy→Claude', requested: 'claude', decision: routes.agyToClaude },
-  ];
-  document.querySelector('#quota-routes').innerHTML = directions.map(({ label, requested, decision }) => {
-    const status = decision.target === requested ? 'Allowed' : 'Diverted';
-    return `<div><strong>${label}</strong> · ${status} · ${escapeHTML(decision.reason)}</div>`;
-  }).join('');
+  ].map(({ label, requested, decision }) => ({
+    label, reason: escapeHTML(decision.reason),
+    status: settings.autoRoute === false ? 'Off' : decision.target === requested ? 'Allowed' : 'Diverted',
+  }));
+  document.querySelector('#settings-route-state').innerHTML = directions.map(({ label, status, reason }) =>
+    `<li><h4>${label} · ${status}</h4><p class="plan-caption">${reason}</p></li>`).join('');
+  document.querySelector('#quota-routes').innerHTML = directions.map(({ label, status, reason }) =>
+    `<div><strong>${label}</strong> · ${status} · ${reason}</div>`).join('');
   const anyLive = quota.some(row => row.windows.some(window => window.state === 'live'));
   alerts.sort((first, second) => severity[second.level] - severity[first.level]);
   document.querySelector('.notice').dataset.level = alerts[0]?.level ?? (anyLive ? 'healthy' : 'unknown');
@@ -175,7 +190,14 @@ function renderAccountInventory(accounts) {
     const key = JSON.stringify(profiles.map(({ id, login, kind }) => [id, login, kind]));
     if (inventoryKeys.get(group) === key) continue;
     inventoryKeys.set(group, key);
-    group.querySelector('.detected-accounts').innerHTML = profiles.map(profile => {
+    const primary = profiles[0];
+    const login = primary ? primary.login ?? 'Waiting for sign-in' : 'No sign-in detected';
+    group.querySelector('.account-login').textContent = profiles.length > 1
+      ? `${login} · +${profiles.length - 1} more`
+      : login;
+    const manual = manualGroups.find(group => group.dataset.manualProvider === provider);
+    if (!manual) continue;
+    manual.querySelector('.detected-accounts').innerHTML = profiles.map(profile => {
       const login = profile.login ?? 'Waiting for sign-in';
       const remove = profile.kind === 'managed'
         ? `<button class="action" type="button" data-remove-managed="${profile.id}" aria-label="Remove ${escapeHTML(login)}" data-testid="btn_removeManagedAccount-${profile.id}_monitorPage">Remove</button>`
@@ -185,8 +207,7 @@ function renderAccountInventory(accounts) {
   }
 }
 
-async function changeManagedAccount(group, button) {
-  const provider = group.dataset.accountProvider;
+async function changeManagedAccount(provider, button) {
   const id = button.dataset.removeManaged;
   const removing = Boolean(id);
   if (removing && !window.confirm('Remove this managed account and delete its local CLI configuration and session files?')) return;
@@ -210,7 +231,7 @@ function addAccount(group, account = { id: crypto.randomUUID(), label: '', home:
   row.dataset.accountId = account.id;
   const label = row.querySelector('[data-account-label]');
   const home = row.querySelector('[data-account-home]');
-  const provider = group.dataset.accountProvider;
+  const provider = group.dataset.manualProvider;
   label.value = account.label;
   home.value = account.home;
   label.dataset.testid = `txt_${provider}AccountLabel_monitorPage`;
@@ -220,11 +241,73 @@ function addAccount(group, account = { id: crypto.randomUUID(), label: '', home:
   return label;
 }
 
+function localDateTime(expiresAt) {
+  if (!expiresAt) return '';
+  const date = new Date(expiresAt);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+function renderClaudeCreditSettings() {
+  const [primary, ...additional] = claudeCreditAccounts.map(account => {
+    const id = account.accountUuid;
+    const login = escapeHTML(account.login ?? 'Claude account');
+    const value = localDateTime(account.expiresAt);
+    const status = { available: 'Available', used: 'Used', unknown: 'Status unknown' }[account.status];
+    return `<div class="claude-credit-row" data-credit-account="${id}" data-saved-expiry="${account.expiresAt ?? ''}">
+      <label>Claude full reset expires <small>${login}</small><input type="datetime-local" value="${value}" data-testid="txt_claudeFullResetExpiry-${id}_monitorPage"></label>
+      <button type="button" class="action" data-credit-used data-testid="btn_claudeFullResetUsed-${id}_monitorPage" ${!value || account.used ? 'disabled' : ''}>Used it</button>
+      <small role="status">${value ? status : ''}</small>
+    </div>`;
+  });
+  creditSettings.innerHTML = primary ?? '';
+  if (additional.length) {
+    creditSettings.insertAdjacentHTML('beforeend', `<details class="account-advanced">
+      <summary data-testid="btn_additionalClaudeCredits_monitorPage">Other Claude accounts</summary>
+      ${additional.join('')}
+    </details>`);
+  }
+}
+
+creditSettings.addEventListener('click', async event => {
+  const button = event.target.closest('[data-credit-used]');
+  if (!button || savingSettings) return;
+  const row = button.closest('[data-credit-account]');
+  const account = claudeCreditAccounts.find(item => item.accountUuid === row.dataset.creditAccount);
+  const status = row.querySelector('[role=status]');
+  if (!account?.expiresAt || account.expiresAt !== row.dataset.savedExpiry) {
+    status.textContent = 'Expiry changed. Reopen Settings to view it.';
+    return;
+  }
+  const field = row.querySelector('input');
+  if (field.value !== field.defaultValue) {
+    status.textContent = 'Save the new expiry before marking it used.';
+    return;
+  }
+  savingSettings = true;
+  button.disabled = true;
+  try {
+    ++quotaRequest;
+    const response = await request('/api/settings', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claudeFullReset: { [account.accountUuid]: { expiresAt: account.expiresAt, used: true } } }),
+    });
+    renderQuota(response);
+    const current = claudeCreditAccounts.find(item => item.accountUuid === account.accountUuid);
+    status.textContent = current?.status === 'available' ? 'Available · CLI status is current' : 'Used';
+  } catch (error) {
+    status.textContent = error.message;
+    button.disabled = false;
+  } finally {
+    savingSettings = false;
+  }
+});
+
 accountSettings.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
-  const group = button.closest('[data-account-provider]');
-  if (button.matches('[data-sign-in], [data-remove-managed]')) void changeManagedAccount(group, button);
+  const group = button.closest('[data-manual-provider]');
+  if (button.matches('[data-sign-in]')) void changeManagedAccount(button.closest('[data-account-provider]').dataset.accountProvider, button);
+  if (button.matches('[data-remove-managed]')) void changeManagedAccount(group.dataset.manualProvider, button);
   if (button.hasAttribute('data-add-account')) addAccount(group).focus();
   if (button.hasAttribute('data-remove-account')) {
     button.closest('.account-row').remove();
@@ -232,17 +315,66 @@ accountSettings.addEventListener('click', event => {
   }
 });
 
+function selectSettingsTab(selected) {
+  for (const tab of settingsTabs) {
+    const active = tab === selected;
+    tab.setAttribute('aria-selected', String(active));
+    tab.tabIndex = active ? 0 : -1;
+    document.getElementById(tab.getAttribute('aria-controls')).hidden = !active;
+  }
+}
+
+function updateSettingsOrientation() {
+  settingsNav.setAttribute('aria-orientation', narrowSettings.matches ? 'horizontal' : 'vertical');
+}
+
+updateSettingsOrientation();
+narrowSettings.addEventListener('change', updateSettingsOrientation);
+settingsNav.addEventListener('click', event => {
+  if (settingsTabs.includes(event.target)) selectSettingsTab(event.target);
+});
+settingsNav.addEventListener('keydown', event => {
+  const index = settingsTabs.indexOf(event.target);
+  if (index < 0) return;
+  const [previous, next] = narrowSettings.matches ? ['ArrowLeft', 'ArrowRight'] : ['ArrowUp', 'ArrowDown'];
+  const target = {
+    Home: 0,
+    End: settingsTabs.length - 1,
+    [previous]: (index - 1 + settingsTabs.length) % settingsTabs.length,
+    [next]: (index + 1) % settingsTabs.length,
+  }[event.key];
+  if (target === undefined) return;
+  event.preventDefault();
+  selectSettingsTab(settingsTabs[target]);
+  settingsTabs[target].focus();
+});
+
+for (const mirror of settingMirrors) {
+  const field = form.elements.namedItem(mirror.dataset.settingMirror);
+  field.addEventListener('input', () => { mirror.value = field.value; });
+  mirror.addEventListener('input', () => { field.value = mirror.value; });
+}
+
 document.querySelector('#open-settings').addEventListener('click', () => {
   if (!settings) return;
-  for (const field of form.querySelectorAll('input[type="number"]')) field.value = settings[field.name];
+  for (const field of form.querySelectorAll('input[type="number"][name]')) field.value = settings[field.name];
+  for (const mirror of settingMirrors) mirror.value = settings[mirror.dataset.settingMirror];
   for (const input of providerSwitches) input.checked = settings.providers[input.dataset.monitorProvider];
+  for (const input of titleProviders) input.checked = settings.titleProviders?.[input.dataset.titleProvider] ?? true;
+  const toggleDefaults = { thresholdWarnings: true, paceWarnings: false, resetCreditReminders: true, notificationSound: false, autoRoute: true };
+  for (const input of settingToggles) input.checked = settings[input.dataset.settingToggle] ?? toggleDefaults[input.dataset.settingToggle];
   for (const group of manualGroups) {
     group.querySelector('.account-rows').replaceChildren();
-    for (const account of settings.accounts?.[group.dataset.accountProvider] ?? []) addAccount(group, account);
+    for (const account of settings.accounts?.[group.dataset.manualProvider] ?? []) addAccount(group, account);
   }
+  renderClaudeCreditSettings();
+  for (const details of form.querySelectorAll('details[open]')) details.open = false;
   accountResult.textContent = '';
+  document.querySelector('#notification-result').textContent = '';
   form.querySelector('.form-error').textContent = '';
+  selectSettingsTab(settingsTabs[0]);
   dialog.showModal();
+  settingsTabs[0].focus();
 });
 document.querySelector('#cancel-settings').addEventListener('click', () => dialog.close());
 const testNotification = document.querySelector('#test-notification');
@@ -258,17 +390,52 @@ testNotification.addEventListener('click', async () => {
     testNotification.disabled = false;
   }
 });
-form.addEventListener('invalid', event => {
-  const advanced = event.target.closest('details');
-  if (advanced) advanced.open = true;
-}, true);
+function revealSettingsField(field) {
+  const panel = field.closest('[role="tabpanel"]');
+  selectSettingsTab(document.getElementById(panel.getAttribute('aria-labelledby')));
+  for (let parent = field.parentElement; parent !== panel; parent = parent.parentElement) {
+    if (parent.matches('details')) parent.open = true;
+  }
+  field.focus();
+}
+
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (savingSettings) return;
+  const invalid = form.querySelector('input:invalid');
+  if (invalid) {
+    revealSettingsField(invalid);
+    invalid.reportValidity();
+    return;
+  }
   const values = Object.fromEntries([...new FormData(form)].map(([key, value]) => [key, Number(value)]));
+  const formError = form.querySelector('.form-error');
+  if (!(values.critical < values.low && values.low < values.watch)) {
+    revealSettingsField(form.elements.namedItem(values.critical >= values.low ? 'critical' : 'watch'));
+    formError.textContent = 'Critical must be below warning, and warning below watch.';
+    return;
+  }
+  formError.textContent = '';
+  const claudeFullReset = {};
+  for (const row of creditSettings.querySelectorAll('[data-credit-account]')) {
+    const id = row.dataset.creditAccount;
+    const field = row.querySelector('input');
+    const value = field.value;
+    if (value === field.defaultValue) continue;
+    const date = new Date(value);
+    if (value && (!Number.isFinite(date.getTime()) || localDateTime(date) !== value)) {
+      revealSettingsField(field);
+      formError.textContent = 'Enter a valid expiry in your local time.';
+      return;
+    }
+    claudeFullReset[id] = { expiresAt: value ? date.toISOString() : null, used: false };
+  }
+  if (Object.keys(claudeFullReset).length) values.claudeFullReset = claudeFullReset;
   values.providers = Object.fromEntries(providerSwitches.map(input => [input.dataset.monitorProvider, input.checked]));
+  values.titleProviders = Object.fromEntries(titleProviders.map(input => [input.dataset.titleProvider, input.checked]));
+  for (const input of settingToggles) values[input.dataset.settingToggle] = input.checked;
   values.accounts = Object.fromEntries(manualGroups.map(group => [
-    group.dataset.accountProvider,
+    group.dataset.manualProvider,
     [...group.querySelectorAll('.account-row')].map(row => ({
       id: row.dataset.accountId,
       label: row.querySelector('[data-account-label]').value,
@@ -285,7 +452,7 @@ form.addEventListener('submit', async event => {
     void loadModels(Number(modelButtons.find(button => button.getAttribute('aria-pressed') === 'true').dataset.modelDays));
     dialog.close();
   } catch (error) {
-    form.querySelector('.form-error').textContent = error.message;
+    formError.textContent = error.message;
   } finally {
     savingSettings = false;
     submitButton.disabled = false;

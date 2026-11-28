@@ -12,7 +12,8 @@ bundle="$build_dir/Agent Usage Bar.app"
 executable="$bundle/Contents/MacOS/AgentUsageBar"
 mkdir -p "$(dirname "$executable")"
 cp "$script_dir/Info.plist" "$bundle/Contents/Info.plist"
-swiftc -O -framework AppKit -module-cache-path "$build_dir/modules" "$script_dir/AgentUsageBar.swift" -o "$executable"
+swiftc -O -framework AppKit -framework SwiftUI -module-cache-path "$build_dir/modules" \
+  "$script_dir"/*.swift -o "$executable"
 icon_dest="$bundle/Contents/Resources/ProviderIcons"
 mkdir -p "$icon_dest"
 codexbar_resources=''

@@ -81,6 +81,9 @@ test("[TC-QAR-03][BE-IT] Claude companion diverts before spawning agy and honors
   assert.equal(bypass.status, 0, bypass.stderr);
   assert.match(fs.readFileSync(log, "utf8"), /--dangerously-skip-permissions/);
   assert.equal(run("task", "--route-check", "--route", "off", "Test rescue override").status, 0);
+  fs.writeFileSync(path.join(dir, "route-off"), "");
+  assert.equal(run("task", "--route-check", "Test persisted override").status, 0);
+  fs.unlinkSync(path.join(dir, "route-off"));
 
   writeQuota("agy", "gemini", 1, true);
   assert.equal(run("task", "Test post-reset").status, 0);

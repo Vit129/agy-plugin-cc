@@ -13,7 +13,7 @@ Domain terms as used in `plugins/agy/scripts/`.
 - **Named account** — A CLI configuration directory with a stable ID for quota observations and alerts. A manual list replaces the implicit account for that provider.
 - **Managed account** — A signed-in CLI home created by Agent Usage under its state directory and monitored automatically.
 - **Active provider** — An enabled CLI with a transcript write in the past two minutes.
-- **Reset credit** — A Codex account entitlement to reset eligible rate-limit windows. Available credits with an expiry can trigger two reminders.
+- **Reset credit** — A Claude Code or Codex account entitlement to reset eligible rate-limit windows. Claude Full reset expiry is entered per CLI account. Unused credits with an expiry can trigger two reminders.
 - **Hand-off** — a test-gated delegation (`handoff`): agy implements, the companion runs the test command, sends fix-ups, and checks test files were not edited.
 - **Usage ledger** — `usage.jsonl` in the state dir records token counts for finished jobs and quota diversions with their reason.
 - **Auto-Route** — a cache-only decision before delegation. It uses the tightest fresh 5h/7d quota for each provider and the Agent Usage Critical and Low thresholds. `--route off` bypasses the decision. Agent Usage displays both directions.

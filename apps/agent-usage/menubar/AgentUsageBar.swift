@@ -1,141 +1,124 @@
 import AppKit
+import SwiftUI
 
-private struct Snapshot: Decodable {
-    struct Row: Decodable {
-        struct Window: Decodable {
-            let short: String
-            let remaining: Double?
-            let resetsAt: TimeInterval?
-            let level: String
-            let state: String
-        }
-
-        struct ResetCredits: Decodable {
-            struct Credit: Decodable {
-                let title: String?
-                let status: String?
-                let expiresAt: TimeInterval?
-            }
-            let availableCount: Int?
-            let credits: [Credit]?
-        }
-
-        let provider: String
-        let label: String
-        let windows: [Window]
-        let rateLimitResetCredits: ResetCredits?
-    }
-
-    struct Routes: Decodable {
-        struct Decision: Decodable {
-            let requested: String
-            let target: String
-            let reason: String
-        }
-        let claudeToAgy: Decision
-        let agyToClaude: Decision
-    }
-
-    struct MenuModel: Decodable {
-        struct Indicator: Decodable {
-            let provider: String
-            let label: String
-            let amount: String
-            let dimmed: Bool
-        }
-
-        struct Group: Decodable {
-            struct Window: Decodable {
-                let label: String
-                let amount: String
-                let level: String
-                let resetLabel: String
-                let resetsAt: TimeInterval?
-                let suffix: String?
-            }
-
-            let label: String
-            let secondary: String?
-            let windows: [Window]
-        }
-
-        let status: [Indicator]
-        let groups: [Group]
-
-        // A status item can start while the previously installed server is still running.
-        init(legacy rows: [Row]) {
-            let values = rows.flatMap { row in
-                row.windows.compactMap { window -> (Row, Double)? in
-                    guard let value = window.remaining, (0...100).contains(value) else { return nil }
-                    return (row, value)
-                }
-            }
-            status = values.min(by: { $0.1 < $1.1 }).map { row, value in
-                [Indicator(provider: row.provider, label: row.label, amount: "\(Int(value))%", dimmed: true)]
-            } ?? []
-            groups = rows.map { row in
-                Group(label: row.label, secondary: nil, windows: row.windows.map { window in
-                    let value = window.remaining.flatMap { (0...100).contains($0) ? "\(Int($0))%" : nil }
-                    return Group.Window(label: "\(window.short) · ", amount: value ?? "—", level: window.level,
-                                        resetLabel: window.resetsAt == nil ? "Reset time unavailable" : "Resets",
-                                        resetsAt: window.resetsAt, suffix: window.state == "aging" ? " · Stale" : nil)
-                })
-            }
-        }
-    }
-
-    let quota: [Row]
-    let routes: Routes
-    let menu: MenuModel?
+private final class StatusTitleView: NSStackView {
+    // The status button handles clicks across the whole title.
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }
 
+private final class StatusPercentBadge: NSView {
+    private let fill: NSColor
+
+    init(label: NSTextField, fill: NSColor) {
+        self.fill = fill
+        super.init(frame: .zero)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 3),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -3),
+            label.topAnchor.constraint(equalTo: topAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let capsule = bounds.insetBy(dx: 0, dy: 1)
+        let radius = capsule.height / 2
+        fill.setFill()
+        NSBezierPath(roundedRect: capsule, xRadius: radius, yRadius: radius).fill()
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        needsDisplay = true
+    }
+}
+
+@main
 private final class StatusBar: NSObject, NSApplicationDelegate {
     private let base = URL(string: "http://127.0.0.1:43127")!
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
-    private let menu = NSMenu()
-    private let clock = DateFormatter()
-    private let levelColors: [String: NSColor] = ["healthy": .systemGreen, "watch": .systemYellow,
-                                                   "low": .systemOrange, "critical": .systemRed]
-    private let glyphs = ["claude": "C", "agy": "A", "copilot": "G", "codex": "O"]
-    private lazy var icons: [String: NSImage] = glyphs.reduce(into: [:]) { images, entry in
-        guard let url = Bundle.main.url(forResource: entry.key, withExtension: "png", subdirectory: "ProviderIcons"),
+    private let popover = NSPopover()
+    private let panelState = UsagePanelState()
+    private let primaryFont = NSFont.systemFont(ofSize: 11, weight: .medium)
+    private let secondaryFont = NSFont.systemFont(ofSize: 9)
+    private lazy var icons: [String: NSImage] = UsageProvider.allCases.reduce(into: [:]) { images, provider in
+        guard let url = Bundle.main.url(forResource: provider.rawValue, withExtension: "png", subdirectory: "ProviderIcons"),
               let image = NSImage(contentsOf: url) else { return }
         image.isTemplate = true
-        images[entry.key] = image
+        images[provider.rawValue] = image
     }
     private var snapshot: Snapshot?
     private var unavailable = false
     private var fetching = false
     private var starting = false
     private var startError: String?
+    private var statusTitleView: StatusTitleView?
+
+    static func main() {
+        let application = NSApplication.shared
+        let statusBar = StatusBar()
+        application.setActivationPolicy(.accessory)
+        application.delegate = statusBar
+        withExtendedLifetime(statusBar) { application.run() }
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        clock.dateStyle = .medium
-        clock.timeStyle = .short
-        menu.autoenablesItems = false
-        item.menu = menu
+        item.button?.target = self
+        item.button?.action = #selector(togglePanel)
         item.button?.setAccessibilityLabel("Agent Usage")
-        item.button?.toolTip = "Agent Usage"
+        item.button?.setAccessibilityIdentifier("agent-usage-status")
+        popover.behavior = .transient
+        popover.contentViewController = NSHostingController(rootView: UsagePanel(
+            state: panelState, icons: icons,
+            openDashboard: { [weak self] in self?.openDashboard() },
+            refresh: { [weak self] in self?.refresh() },
+            quit: { NSApp.terminate(nil) },
+            startServer: { [weak self] in self?.startServer() },
+            selectionChanged: { [weak self] in self?.resizePanel() }
+        ))
         render()
         refresh()
         let poll = Timer(timeInterval: 30, target: self, selector: #selector(refresh), userInfo: nil, repeats: true)
         RunLoop.main.add(poll, forMode: .common)
     }
 
+    @objc private func togglePanel() {
+        if popover.isShown {
+            popover.performClose(nil)
+            return
+        }
+        guard let button = item.button else { return }
+        panelState.provider = nil
+        resizePanel()
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+    }
+
+    private func resizePanel() {
+        let availableHeight = item.button?.window?.screen?.visibleFrame.height ?? 720
+        let preferredHeight = UsagePanel.preferredHeight(for: panelState.content, provider: panelState.provider)
+        popover.contentSize = NSSize(width: UsagePanel.width, height: min(preferredHeight, availableHeight - 28))
+    }
+
     @objc private func refresh() {
         guard !fetching else { return }
         fetching = true
+        panelState.content.fetching = true
         let request = URLRequest(url: base.appendingPathComponent("api/quota"),
                                  cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 45)
         URLSession.shared.dataTask(with: request) { [weak self] data, response, _ in
             let result: Snapshot?
-            if (response as? HTTPURLResponse)?.statusCode == 200, let data = data {
+            if (response as? HTTPURLResponse)?.statusCode == 200, let data {
                 result = try? JSONDecoder().decode(Snapshot.self, from: data)
             } else {
                 result = nil
             }
             DispatchQueue.main.async {
-                guard let self = self else { return }
+                guard let self else { return }
                 self.fetching = false
                 self.snapshot = result
                 self.unavailable = result == nil
@@ -146,146 +129,127 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
     }
 
     private func render() {
-        let model = snapshot.map { $0.menu ?? Snapshot.MenuModel(legacy: $0.quota) }
-        renderStatus(model?.status ?? [])
-
-        menu.removeAllItems()
-        if let snapshot = snapshot, let model = model {
-            if model.groups.isEmpty { addLine("No providers enabled") }
-            for group in model.groups {
-                let title = NSMutableAttributedString(string: group.label, attributes: [
-                    .foregroundColor: NSColor.labelColor, .font: NSFont.boldSystemFont(ofSize: NSFont.menuFont(ofSize: 0).pointSize),
-                ])
-                if let secondary = group.secondary { title.append(text(secondary, color: .secondaryLabelColor)) }
-                addLine(title)
-                for window in group.windows { addLine(windowTitle(window), indent: 1) }
-            }
-            menu.addItem(.separator())
-            addLine(routeLabel("Claude → agy", snapshot.routes.claudeToAgy))
-            addLine(routeLabel("agy → Claude", snapshot.routes.agyToClaude))
-            let credits = creditLabels(snapshot.quota, at: Date())
-            if !credits.isEmpty {
-                menu.addItem(.separator())
-                credits.forEach(addLine)
-            }
-        } else if unavailable {
-            addLine(startError ?? "Agent Usage server unavailable")
-            addAction(starting ? "Starting Agent Usage…" : "Start Agent Usage", #selector(startServer), enabled: !starting)
-        } else {
-            addLine("Loading Agent Usage…")
-        }
-        menu.addItem(.separator())
-        addAction("Open dashboard", #selector(openDashboard))
-        addAction("Refresh", #selector(refresh))
-        addAction("Quit", #selector(quit))
+        let now = Date()
+        panelState.content = UsagePanelState.Content(
+            snapshot: snapshot,
+            message: unavailable ? startError ?? "Agent Usage server unavailable" : "Loading Agent Usage…",
+            unavailable: unavailable, starting: starting, fetching: fetching, now: now
+        )
+        renderStatus(now: now)
+        if popover.isShown { resizePanel() }
     }
 
-    private func text(_ title: String, color: NSColor = .labelColor) -> NSAttributedString {
-        NSAttributedString(string: title, attributes: [.foregroundColor: color])
-    }
-
-    private func renderStatus(_ indicators: [Snapshot.MenuModel.Indicator]) {
+    private func renderStatus(now: Date) {
         guard let button = item.button else { return }
-        guard !indicators.isEmpty else {
-            button.attributedTitle = text("—")
+        statusTitleView?.removeFromSuperview()
+        statusTitleView = nil
+
+        let rows = snapshot?.quota ?? []
+        let active = snapshot?.activeProviders ?? []
+        let calendar = Calendar.autoupdatingCurrent
+        let clock = QuotaClock(now: now, calendar: calendar)
+        let details = rows.map { row in
+            let windows = row.windows.map { window in
+                let amount = window.knownRemaining.map { "\(Int($0))% left" } ?? "Unavailable"
+                let reset = window.reset.map { clock.label($0, full: true) } ?? "Reset time unavailable"
+                return "\(window.displayName) \(amount) · \(reset)"
+            }
+            return ([row.label] + windows).joined(separator: "\n")
+        }.joined(separator: "\n\n")
+        button.toolTip = details.isEmpty ? "Agent Usage" : details
+
+        let settings = snapshot?.settings
+        let titles = StatusTitle.select(rows: rows.map(\.titleSource), active: active, now: now, calendar: calendar,
+                                        thresholds: settings?.titleThresholds ?? .init(),
+                                        titleProviders: settings?.titleProviders ?? [:])
+        guard !titles.isEmpty else {
+            item.length = NSStatusItem.variableLength
+            button.title = "—"
             button.setAccessibilityValue("Quota unavailable")
             return
         }
 
-        let title = NSMutableAttributedString()
-        var accessibility: [String] = []
-        for indicator in indicators {
-            if title.length > 0 { title.append(text("  ")) }
-            let color: NSColor = indicator.dimmed ? .secondaryLabelColor : .labelColor
-            if let icon = icons[indicator.provider] {
-                // Text attachments don't inherit the status button's template image tint.
-                let tinted = NSImage(size: NSSize(width: 14, height: 14), flipped: false) { rect in
-                    guard let context = NSGraphicsContext.current?.cgContext else { return false }
-                    icon.draw(in: rect)
-                    context.saveGState()
-                    context.setBlendMode(.sourceIn)
-                    context.setFillColor(color.cgColor)
-                    context.fill(rect)
-                    context.restoreGState()
-                    return true
-                }
-                let attachment = NSTextAttachment()
-                attachment.attachmentCell = NSTextAttachmentCell(imageCell: tinted)
-                title.append(NSAttributedString(attachment: attachment))
-            } else {
-                title.append(text(glyphs[indicator.provider] ?? "?", color: color))
-            }
-            title.append(text(" \(indicator.amount)", color: color))
-            let quota = indicator.amount == "—" ? "quota unavailable" : "\(indicator.amount) remaining"
-            accessibility.append("\(indicator.label), \(quota)")
+        let spacing: CGFloat = 8
+        let inset: CGFloat = 10
+        let layout = StatusTitle.fit(titles, maxWidth: 360 - inset, spacing: spacing) { title, compact in
+            self.column(title, compact: compact).fittingSize.width
         }
-        button.attributedTitle = title
-        button.setAccessibilityValue(accessibility.joined(separator: "; "))
+        let columns = layout.titles.map { column($0, compact: layout.compact) }
+        let content = StatusTitleView(views: columns)
+        content.orientation = .horizontal
+        content.alignment = .top
+        content.spacing = spacing
+        content.translatesAutoresizingMaskIntoConstraints = false
+        button.title = ""
+        button.addSubview(content)
+        NSLayoutConstraint.activate([
+            content.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+            content.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+        ])
+        item.length = ceil(content.fittingSize.width) + inset
+        statusTitleView = content
+        button.setAccessibilityValue(details.isEmpty ? titles.map {
+            UsageProvider(rawValue: $0.provider)?.name ?? $0.provider
+        }.joined(separator: ", ") : details)
     }
 
-    private func windowTitle(_ window: Snapshot.MenuModel.Group.Window) -> NSAttributedString {
-        let title = NSMutableAttributedString(attributedString: text(window.label))
-        title.append(text(window.amount, color: levelColors[window.level] ?? .labelColor))
-        title.append(text(" remaining · "))
-        let reset = window.resetsAt.map { "\(window.resetLabel) \(clock.string(from: Date(timeIntervalSince1970: $0)))" }
-            ?? window.resetLabel
-        title.append(text(reset + (window.suffix ?? ""), color: .secondaryLabelColor))
-        return title
-    }
-
-    private func routeLabel(_ label: String, _ route: Snapshot.Routes.Decision) -> String {
-        let status = route.target == route.requested ? "Allowed" : "Diverted"
-        return "\(label) · \(status) · \(route.reason)"
-    }
-
-    private func creditLabels(_ rows: [Snapshot.Row], at now: Date) -> [String] {
-        let credits = rows.flatMap { row -> [(String, TimeInterval?)] in
-            guard let summary = row.rateLimitResetCredits else { return [] }
-            if summary.credits == nil, (summary.availableCount ?? 0) > 0 {
-                return [("\(row.label) · \(summary.availableCount ?? 0) reset credits available · expiry details unavailable", nil)]
-            }
-            return (summary.credits ?? []).filter { credit in
-                credit.status == "available" && (credit.expiresAt.map { $0 > now.timeIntervalSince1970 } ?? true)
-            }.map { credit in
-                let title = credit.title.flatMap { $0.isEmpty ? nil : $0 } ?? "Rate limit reset"
-                let label = "\(row.label) · \(title)"
-                return (credit.expiresAt == nil ? "\(label) · No expiry reported" : label, credit.expiresAt)
-            }
+    private func column(_ title: StatusTitle, compact: Bool) -> NSStackView {
+        let top = NSStackView()
+        top.orientation = .horizontal
+        top.alignment = .centerY
+        top.spacing = 3
+        if let icon = icons[title.provider] {
+            let imageView = NSImageView(image: icon)
+            imageView.contentTintColor = .labelColor
+            imageView.imageScaling = .scaleProportionallyUpOrDown
+            imageView.setAccessibilityElement(false)
+            top.addArrangedSubview(imageView)
+            imageView.widthAnchor.constraint(equalToConstant: 11).isActive = true
+            imageView.heightAnchor.constraint(equalToConstant: 11).isActive = true
+        } else {
+            top.addArrangedSubview(statusLabel(UsageProvider(rawValue: title.provider)?.glyph ?? "?", font: primaryFont))
         }
-        return credits.sorted { ($0.1 ?? .infinity) < ($1.1 ?? .infinity) }.map { label, expiry in
-            guard let expiry = expiry else { return label }
-            let date = Date(timeIntervalSince1970: expiry)
-            let seconds = date.timeIntervalSince(now)
-            let relative = seconds > 86_400 ? "\(Int(ceil(seconds / 86_400)))d"
-                : seconds >= 3600 ? "\(Int(ceil(seconds / 3600)))h" : "\(Int(ceil(seconds / 60)))m"
-            return "\(label) · Expires \(clock.string(from: date)) (in \(relative))"
+        if let session = title.session {
+            top.addArrangedSubview(statusLine(session, compact: compact, font: primaryFont))
         }
+        let bottom = title.longest.map { statusLine($0, compact: compact, font: secondaryFont) }
+            ?? statusLabel(" ", font: secondaryFont)
+        let column = NSStackView(views: [top, bottom])
+        column.orientation = .vertical
+        column.alignment = .centerX
+        column.spacing = -3
+        return column
     }
 
-    private func addLine(_ label: String) { addLine(text(label)) }
+    private func statusLine(_ line: StatusTitle.Line, compact: Bool, font: NSFont) -> NSView {
+        guard let badge = line.badge else {
+            return statusLabel(line.text(compact: compact), font: font)
+        }
+        let isCritical = badge == .critical
+        let percent = StatusPercentBadge(label: statusLabel(line.amount, font: font, color: isCritical ? .white : .black),
+                                        fill: isCritical ? .systemRed : .systemYellow)
+        if compact { return percent }
 
-    private func addLine(_ title: NSAttributedString, indent: Int = 0) {
-        let line = NSMenuItem(title: title.string, action: #selector(readOnlyLine), keyEquivalent: "")
-        line.attributedTitle = title
-        line.target = self
-        line.isEnabled = true
-        line.indentationLevel = indent
-        menu.addItem(line)
+        let row = NSStackView(views: [statusLabel(line.label, font: font), percent])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 2
+        if let suffix = line.resetSuffix { row.addArrangedSubview(statusLabel(suffix, font: font)) }
+        return row
     }
 
-    @objc private func readOnlyLine() {}
-
-    private func addAction(_ label: String, _ action: Selector, enabled: Bool = true) {
-        let line = NSMenuItem(title: label, action: action, keyEquivalent: "")
-        line.target = self
-        line.isEnabled = enabled
-        menu.addItem(line)
+    private func statusLabel(_ value: String, font: NSFont, color: NSColor = .labelColor) -> NSTextField {
+        let label = NSTextField(labelWithAttributedString: .init(string: value, attributes: [.font: font, .foregroundColor: color]))
+        label.setAccessibilityElement(false)
+        return label
     }
 
-    @objc private func openDashboard() { NSWorkspace.shared.open(base) }
-    @objc private func quit() { NSApp.terminate(nil) }
+    private func openDashboard() {
+        popover.performClose(nil)
+        NSWorkspace.shared.open(base)
+    }
 
-    @objc private func startServer() {
+    private func startServer() {
         guard !starting else { return }
         let launch = Process()
         launch.executableURL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/bin/agent-usage")
@@ -307,9 +271,3 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         if success { refresh() }
     }
 }
-
-let application = NSApplication.shared
-private let statusBar = StatusBar()
-application.setActivationPolicy(.accessory)
-application.delegate = statusBar
-application.run()
