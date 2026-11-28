@@ -13,18 +13,21 @@ import { createManagedHome, isManagedId, isManagedProvider, managedHomes, openAg
 import { buildMenuModel } from './menu-model.mjs';
 import { defaultSettings, enabledProviders, loadSettings, planQuotaAlerts, providerLabel, validSettings } from './quota.mjs';
 import { createLiveQuotaReader } from './live-quota.mjs';
+import { routeStatus } from './view-model.mjs';
 import { claudeCreditReminderPrefix, creditReminderPrefix, planResetCreditAlerts } from './reset-credits.mjs';
 import { aggregateCalls, readModelCalls, recentProviderActivity } from './usage.mjs';
 import { readState, stateDirectory, writeState } from './state.mjs';
 
 export const defaultPort = 43127;
 const run = promisify(execFile);
-const assets = {
+export const assets = {
   '/': ['ui/index.html', 'text/html; charset=utf-8'],
   '/dashboard.mjs': ['ui/dashboard.mjs', 'text/javascript; charset=utf-8'],
   '/provider-icons.mjs': ['ui/provider-icons.mjs', 'text/javascript; charset=utf-8'],
   '/styles.css': ['ui/styles.css', 'text/css; charset=utf-8'],
   '/reset-credits.mjs': ['reset-credits.mjs', 'text/javascript; charset=utf-8'],
+  '/view-model.mjs': ['view-model.mjs', 'text/javascript; charset=utf-8'],
+  '/ui/strings.mjs': ['ui/strings.mjs', 'text/javascript; charset=utf-8'],
 };
 
 async function notifyMacOS(alert) {
@@ -173,10 +176,11 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       const shared = readAllQuota({ env, nowSec: Math.floor(time / 1000) });
       const autoRoute = !isRouteOffPersisted(env);
       const routeOptions = { ...settings, enabled: autoRoute };
-      const routes = {
-        claudeToAgy: { requested: 'agy', ...chooseRoute(shared, { ...routeOptions, requested: 'agy' }) },
-        agyToClaude: { requested: 'claude', ...chooseRoute(shared, { ...routeOptions, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }) },
+      const decide = requested => {
+        const decision = { requested, ...chooseRoute(shared, { ...routeOptions, requested, ...(requested === 'claude' ? { agyPool: shared.agy.activePool || 'gemini' } : {}) }) };
+        return { ...decision, routeStatus: routeStatus(decision, autoRoute) };
       };
+      const routes = { claudeToAgy: decide('agy'), agyToClaude: decide('claude') };
       const enabledObservations = Object.fromEntries(Object.entries(observed).filter(([key]) =>
         key.startsWith(creditReminderPrefix) || key.startsWith(claudeCreditReminderPrefix) || providers.includes(key.split(':', 1)[0])));
       const quotaAlerts = planQuotaAlerts(quota, enabledObservations, { ...settings, baseline: Boolean(settingsUpdate), now: time });

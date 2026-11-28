@@ -1,0 +1,72 @@
+// Single source of user-visible text for the dashboard. English only; parameterised labels are plain functions.
+export const levelLabels = { healthy: 'Healthy', watch: 'Watch', low: 'Low', critical: 'Critical', unknown: 'Unavailable' };
+export const stateLabels = { live: 'Live', aging: 'Stale', reset_assumed: 'Awaiting fresh quota', exhausted: 'Cooldown reported', unknown: 'Unavailable' };
+export const windowNames = { '5h': '5-hour window', '7d': '7-day window', monthly: 'Monthly credits' };
+export const routeNames = { claudeToAgy: 'Claude→agy', agyToClaude: 'agy→Claude' };
+export const creditStatusLabels = { available: 'Available', used: 'Used', unknown: 'Status unknown' };
+export const accountKindLabels = { current: 'Current CLI account', default: 'Default folder', manual: 'Configured folder', managed: 'Managed account' };
+
+export const text = {
+  noScheduledChecks: 'No scheduled checks.',
+  scheduled: 'Scheduled',
+  checkedFresh: 'Checked · fresh snapshot found',
+  checkedWaiting: 'Checked · waiting for fresh quota',
+  missed: 'Missed',
+  skipped: 'Skipped · no providers enabled',
+  noProviders: 'No providers enabled',
+  noActiveAlerts: 'No active quota alerts',
+  waitingForQuota: 'Waiting for fresh quota',
+  localQuotaUnavailable: 'Local quota unavailable',
+  notificationFailed: 'macOS notification delivery failed. See the local server log.',
+  enableProvider: 'Enable a provider in Settings to show its quota.',
+  activeNow: 'Active now',
+  resetUnavailable: 'Reset time unavailable',
+  lastReportedReset: 'Last reported reset',
+  resets: 'Resets',
+  monthly: 'Monthly',
+  waitingForSnapshot: 'Waiting for a quota snapshot',
+  sessionsEstimated: 'sessions estimated',
+  defaultCreditTitle: 'Rate limit reset',
+  expiryUnavailable: 'expiry details unavailable',
+  readingModels: 'Reading local model usage…',
+  noModels: 'No model usage found in this range.',
+  modelsFailed: 'Could not read local model usage.',
+  lightMode: 'Light mode',
+  darkMode: 'Dark mode',
+  confirmRemoveAccount: 'Remove this managed account and delete its local CLI configuration and session files?',
+  removingAccount: 'Removing managed account…',
+  openingTerminal: 'Opening macOS Terminal…',
+  accountRemoved: 'Managed account removed.',
+  finishSignIn: 'Finish signing in in Terminal. The account will appear here when ready.',
+  waitingForSignIn: 'Waiting for sign-in',
+  noSignIn: 'No sign-in detected',
+  claudeAccount: 'Claude account',
+  otherClaudeAccounts: 'Other Claude accounts',
+  usedIt: 'Used it',
+  expiryChanged: 'Expiry changed. Reopen Settings to view it.',
+  saveExpiryFirst: 'Save the new expiry before marking it used.',
+  creditStillAvailable: 'Available · CLI status is current',
+  used: 'Used',
+  testSent: 'Test sent to macOS Notification Center.',
+  testFailed: 'Test delivery failed. Check the Agent Usage server log.',
+  thresholdOrder: 'Critical must be below warning, and warning below watch.',
+  invalidExpiry: 'Enter a valid expiry in your local time.',
+  remove: 'Remove',
+  claudeFullResetExpires: 'Claude full reset expires',
+};
+
+export const format = {
+  alertTitle: count => `${count} quota ${count === 1 ? 'alert' : 'alerts'}`,
+  alertLine: (provider, short, percent, level) => `${provider} ${short} · ${percent}% ${levelLabels[level].toLowerCase()}`,
+  legend: (level, threshold) => `${levelLabels[level]} ≤${threshold}%`,
+  updated: when => `Updated ${when}`,
+  resetAt: (prefix, when) => `${prefix} ${when}`,
+  rowError: message => `Error · ${message}`,
+  target: target => `sessions estimated · target ${target}`,
+  meterLabel: (label, window) => `${label}, ${windowNames[window]} remaining`,
+  estimateNote: (cost, minutes) => `Estimates assume ${cost}% of quota per session. Enabled providers refresh every ${minutes} min.`,
+  creditsAvailable: count => `${count} available · expiry details unavailable`,
+  scheduleTime: (when, zone) => `${when} ${zone}`,
+  removeAccount: login => `Remove ${login}`,
+  accountMore: (login, more) => `${login} · +${more} more`,
+};

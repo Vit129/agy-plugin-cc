@@ -171,8 +171,8 @@ test('[TC-AGU-05][BE-IT] serves local quota, persists notification state and rec
     assert.deepEqual(saved.settings, update);
     assert.equal(saved.quota[0].provider, 'claude', 'title visibility is independent of quota monitoring');
     assert.deepEqual(saved.routes, {
-      claudeToAgy: { requested: 'agy', target: 'agy', reason: 'Auto-Route is off.' },
-      agyToClaude: { requested: 'claude', target: 'claude', reason: 'Auto-Route is off.' },
+      claudeToAgy: { requested: 'agy', target: 'agy', reason: 'Auto-Route is off.', routeStatus: 'Off' },
+      agyToClaude: { requested: 'claude', target: 'claude', reason: 'Auto-Route is off.', routeStatus: 'Off' },
     });
     assert.equal(await readFile(path.join(directory, 'route-off'), 'utf8'), '');
     await close();
