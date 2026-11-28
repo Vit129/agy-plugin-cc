@@ -13,10 +13,10 @@ private struct Snapshot: Decodable {
         struct ResetCredits: Decodable {
             struct Credit: Decodable {
                 let title: String?
-                let status: String
+                let status: String?
                 let expiresAt: TimeInterval?
             }
-            let availableCount: Int
+            let availableCount: Int?
             let credits: [Credit]?
         }
 
@@ -145,8 +145,8 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
     private func creditLabels(_ rows: [Snapshot.Row], at now: Date) -> [String] {
         let credits = rows.flatMap { row -> [(String, TimeInterval?)] in
             guard let summary = row.rateLimitResetCredits else { return [] }
-            if summary.credits == nil, summary.availableCount > 0 {
-                return [("\(row.label) · \(summary.availableCount) reset credits available · expiry details unavailable", nil)]
+            if summary.credits == nil, (summary.availableCount ?? 0) > 0 {
+                return [("\(row.label) · \(summary.availableCount ?? 0) reset credits available · expiry details unavailable", nil)]
             }
             return (summary.credits ?? []).filter { credit in
                 credit.status == "available" && (credit.expiresAt.map { $0 > now.timeIntervalSince1970 } ?? true)
