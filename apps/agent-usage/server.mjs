@@ -25,6 +25,29 @@ async function notifyMacOS(alert) {
   await run('/usr/bin/osascript', ['-e', 'on run argv\n display notification (item 1 of argv) with title "Agent Usage"\nend run', message], { timeout: 5000 });
 }
 
+const percent = value => `${Math.floor(value)}%`;
+
+function resetLabel(seconds) {
+  return Number.isFinite(seconds) ? new Date(seconds * 1000).toLocaleString(undefined, { weekday: 'short', hour: '2-digit', minute: '2-digit' }) : null;
+}
+
+export function quotaSummary(rows) {
+  if (!rows.length) return 'No quota data yet.';
+  return rows.map(row => {
+    const known = row.windows.filter(window => Number.isFinite(window.remaining)).map(window => `${window.short} ${percent(window.remaining)}`);
+    return `${row.label.split(' · ')[0]} ${known.join(' · ') || 'no data'}`;
+  }).join(' | ');
+}
+
+export function alertMessage(alert, routes) {
+  const parts = [`${alert.provider} ${alert.short}: ${percent(alert.remaining)} remaining (${alert.level})`];
+  const reset = resetLabel(alert.resetsAt);
+  if (reset) parts.push(`resets ${reset}`);
+  const route = { 'Claude Code': routes?.agyToClaude, 'Antigravity · Gemini': routes?.claudeToAgy }[alert.provider];
+  if (route) parts.push(`route: ${route.target === route.requested ? 'no diversion' : `work goes to ${route.target}`}`);
+  return parts.join(' · ');
+}
+
 function sendJSON(response, status, object) {
   response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   response.end(JSON.stringify(object));
@@ -72,6 +95,11 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       }
       quota = await readLiveQuota(settings);
       const time = now();
+      const shared = readAllQuota({ env, nowSec: Math.floor(time / 1000) });
+      const routes = {
+        claudeToAgy: { requested: 'agy', ...chooseRoute(shared, { ...settings, requested: 'agy' }) },
+        agyToClaude: { requested: 'claude', ...chooseRoute(shared, { ...settings, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }) },
+      };
       const active = enabledProviders(settings);
       const enabledObservations = Object.fromEntries(Object.entries(observed).filter(([key]) => active.includes(key.split(':', 1)[0])));
       const next = planQuotaAlerts(quota, enabledObservations, { baseline: Boolean(settingsUpdate), now: time });
@@ -79,7 +107,7 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       if (next.alerts.length) notificationError = null;
       for (const alert of next.alerts) {
         try {
-          await notify(alert);
+          await notify({ ...alert, message: alertMessage(alert, routes) });
         } catch (error) {
           notificationError = error.message;
           next.state[alert.key] = previous[alert.key];
@@ -106,17 +134,12 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         if (!checks[at]?.checkedAt) continue;
         try {
           const formatted = new Date(at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-          await notify({ message: `Scheduled quota check at ${formatted}. Open Agent Usage for the current limits.` });
+          await notify({ message: `Scheduled quota check at ${formatted}. ${quotaSummary(quota)}` });
         } catch (error) {
           notificationError = error.message;
           process.stderr.write(`Agent Usage · scheduled notification: ${error.message}\n`);
         }
       }
-      const shared = readAllQuota({ env, nowSec: Math.floor(time / 1000) });
-      const routes = {
-        claudeToAgy: chooseRoute(shared, { ...settings, requested: 'agy' }),
-        agyToClaude: chooseRoute(shared, { ...settings, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }),
-      };
       return { quota, settings, schedule, checks, notificationError, routes };
     });
     refreshQueue = action.catch(error => process.stderr.write(`Agent Usage · refresh: ${error.message}\n`));
@@ -161,7 +184,7 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         if (!candidate) { sendJSON(response, 400, { error: 'Invalid quota settings.' }); return; }
         sendJSON(response, 200, await refresh({ settingsUpdate: candidate }));
       } else if (request.method === 'POST' && url.pathname === '/api/notifications/test' && request.headers['content-type'] === 'application/json') {
-        await notify({ message: 'Test notification from Agent Usage.' });
+        await notify({ message: `Test notification · ${quotaSummary(quota)}` });
         sendJSON(response, 200, { sent: true });
       } else if (request.method === 'GET' && assets[url.pathname]) {
         const [file, contentType] = assets[url.pathname];

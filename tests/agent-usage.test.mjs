@@ -128,8 +128,9 @@ test('[TC-AGU-05][BE-IT] serves local quota, persists notification state and rec
     await fixture(28);
     assert.equal((await quota()).quota[0].windows[0].level, 'critical');
     assert.equal(events.length, 2);
-    assert.match(events[0].message, /Scheduled quota check/);
+    assert.match(events[0].message, /Scheduled quota check .*Claude Code 5h \d+%/);
     assert.equal(events[1].short, '5h');
+    assert.match(events[1].message, /5h: 28% remaining \(critical\)/);
     assert.equal((await fetch(`${base()}/health`, { headers: { Origin: 'https://example.invalid' } })).status, 403);
     await close();
     server = await startServer(options);
@@ -142,7 +143,7 @@ test('[TC-AGU-05][BE-IT] serves local quota, persists notification state and rec
     assert.equal(events.length, 2);
     const notify = await fetch(`${base()}/api/notifications/test`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
     assert.deepEqual(await notify.json(), { sent: true });
-    assert.match(events[2].message, /Test notification/);
+    assert.match(events[2].message, /Test notification · Claude Code 5h \d+%/);
   } finally {
     await close();
     await rm(root, { recursive: true, force: true });
@@ -413,4 +414,14 @@ test('[TC-AGU-16][BE-IT] dashboard publishes native quota and shows both cache-o
   } finally {
     await new Promise(resolve => server.close(resolve));
   }
+});
+
+test('[TC-AGU-NOTIFY] alert text names reset time and route', async () => {
+  const { alertMessage, quotaSummary } = await import('../apps/agent-usage/server.mjs');
+  const alert = { provider: 'Antigravity · Gemini', short: '5h', remaining: 12.7, level: 'critical', resetsAt: 1795849408 };
+  const diverted = alertMessage(alert, { claudeToAgy: { requested: 'agy', target: 'claude' } });
+  assert.match(diverted, /^Antigravity · Gemini 5h: 12% remaining \(critical\) · resets .+ · route: work goes to claude$/);
+  assert.match(alertMessage(alert, { claudeToAgy: { requested: 'agy', target: 'agy' } }), /route: no diversion$/);
+  assert.equal(quotaSummary([]), 'No quota data yet.');
+  assert.equal(quotaSummary([{ label: 'GitHub Copilot', windows: [{ short: 'monthly', remaining: 21.2 }] }]), 'GitHub Copilot monthly 21%');
 });
