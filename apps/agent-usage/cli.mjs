@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import { spawn } from 'node:child_process';
 import { closeSync, mkdirSync, openSync } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { defaultPort, startServer } from './server.mjs';
 import { defaultSettings, enabledProviders, forecastResetChecks, loadSettings } from './quota.mjs';
 import { readState, stateDirectory, writeState } from './state.mjs';
+import { stableNodePath, writeLauncher } from './launcher.mjs';
 
 const [command = 'ensure-running', input] = process.argv.slice(2);
 const port = Number(process.env.AGENT_USAGE_PORT || defaultPort);
@@ -55,6 +57,13 @@ try {
       if (!Object.hasOwn(defaultSettings.providers, input)) throw new Error('Unknown provider. Use claude, agy, copilot, or codex.');
       if (enabledProviders(loadSettings(directory)).includes(input)) await ensureRunning();
       break;
+    case 'install-launcher':
+      console.log(writeLauncher({
+        file: path.join(os.homedir(), '.local', 'bin', 'agent-usage'),
+        node: stableNodePath({ execPath: process.execPath, pathEnv: process.env.PATH }),
+        cli: fileURLToPath(import.meta.url),
+      }));
+      break;
     case 'schedule': {
       if (!input || !/(?:Z|[+-]\d\d:\d\d)$/.test(input)) throw new Error('Pass the observed reset as an ISO timestamp with a timezone.');
       const count = Number(process.argv[4] ?? 6);
@@ -84,7 +93,7 @@ try {
       break;
     }
     default:
-      throw new Error('Usage: agent-usage [ensure-running|on-provider-start <provider>|serve|schedule <reset-ISO> [rounds]|check-reset]');
+      throw new Error('Usage: agent-usage [ensure-running|on-provider-start <provider>|serve|schedule <reset-ISO> [rounds]|check-reset|install-launcher]');
   }
 } catch (error) {
   if (command === 'serve' && error.code === 'EADDRINUSE' && await ready()) process.exitCode = 0;
