@@ -44,6 +44,21 @@ The serialized refresh checks Codex credit status at reminder boundaries and sav
 
 The Claude Code and Antigravity plugin startup hooks check the saved provider switch through `agent-usage on-provider-start` before starting the server. Manual startup and scheduled checks use their own entry points.
 
+## Layers (Dev + QA pattern)
+
+Standard: `dev-qa-pattern` (BE = logic and data with no UI; FE = what the user sees or touches). Tags are `[BE|FE-BL|UT|IT]`, test ids `[TC-<AREA>-NN]` and unique.
+
+| Layer | Folder / file | Notes |
+|---|---|---|
+| BE core (pure rules) | `apps/agent-usage/quota.mjs`, `provider-quota.mjs`, `reset-credits.mjs`, `view-model.mjs`, `plugins/agy/scripts/lib/quota-route.mjs`, `menubar/QuotaPace.swift`, `StatusTitle.swift`, `UsageSnapshot.swift` | No DOM. `view-model.mjs` owns every dashboard rule (alerts, levels, route status, target, schedule time zone, settings deep-link parsing). |
+| BE service / adapters | `apps/agent-usage/server.mjs`, `state.mjs`, `usage.mjs`, `live-quota.mjs`, `launch-agents.mjs`, `scripts/`, `plugins/*/scripts` | HTTP, files, launchd, CLIs. `launch-agents.mjs` spawns `launchctl` only through an injectable runner. |
+| Strings | `apps/agent-usage/ui/strings.mjs` | One English dictionary with parameterised formatters. Swift text stays inline. |
+| Design tokens | `apps/agent-usage/ui/styles.css` `:root` blocks | Colours and the `--text-*` type scale. No hex or `font-size` outside them. |
+| FE presentation | `apps/agent-usage/ui/dashboard.mjs`, `index.html`, `menubar/UsagePanel.swift`, `AgentUsageBar.swift`, `DashboardLink.swift` | Renders the view-model; no rules. The menu bar Settings button opens `#settings` (or `#settings/<general\|notifications\|accounts\|auto-route>`). |
+| QA | `tests/*.test.mjs` (node:test, BE/FE-UT/BL/IT), `tests/fixtures/agent-usage/` (scenario data and fixture server), `tests/pages/` (page object), `tests/tests-web/` (Playwright), `tests/architecture-guard.test.mjs` | `npm test`, `npx playwright test`. The guard fails on rogue hex, raw font sizes, rules or fixed time zones in the dashboard, untagged or duplicate test ids, and a test that spawns `launchctl`. |
+
+The `/api/quota` route decisions carry `routeStatus` (Off, Allowed, Diverted). The dashboard and menu bar derive it themselves when an older server omits it.
+
 ## Verification Invariants
 
 - CLI binary detection must check `command -v agy` before attempting invocation.
