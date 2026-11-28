@@ -6,6 +6,12 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-11-28
+
+### Fixed
+- Agent Usage keeps the known reset credits when a re-probe fails instead of dropping them.
+- Malformed reset credits no longer break the menu bar app.
+
 ## [1.8.0] - 2026-11-28
 
 ### Added
