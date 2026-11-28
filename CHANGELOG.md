@@ -7,7 +7,8 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 ## [Unreleased]
 
 ### Changed
-- The Agent Usage menu bar title shows the limiting quota window and its local reset time on a second line when available.
+- The Agent Usage menu bar title shows the session and longest quota window for each active provider, with pace colors and local reset times.
+- The Agent Usage popover adds an overview and provider tabs with quota bars, pace markers, projected exhaustion and weekly capacity.
 
 ## [2.0.0] - 2026-11-28
 

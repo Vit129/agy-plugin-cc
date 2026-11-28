@@ -196,8 +196,8 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       }
       const rows = quota.map(({ creditsObservedAt, ...row }) => {
         const account = accounts[row.provider];
-        const login = row.accountId ? account.profiles.find(profile => profile.id === row.accountId)?.login : account.currentLogin;
-        return login ? { ...row, login } : row;
+        const { login, plan } = (row.accountId ? account.profiles.find(profile => profile.id === row.accountId) : account.current) ?? {};
+        return { ...row, login, plan };
       });
       const active = await getActivity(effectiveSettings, providers, time);
       const menu = buildMenuModel(rows, active);

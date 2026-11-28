@@ -38,7 +38,7 @@ The companions use the same pure Auto-Route policy with fresh cached 5h/7d value
 
 Named profiles scope native samples, transcript reads, and alerts by provider and account. The account inventory reads each provider's local identity file. Terminal sign-in creates private CLI homes under the state directory and a marker identifies homes Agent Usage can remove. Signed-in managed homes join the monitored profiles automatically. The inherited CLI environment feeds the shared Auto-Route cache.
 
-The serialized refresh checks Codex credit status at reminder boundaries and saves delivery markers in the local alerts file. Recent transcript modification times report provider activity without parsing the logs. The loopback quota API supplies activity and account identities to the dashboard and a grouped presentation model to the AppKit status item.
+The serialized refresh checks Codex credit status at reminder boundaries and saves delivery markers in the local alerts file. Recent transcript modification times report provider activity without parsing the logs. The loopback quota API supplies both clients with quota rows, active providers and account identities. Claude and Codex plan labels come from their existing local account metadata when recognized. The AppKit status item hosts the SwiftUI popover. Both native views call the same Foundation-only pace calculation, which is tested through the Node test runner. Older servers can omit plan metadata.
 
 The Claude Code and Antigravity plugin startup hooks check the saved provider switch through `agent-usage on-provider-start` before starting the server. Manual startup and scheduled checks use their own entry points.
 

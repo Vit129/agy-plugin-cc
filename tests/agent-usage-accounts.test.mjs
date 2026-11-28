@@ -227,11 +227,12 @@ test('[TC-AGU-22][BE-IT] reads local account identities and ignores invalid cred
   const named = path.join(app.directory, 'named');
   const noLogin = path.join(app.directory, 'no-login');
   function auth(email) {
-    return JSON.stringify({ tokens: { id_token: `header.${Buffer.from(JSON.stringify({ email })).toString('base64url')}.signature` } });
+    const payload = { email, 'https://api.openai.com/auth': { chatgpt_plan_type: 'plus' } };
+    return JSON.stringify({ tokens: { id_token: `header.${Buffer.from(JSON.stringify(payload)).toString('base64url')}.signature` } });
   }
-  await identity(app.directory, '.claude.json', '{"oauthAccount":{"emailAddress":"default@example.test"}}');
+  await identity(app.directory, '.claude.json', '{"oauthAccount":{"emailAddress":"default@example.test","organizationType":"claude_pro"}}');
   await identity(claude, '.claude.json', '{"mcpServers":{}}');
-  await identity(named, '.claude.json', '{"oauthAccount":{"emailAddress":"named@example.test"}}');
+  await identity(named, '.claude.json', '{"oauthAccount":{"emailAddress":"named@example.test","seatTier":"max_5x"}}');
   await identity(codex, 'auth.json', auth('codex@example.test'));
   await identity(noLogin, 'auth.json', '{"tokens":{"id_token":"malformed"}}');
   await identity(copilot, 'config.json', '// managed by Copilot\n// CLI state\n{"lastLoggedInUser":{"login":"test-octocat","host":"https://github.com"},"loggedInUsers":[{"login":"older-account"}]}');
@@ -244,11 +245,13 @@ test('[TC-AGU-22][BE-IT] reads local account identities and ignores invalid cred
   assert.deepEqual(result.quota.map(({ provider, login }) => [provider, login]), [
     ['claude', 'default@example.test'], ['agy', 'agy@example.test'], ['copilot', 'test-octocat'], ['codex', 'codex@example.test'],
   ]);
+  assert.deepEqual(result.quota.map(({ plan }) => plan), ['Pro', undefined, undefined, 'Plus']);
   const namedResult = await app.save({ providers, accounts: {
     claude: [{ id: 'named', label: 'Named', home: named }],
     codex: [{ id: 'unknown', label: 'Unknown', home: noLogin }],
   } }).then(response => response.json());
   assert.deepEqual(namedResult.quota.map(({ login }) => login), ['named@example.test', 'agy@example.test', 'test-octocat', undefined]);
+  assert.deepEqual(namedResult.quota.map(({ plan }) => plan), ['Max 5×', undefined, undefined, undefined]);
   assert.ok(namedResult.accounts.claude.some(({ login, kind }) => login === 'default@example.test' && kind === 'current'));
   assert.ok(namedResult.accounts.claude.some(({ login, kind }) => login === 'named@example.test' && kind === 'manual'));
   assert.doesNotMatch(JSON.stringify(namedResult), /id_token|signature|older-account|previous@example/);
