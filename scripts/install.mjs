@@ -218,10 +218,13 @@ export function formatCommand(cmd, args) {
     .join(" ");
 }
 
+// `codex plugin list` prints every marketplace plugin (about 3 MB); the default 1 MB maxBuffer made it fail with ENOBUFS.
+export const CAPTURE_MAX_BUFFER = 64 * 1024 * 1024;
+
 export function defaultRunCommand(cmd, args, { capture = false } = {}) {
   try {
     if (capture) {
-      const output = execFileSync(cmd, args, { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] });
+      const output = execFileSync(cmd, args, { encoding: "utf8", maxBuffer: CAPTURE_MAX_BUFFER, stdio: ["inherit", "pipe", "inherit"] });
       return { ok: true, error: null, output };
     }
     execFileSync(cmd, args, { stdio: "inherit" });

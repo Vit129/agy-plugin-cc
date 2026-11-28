@@ -3,6 +3,7 @@ import path from "node:path";
 import test from "node:test";
 import {
   buildInstallPlan,
+  defaultRunCommand,
   detectInstalledClis,
   findOnPath,
   formatSummary,
@@ -252,4 +253,20 @@ test("[TC-AGU-87][BE-IT] a Codex version mismatch fails the target with the manu
   const [stale] = run("2.2.0");
   assert.equal(stale.status, "failed");
   assert.match(stale.error, /codex plugin marketplace upgrade agent-bridge && codex plugin add agy@agent-bridge/);
+});
+
+test("[TC-INS-07][BE-IT] a capture step reads a listing larger than the default 1 MB buffer", () => {
+  const big = `${"x".repeat(100)}\n`.repeat(30000); // ~3 MB, like `codex plugin list`
+  const line = "agy@agent-bridge  installed  2.3.1  vit129/agent-bridge\n";
+  const script = `process.stdout.write("${"x".repeat(100)}\\n".repeat(30000) + ${JSON.stringify(line)})`;
+  const res = defaultRunCommand(process.execPath, ["-e", script], { capture: true });
+  assert.equal(res.ok, true, res.error);
+  assert.ok(res.output.length > 1024 * 1024);
+
+  const plan = buildInstallPlan(["codex"], "/repo", { version: "2.3.1" });
+  const results = runInstallPlan(plan, {
+    runCommand: (cmd, args, opts) => (opts?.capture ? { ok: true, error: null, output: big + line } : { ok: true, error: null }),
+    log: () => {}
+  });
+  assert.equal(results[0].status, "ok");
 });

@@ -111,3 +111,11 @@ test('[TC-AGU-82][FE-IT][Alternative] a hash change while settings is open switc
   await expect(view.dialog).toBeVisible();
   expect(await view.selectedTabs()).toEqual(['Notifications']);
 });
+
+test('[TC-AGU-96][FE-IT][Alternative] Escape closes settings and clears the hash', async ({ page }) => {
+  const view = await dashboard(page, '#settings/accounts');
+  await expect(view.dialog).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(view.dialog).toBeHidden();
+  expect(await view.hash()).toBe('');
+});

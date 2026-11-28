@@ -6,6 +6,10 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+### Fixed
+- The installer reads `codex plugin list` with a 64 MB buffer; the 3 MB listing made the Codex target report `ENOBUFS` although the plugin had installed.
+- The Agent Usage settings dialog clears its `#settings` hash in the same task as the close click, so it no longer lingers when the `close` event is delayed.
+
 ## [2.3.0] - 2026-11-28
 
 ### Added
