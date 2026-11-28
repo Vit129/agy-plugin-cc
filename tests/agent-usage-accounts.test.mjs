@@ -217,7 +217,7 @@ test('[TC-AGU-21][BE-IT] a failed re-probe keeps the last good reset credits and
 const claudeProviders = { ...off, claude: true };
 const claudeAccount = '11111111-1111-4111-8111-111111111111';
 const otherClaudeAccount = '22222222-2222-4222-8222-222222222222';
-const claudeExpiry = '2026-12-11T05:00:00+07:00';
+const claudeExpiry = '2026-12-14T05:00:00+07:00';
 const claudeExpiryMs = Date.parse(claudeExpiry);
 
 function claudeConfig(home, accountUuid, cache) {
@@ -239,7 +239,7 @@ test('[TC-AGU-41][BE-IT] validates and saves a timezone-qualified Claude expiry 
   const save = (expiresAt, accountUuid = claudeAccount) => app.save({
     providers: claudeProviders, claudeFullReset: { [accountUuid]: { expiresAt, used: false } },
   });
-  for (const invalid of ['2026-12-11T05:00:00', '2026-02-30T05:00:00+07:00', '2026-12-11T24:00:00Z', 'tomorrow', 1796930400000]) {
+  for (const invalid of ['2026-12-14T05:00:00', '2026-02-30T05:00:00+07:00', '2026-12-14T24:00:00Z', 'tomorrow', 1796930400000]) {
     assert.equal((await save(invalid)).status, 400, String(invalid));
   }
   assert.equal((await save(claudeExpiry, otherClaudeAccount)).status, 400);

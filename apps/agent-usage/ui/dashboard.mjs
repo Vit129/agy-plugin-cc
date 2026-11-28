@@ -1,9 +1,9 @@
+import { providerMark } from './provider-icons.mjs';
 import { availableResetCredits, creditExpiryLabel } from './reset-credits.mjs';
 
 const labels = { healthy: 'Healthy', watch: 'Watch', low: 'Low', critical: 'Critical', unknown: 'Unavailable' };
 const states = { live: 'Live', aging: 'Stale', reset_assumed: 'Awaiting fresh quota', exhausted: 'Cooldown reported', unknown: 'Unavailable' };
 const severity = { watch: 1, low: 2, critical: 3 };
-const marks = { claude: 'C', agy: 'A', copilot: 'G', codex: 'O' };
 const windows = { '5h': '5-hour window', '7d': '7-day window', monthly: 'Monthly credits' };
 const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 2 });
 const clock = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
@@ -25,6 +25,9 @@ const settingsNav = form.querySelector('.settings-nav');
 const settingsTabs = [...settingsNav.querySelectorAll('[role="tab"]')];
 const narrowSettings = matchMedia('(max-width: 620px)');
 const modelButtons = [...document.querySelectorAll('[data-model-days]')];
+for (const mark of document.querySelectorAll('[data-provider-icon]')) {
+  mark.innerHTML = providerMark(mark.dataset.providerIcon);
+}
 let settings;
 let claudeCreditAccounts = [];
 let modelRequest = 0;
@@ -116,7 +119,7 @@ function renderQuota(data) {
     const status = row.state === 'error' ? chip('critical', `Error · ${row.error}`) : captured;
     const login = row.login ? `<small class="account-login">${escapeHTML(row.login)}</small>` : '';
     const badge = active.has(row.provider) ? '<span class="active-badge">Active now</span>' : '';
-    return `<div class="plan-grid plan-row" data-provider="${row.provider}" data-state="${row.state ?? 'ready'}"><div class="plan-provider ${row.provider}"><h3 class="provider"><span class="provider-mark" aria-hidden="true">${marks[row.provider]}</span>${escapeHTML(row.label)}</h3>${login}${badge}<small>${status}</small></div>${bars}<div class="capacity" data-target="${target}"><strong>${row.capacity ?? '—'}</strong><span>sessions estimated · target ${settings.target}</span></div></div>`;
+    return `<div class="plan-grid plan-row" data-provider="${row.provider}" data-state="${row.state ?? 'ready'}"><div class="plan-provider ${row.provider}"><h3 class="provider"><span class="provider-mark" aria-hidden="true">${providerMark(row.provider)}</span>${escapeHTML(row.label)}</h3>${login}${badge}<small>${status}</small></div>${bars}<div class="capacity" data-target="${target}"><strong>${row.capacity ?? '—'}</strong><span>sessions estimated · target ${settings.target}</span></div></div>`;
   }).join('');
   const directions = [
     { label: 'Claude→agy', requested: 'agy', decision: routes.claudeToAgy },
@@ -248,6 +251,8 @@ function localDateTime(expiresAt) {
 }
 
 function renderClaudeCreditSettings() {
+  document.querySelector('#claude-credit-prompt').hidden =
+    claudeCreditAccounts.length > 0 && claudeCreditAccounts.every(account => account.expiresAt);
   const [primary, ...additional] = claudeCreditAccounts.map(account => {
     const id = account.accountUuid;
     const login = escapeHTML(account.login ?? 'Claude account');

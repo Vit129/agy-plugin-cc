@@ -128,13 +128,4 @@ enum UsageProvider: String, CaseIterable {
         case .codex: return "Codex"
         }
     }
-
-    var glyph: String {
-        switch self {
-        case .claude: return "C"
-        case .agy: return "A"
-        case .copilot: return "G"
-        case .codex: return "O"
-        }
-    }
 }
