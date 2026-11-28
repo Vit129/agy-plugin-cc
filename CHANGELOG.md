@@ -6,6 +6,16 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- The macOS setup installs and starts the Agent Usage dashboard, menu bar and reset-check services. The uninstall command removes the app, launcher and services.
+- Notifications settings link to Claude usage when a Full reset expiry is missing.
+
+### Changed
+- Agent Usage ships vector provider marks for the menu bar and dashboard.
+
+### Fixed
+- Agent Usage prevents linked worktree installs and startup unless explicitly allowed.
+
 ## [2.1.0] - 2026-11-28
 
 ### Added

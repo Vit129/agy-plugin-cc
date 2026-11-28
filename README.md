@@ -7,6 +7,31 @@ A Claude Code plugin that integrates **Google's Antigravity (agy) CLI** and **An
 This companion extension provides full job tracking, background execution, code review, and a session-aware stop-time review gate for **Google Antigravity** workflows.
 The same plugin tree also installs into OpenAI Codex CLI (see [Codex](#codex)); it replaces the separate `agy-plugin-codex` repository, which is no longer developed.
 
+## Quick start
+
+Install Node.js 18.18 or later and clone the repository to a directory you plan to keep.
+
+```bash
+git clone https://github.com/Vit129/agent-bridge.git
+cd agent-bridge
+npm run setup
+```
+
+| Checkbox | What it installs |
+| --- | --- |
+| Claude Code | The Antigravity companion plugin in Claude Code. |
+| Codex | The Antigravity companion plugin in OpenAI Codex CLI. |
+| agy | The companion plugin in Antigravity CLI for calling Claude Code. |
+| Agent Usage dashboard + menu bar | The local dashboard, menu bar app, launcher, and login services for the server, menu bar and scheduled reset checks. Available on macOS. |
+
+Setup pre-selects the CLIs it finds on your PATH and Agent Usage on macOS. Use arrow keys to move, Space to toggle the highlighted option, **a** to toggle all available options, and Enter to install. If macOS needs the Xcode Command Line Tools, run `xcode-select --install`, finish the Apple installer, then rerun setup.
+
+Use `npm run setup -- --usage` to install only Agent Usage. Add `--dry-run` to see the plan. Use `--all` to select all targets available on the current platform. Restart Claude Code and Codex after installing their plugins.
+
+Open [the dashboard](http://127.0.0.1:43127) or find **Agent Usage Bar** in the menu bar. Install and sign in to the provider CLIs you want to monitor. Claude quota probing uses Python 3.9+. In Settings, enable the providers you want, allow macOS notifications if prompted, and enter a Claude Full reset expiry if your account has one. Scheduled reset checks use the time you enter with the [dashboard schedule command](apps/agent-usage/README.md).
+
+To uninstall Agent Usage, run `npm run uninstall-usage` before deleting or moving the clone. This unloads the three services and removes their plists, the app and the launcher. Settings, history and account homes are retained. If you set `AGENT_USAGE_LABEL_PREFIX`, use the same value during uninstall. See the individual CLI sections below to remove their plugins.
+
 ## Prerequisites
 
 The Antigravity CLI must be installed and authenticated before using this plugin.
@@ -34,23 +59,6 @@ The Antigravity CLI must be installed and authenticated before using this plugin
    ```
 
 ## Installation
-
-### Interactive installer
-
-From a local clone, run the interactive multi-select installer to set up or update **Claude Code**, **Codex**, and **agy** (`agent-bridge`) in one pass:
-
-```bash
-npm run setup
-```
-
-Detected CLIs on `PATH` are pre-selected. Use arrow keys or `j`/`k` to move, `space` to toggle, `a` to toggle all, `enter` to confirm, and `q` or `Ctrl-C` to abort.
-
-For non-interactive or CI usage, pass target flags directly:
-
-```bash
-node scripts/install.mjs --all --dry-run
-node scripts/install.mjs --claude --codex --agy
-```
 
 ### Claude Code
 

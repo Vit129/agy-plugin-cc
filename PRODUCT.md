@@ -12,6 +12,7 @@ The users are developers running Claude Code or Codex with Antigravity installed
 - Quota Auto-Route: divert critical delegations to a provider with fresh headroom and record the decision.
 - Review: review and adversarial review of the current diff, `--deep`, and an optional stop-time review gate.
 - Web and media through agy: image generation, cited web research, page scraping, screenshot-based design review, document-to-Markdown.
+- On macOS, users can install and start Agent Usage from the clone with the setup command and remove the installed app and login services with the uninstall command.
 - Measurement uses per-job token counts and a `usage.jsonl` ledger. Agent Usage displays quota and model usage by account and reminds users before Claude Code Full reset and Codex reset credits expire. The dashboard detects local sign-ins and can open Terminal to sign in to additional accounts. The macOS menu bar shows active providers and their remaining quota alongside routes and credit expiry.
 
 Out of scope by decision: audio/video transcription (the `watch` plugin covers it), multi-round research engines, browser recording, cloud-specific debugging.
