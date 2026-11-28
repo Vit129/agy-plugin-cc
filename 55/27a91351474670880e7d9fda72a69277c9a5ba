@@ -1,0 +1,25 @@
+apps/agent-usage/view-model.mjs
+  s_38b8ab9a464290::t_87c6053b107fd6 35,56
+tests/architecture-guard.test.mjs
+  s_38b8ab9a464290::t_bf148d61cd845e 21-24,28,31
+tests/pages/dashboardPage.mjs
+  s_38b8ab9a464290::t_e0a56391a04056 16
+tests/tests-web/dashboard.ui.spec.mjs
+  s_38b8ab9a464290::t_d5d269f61ff549 47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "5527a91351474670880e7d9fda72a69277c9a5ba",
+  "prompts": {},
+  "sessions": {
+    "s_38b8ab9a464290": {
+      "agent_id": {
+        "tool": "gemini",
+        "id": "s_38b8ab9a464290",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
