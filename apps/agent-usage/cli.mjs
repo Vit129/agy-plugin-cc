@@ -5,7 +5,7 @@ import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { fileURLToPath } from 'node:url';
 import { defaultPort, startServer } from './server.mjs';
-import { forecastResetChecks } from './quota.mjs';
+import { defaultSettings, enabledProviders, forecastResetChecks, loadSettings } from './quota.mjs';
 import { readState, stateDirectory, writeState } from './state.mjs';
 
 const [command = 'ensure-running', input] = process.argv.slice(2);
@@ -51,6 +51,10 @@ try {
       await ensureRunning();
       if (input !== '--quiet') console.log(origin);
       break;
+    case 'on-provider-start':
+      if (!Object.hasOwn(defaultSettings.providers, input)) throw new Error('Unknown provider. Use claude, agy, copilot, or codex.');
+      if (enabledProviders(loadSettings(directory)).includes(input)) await ensureRunning();
+      break;
     case 'schedule': {
       if (!input || !/(?:Z|[+-]\d\d:\d\d)$/.test(input)) throw new Error('Pass the observed reset as an ISO timestamp with a timezone.');
       const count = Number(process.argv[4] ?? 6);
@@ -74,7 +78,7 @@ try {
       break;
     }
     default:
-      throw new Error('Usage: agent-usage [ensure-running|serve|schedule <reset-ISO> [rounds]|check-reset]');
+      throw new Error('Usage: agent-usage [ensure-running|on-provider-start <provider>|serve|schedule <reset-ISO> [rounds]|check-reset]');
   }
 } catch (error) {
   if (command === 'serve' && error.code === 'EADDRINUSE' && await ready()) process.exitCode = 0;

@@ -39,6 +39,22 @@ export function normalizeAgyCall(record, conversation) {
   });
 }
 
+export function normalizeCopilotCall(record) {
+  if (record?.type !== 'session.usage_record') return null;
+  const usage = record.data?.usage;
+  if (!usage) return null;
+  const call = modelCall({
+    id: usage.providerCallId || usage.accounting?.usageId || record.id,
+    provider: 'copilot',
+    model: usage.model,
+    timestamp: record.timestamp,
+    tokens: count(usage.inputTokens) + count(usage.outputTokens),
+    ok: usage.finishReason ? !['error', 'canceled', 'cancelled'].includes(usage.finishReason) : null,
+  });
+  if (call && Number.isFinite(usage.duration) && usage.duration >= 0) call.durationMs = usage.duration;
+  return call;
+}
+
 export function aggregateCalls(calls, days, now = Date.now()) {
   const since = now - days * DAY_MS;
   const unique = new Map();
@@ -89,17 +105,55 @@ async function readRecentLines(file, since, accept) {
   }
 }
 
-export async function readModelCalls({ env = process.env, now = Date.now() } = {}) {
+async function readCodexCalls(root, since, add) {
+  let entries;
+  try {
+    entries = await readdir(root, { recursive: true });
+  } catch (error) {
+    if (error.code === 'ENOENT') return;
+    throw error;
+  }
+  for (const entry of entries.filter(name => /^rollout-.*\.jsonl$/.test(path.basename(name)))) {
+    let turn;
+    let previousTotal;
+    await readRecentLines(path.join(root, entry), since, record => {
+      const payload = record?.payload;
+      if (record?.type === 'turn_context' && payload?.turn_id) {
+        if (turn?.id !== payload.turn_id) turn = { id: payload.turn_id, model: payload.model, tokens: 0 };
+      } else if (record?.type === 'event_msg' && payload?.type === 'token_count') {
+        const total = payload.info?.total_token_usage?.total_tokens;
+        if (!Number.isFinite(total)) return;
+        const tokens = total >= previousTotal ? total - previousTotal : count(payload.info?.last_token_usage?.total_tokens);
+        previousTotal = total;
+        if (turn) turn.tokens += tokens;
+      } else if (record?.type === 'event_msg' && ['task_complete', 'turn_aborted'].includes(payload?.type) &&
+        turn?.id === payload.turn_id && turn.tokens > 0) {
+        const call = modelCall({
+          ...turn, provider: 'codex', timestamp: record.timestamp,
+          ok: payload.type === 'task_complete',
+        });
+        if (call && Number.isFinite(payload.duration_ms) && payload.duration_ms >= 0) call.durationMs = payload.duration_ms;
+        add(call);
+        turn = undefined;
+      }
+    });
+  }
+}
+
+export async function readModelCalls({ env = process.env, now = Date.now(), providers = ['claude', 'agy', 'copilot', 'codex'] } = {}) {
   const since = now - 30 * DAY_MS;
   const userHome = os.homedir();
   const roots = {
     claude: path.join(env.CLAUDE_CONFIG_DIR || path.join(userHome, '.claude'), 'projects'),
     agy: path.join(env.AGY_HOME || path.join(userHome, '.gemini', 'antigravity-cli'), 'brain'),
+    copilot: path.join(env.COPILOT_HOME || path.join(userHome, '.copilot'), 'session-state'),
+    codex: path.join(env.CODEX_HOME || path.join(userHome, '.codex'), 'sessions'),
   };
   const calls = [];
   const add = call => { if (call && call.at >= since) calls.push(call); };
   await Promise.all([
     (async () => {
+      if (!providers.includes('claude')) return;
       for (const folder of await directories(roots.claude)) {
         const project = path.join(roots.claude, folder);
         let entries;
@@ -112,11 +166,20 @@ export async function readModelCalls({ env = process.env, now = Date.now() } = {
       }
     })(),
     (async () => {
+      if (!providers.includes('agy')) return;
       for (const conversation of await directories(roots.agy)) {
         const transcript = path.join(roots.agy, conversation, '.system_generated', 'logs', 'transcript.jsonl');
         await readRecentLines(transcript, since, line => add(normalizeAgyCall(line, conversation)));
       }
     })(),
+    (async () => {
+      if (!providers.includes('copilot')) return;
+      for (const session of await directories(roots.copilot)) {
+        const events = path.join(roots.copilot, session, 'events.jsonl');
+        await readRecentLines(events, since, line => add(normalizeCopilotCall(line)));
+      }
+    })(),
+    providers.includes('codex') ? readCodexCalls(roots.codex, since, add) : undefined,
   ]);
   return calls;
 }

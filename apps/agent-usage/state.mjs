@@ -1,12 +1,7 @@
 import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-
-export function stateDirectory(env = process.env) {
-  if (env.AGENT_USAGE_STATE_DIR) return env.AGENT_USAGE_STATE_DIR;
-  return path.join(env.XDG_STATE_HOME || path.join(os.homedir(), '.local', 'state'), 'agent-usage');
-}
+export { resolveAgentUsageState as stateDirectory } from '../../plugins/agy/scripts/lib/quota-route.mjs';
 
 export function readState(directory, file, fallback) {
   try {

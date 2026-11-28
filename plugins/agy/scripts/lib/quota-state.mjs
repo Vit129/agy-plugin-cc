@@ -117,22 +117,34 @@ export function readProviderQuota(provider, options = {}) {
   const nowSec = options.nowSec ?? Math.floor(Date.now() / 1000);
   const dir = resolveQuotaDir(env);
   const raw = readJsonSafe(path.join(dir, `${provider}.json`));
+  const native = options.statusLineOnly ? null : readJsonSafe(path.join(dir, `native-${provider}.json`));
   const cooldowns = readCooldowns({ env });
 
   const poolNames = provider === "claude" ? ["default"] : ["gemini", "argon", "3p"];
   const pools = {};
   for (const pool of poolNames) {
-    const rawPool = raw?.pools?.[pool] ?? {};
     const cd = cooldowns[`${provider}:${pool}`] ?? null;
-    const w5 = evaluateWindow(rawPool["5h"], raw?.captured_at ?? null, cd, nowSec);
-    const w7 = evaluateWindow(rawPool["7d"], raw?.captured_at ?? null, cd, nowSec);
-    pools[pool] = { "5h": w5, "7d": w7 };
+    const statusLine = Object.fromEntries(["5h", "7d"].map(window =>
+      [window, evaluateWindow(raw?.pools?.[pool]?.[window], raw?.captured_at, cd, nowSec)]));
+    const nativePool = native?.pools?.[pool];
+    const complete = Object.values(statusLine).every(window => window.state === "live");
+    if (!nativePool || complete) {
+      pools[pool] = statusLine;
+      continue;
+    }
+    pools[pool] = Object.fromEntries(Object.entries(statusLine).map(([window, cached]) => {
+      if (!nativePool[window]) return [window, cached];
+      const sampled = evaluateWindow(nativePool[window], native.captured_at, cd, nowSec);
+      const useNative = sampled.state === "live"
+        && (cached.state !== "live" || native.captured_at > raw?.captured_at);
+      return [window, useNative || cached.state === "unknown" ? sampled : cached];
+    }));
   }
 
   return {
     provider,
-    available: Boolean(raw),
-    capturedAt: raw?.captured_at ?? null,
+    available: Boolean(raw || native),
+    capturedAt: Math.max(raw?.captured_at ?? 0, native?.captured_at ?? 0) || null,
     activeModel: raw?.active_model ?? null,
     activePool: raw?.active_pool ?? null,
     pools
@@ -144,6 +156,17 @@ export function readAllQuota(options = {}) {
     claude: readProviderQuota("claude", options),
     agy: readProviderQuota("agy", options)
   };
+}
+
+export function writeNativeQuota(provider, sample, env = process.env) {
+  const pool = { claude: "default", agy: "gemini" }[provider];
+  if (!pool) return;
+  const windows = Object.fromEntries(Object.entries(sample.windows)
+    .filter(([, window]) => window)
+    .map(([key, window]) => [key, { remaining_pct: window.remaining, resets_at: window.resetsAt }]));
+  writeJsonAtomic(path.join(resolveQuotaDir(env), `native-${provider}.json`), {
+    schema_version: 1, provider, captured_at: Math.floor(sample.captured / 1000), pools: { [pool]: windows }
+  });
 }
 
 function poolBottleneckRem(poolObj) {

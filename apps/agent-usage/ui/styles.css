@@ -156,6 +156,15 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .settings-dialog::backdrop { background: #08080ab8; }
 .settings-dialog form { display: grid; gap: 14px; }
 .settings-dialog h2 { margin: 0; }
+.settings-dialog h3, .provider-settings legend { font-size: 15px; font-weight: 700; }
+.provider-settings { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
+.provider-settings legend { padding: 0; }
+.provider-settings label { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 38px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.provider-settings input { appearance: none; display: grid; align-items: center; width: 42px; height: 24px; margin: 0; padding: 0 3px; border: 1px solid var(--muted); border-radius: 20px; background: var(--track); cursor: pointer; }
+.provider-settings input::before { content: ""; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); }
+.provider-settings input:checked { background: var(--accent); border-color: var(--accent); }
+.provider-settings input:checked::before { transform: translateX(18px); background: var(--bg); }
+.provider-settings input:focus-visible { outline-color: var(--ink); }
 .settings-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
 .settings-fields label { color: var(--muted); font-size: 13px; font-weight: 650; }
 .settings-fields input { display: block; width: 100%; margin-top: 3px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); padding: 6px 8px; }
@@ -191,3 +200,10 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .schedule-list li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 8px 18px; border-top: 1px solid var(--line); }
 .schedule-list time, .schedule-list span { color: var(--muted); font-size: 13px; }
 .no-models { color: var(--muted); }
+
+.copilot .provider-mark { background: var(--inset); color: var(--ink); }
+.copilot { --meter-color: var(--muted); }
+.codex .provider-mark { background: var(--accent-bg); color: var(--accent); }
+.codex { --meter-color: var(--accent); }
+.plan-row[data-provider="copilot"] .window { grid-column: span 2; }
+.window[data-window="monthly"] .mobile-window { display: inline; color: var(--muted); font-size: 11px; }

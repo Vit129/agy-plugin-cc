@@ -19,10 +19,10 @@
 <main class="shell">
   <section class="overview-dashboard" id="overview-panel" aria-labelledby="overview-heading">
     <div class="overview">
-      <div><h1 id="overview-heading">Usage overview</h1><p>Claude Code &amp; Antigravity</p></div>
+      <div><h1 id="overview-heading">Usage overview</h1></div>
       <div class="overview-actions">
         <span class="server-label"><span class="dot" aria-hidden="true"></span>Local dashboard</span>
-        <button class="action" id="open-settings" type="button" data-testid="btn_openAlertSettings_monitorPage">Alert settings</button>
+        <button class="action" id="open-settings" type="button" data-testid="btn_openAlertSettings_monitorPage">Settings</button>
       </div>
     </div>
     <div class="notice" role="status" data-testid="lbl_quotaAlert_monitorPage">
@@ -37,6 +37,7 @@
       <div class="plan-grid plan-columns" aria-hidden="true"><span>Provider</span><span>5-hour window</span><span>7-day window</span><span>Sessions left</span></div>
       <div id="quota-rows"></div>
       <p class="plan-note" id="estimate-note"></p>
+      <div class="plan-note" id="quota-routes" aria-label="Quota Auto-Route" data-testid="lbl_quotaRoutes_monitorPage"></div>
     </section>
     <section class="panel model-panel" aria-labelledby="by-model">
       <div class="section-title">
@@ -59,22 +60,38 @@
     </section>
     <details class="panel disclosure">
       <summary data-testid="btn_terminalStartup_monitorPage">Terminal startup</summary>
-      <div class="startup-content"><code>claude</code> or <code>agy</code><span aria-hidden="true">→</span><span>Start or reuse the local dashboard server</span></div>
+      <div class="startup-content">
+        <code>claude</code><code>agy</code><code>copilot</code><code>codex</code>
+      </div>
+      <p class="startup-content"><span>With terminal integration installed, launching an enabled provider starts or reuses the local dashboard server. Off skips dashboard startup.</span></p>
+      <p class="startup-content"><span>Run <code>agent-usage</code> to start the dashboard manually.</span></p>
     </details>
   </section>
 </main>
 <dialog class="settings-dialog" aria-labelledby="settings-heading" data-testid="dlg_alertSettings_monitorPage">
   <form id="quota-settings">
-    <h2 id="settings-heading">Alert settings</h2>
+    <h2 id="settings-heading">Settings</h2>
+    <fieldset class="provider-settings">
+      <legend>Providers</legend>
+      <p class="plan-caption">Enabled providers appear in the dashboard and are monitored for quota alerts.</p>
+      <label>Claude Code <input type="checkbox" role="switch" data-monitor-provider="claude" data-testid="chk_claudeProvider_monitorPage"></label>
+      <label>Antigravity <input type="checkbox" role="switch" data-monitor-provider="agy" data-testid="chk_agyProvider_monitorPage"></label>
+      <label>GitHub Copilot <input type="checkbox" role="switch" data-monitor-provider="copilot" data-testid="chk_copilotProvider_monitorPage"></label>
+      <label>OpenAI Codex <input type="checkbox" role="switch" data-monitor-provider="codex" data-testid="chk_codexProvider_monitorPage"></label>
+    </fieldset>
+    <h3>Quota alerts</h3>
     <p class="plan-caption">Trigger an alert when the remaining quota reaches or falls below each level.</p>
     <div class="settings-fields">
       <label>Yellow · Watch (%)<input name="watch" type="number" min="2" max="100" step="1" required data-testid="txt_watchThreshold_monitorPage"></label>
       <label>Orange · Low (%)<input name="low" type="number" min="1" max="99" step="1" required data-testid="txt_lowThreshold_monitorPage"></label>
       <label>Red · Critical (%)<input name="critical" type="number" min="0" max="98" step="1" required data-testid="txt_criticalThreshold_monitorPage"></label>
       <label>Expected quota per session (%)<input name="cost" type="number" min="1" max="100" step="1" required data-testid="txt_sessionCost_monitorPage"></label>
+      <label>Refresh enabled providers every (min)<input name="refreshMinutes" type="number" min="1" max="60" step="1" required data-testid="txt_refreshMinutes_monitorPage"></label>
       <label>Target sessions per provider<input name="target" type="number" min="1" max="100" step="1" required data-testid="txt_sessionTarget_monitorPage"></label>
     </div>
     <p class="form-error" role="alert"></p>
+    <button type="button" class="action" id="test-notification" data-testid="btn_testNotification_monitorPage">Test macOS notification</button>
+    <p id="notification-result" class="plan-caption" role="status"></p>
     <div class="settings-actions">
       <button class="action" type="button" id="cancel-settings" data-testid="btn_cancelAlertSettings_monitorPage">Cancel</button>
       <button class="action primary" type="submit" data-testid="btn_saveAlertSettings_monitorPage">Save settings</button>
