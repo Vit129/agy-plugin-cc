@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 
 import { syncSharedLibs } from "./build-cc-for-agy.mjs";
 
-const REPO_SLUG = "Vit129/agy-plugin-cc";
+const REPO_SLUG = "Vit129/agent-bridge";
 
 export function packageCcForAgy(root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")) {
   syncSharedLibs(root);
@@ -32,7 +32,7 @@ export function packageCcForAgy(root = path.resolve(path.dirname(fileURLToPath(i
   fs.mkdirSync(marketplaceDir, { recursive: true });
   const marketplacePath = path.join(marketplaceDir, "marketplace.json");
   const marketplace = {
-    name: "agy-plugin-cc",
+    name: "agent-bridge",
     owner: {
       name: "Supavit Cho",
       url: "https://github.com/supavit-cho"
@@ -43,7 +43,7 @@ export function packageCcForAgy(root = path.resolve(path.dirname(fileURLToPath(i
     },
     plugins: [
       {
-        name: "cc-for-agy",
+        name: pluginManifest.name,
         description:
           "Antigravity (agy) native plugin to delegate, cold-review, handoff, and quota-route tasks to Claude Code CLI.",
         version,

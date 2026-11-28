@@ -1,4 +1,4 @@
-# agy-plugin-cc — Context
+# agent-bridge — Context
 
 Domain terms as used in `plugins/agy/scripts/`.
 

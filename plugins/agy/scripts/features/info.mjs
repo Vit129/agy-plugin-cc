@@ -38,7 +38,7 @@ export function buildHostDoctor(manifestVersion) {
     ".claude",
     "plugins",
     "marketplaces",
-    "agy-plugin-cc.json"
+    "agent-bridge.json"
   );
   const codexConfig = fs.existsSync(codexConfigPath)
     ? fs.readFileSync(codexConfigPath, "utf8")
@@ -48,7 +48,7 @@ export function buildHostDoctor(manifestVersion) {
   if (host === "codex") {
     const skillPathMatches = [
       ...codexConfig.matchAll(
-        /path = "([^"]*agy-plugin-cc\/agy\/([^"]+)\/skills\/[^"]+\/SKILL\.md)"/g
+        /path = "([^"]*agent-bridge\/agy\/([^"]+)\/skills\/[^"]+\/SKILL\.md)"/g
       )
     ];
     const skillPaths = skillPathMatches.map((match) => match[1]);
@@ -59,7 +59,7 @@ export function buildHostDoctor(manifestVersion) {
       host,
       configPath: codexConfigPath,
       configExists: Boolean(codexConfig),
-      pluginEnabled: /\[plugins\."agy@agy-plugin-cc"\][\s\S]*?enabled = true/.test(codexConfig),
+      pluginEnabled: /\[plugins\."agy@agent-bridge"\][\s\S]*?enabled = true/.test(codexConfig),
       skillPaths,
       staleSkillPaths
     };

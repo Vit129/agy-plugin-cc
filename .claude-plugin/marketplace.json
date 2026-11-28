@@ -1,18 +1,18 @@
 {
-  "name": "agy-plugin-cc",
+  "name": "agent-bridge",
   "owner": {
     "name": "Supavit Cho",
     "url": "https://github.com/supavit-cho"
   },
   "metadata": {
     "description": "Antigravity (agy) CLI integration for Claude Code",
-    "version": "1.9.2"
+    "version": "2.0.0"
   },
   "plugins": [
     {
       "name": "agy",
       "description": "Delegate coding tasks to Antigravity (agy) CLI from Claude Code — full rescue, resume, background execution, code review, and stop-time review gate.",
-      "version": "1.9.2",
+      "version": "2.0.0",
       "author": {
         "name": "Supavit Cho"
       },

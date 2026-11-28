@@ -60,7 +60,7 @@ test("parseInstallArgs handles target flags, --all, --dry-run, --help, and unkno
 });
 
 test("buildInstallPlan generates expected commands per target", () => {
-  const repoRoot = "/tmp/agy-plugin-cc";
+  const repoRoot = "/tmp/agent-bridge";
   const plan = buildInstallPlan(["claude", "codex", "agy"], repoRoot);
 
   assert.equal(plan.length, 3);
@@ -68,24 +68,24 @@ test("buildInstallPlan generates expected commands per target", () => {
     {
       cmd: "claude",
       args: ["plugin", "marketplace", "add", repoRoot],
-      fallback: { cmd: "claude", args: ["plugin", "marketplace", "update", "agy-plugin-cc"] }
+      fallback: { cmd: "claude", args: ["plugin", "marketplace", "update", "agent-bridge"] }
     },
     {
       cmd: "claude",
-      args: ["plugin", "install", "agy@agy-plugin-cc"],
-      fallback: { cmd: "claude", args: ["plugin", "update", "agy@agy-plugin-cc"] }
+      args: ["plugin", "install", "agy@agent-bridge"],
+      fallback: { cmd: "claude", args: ["plugin", "update", "agy@agent-bridge"] }
     }
   ]);
 
   assert.deepEqual(plan[1].steps, [
     {
       cmd: "codex",
-      args: ["plugin", "marketplace", "add", "Vit129/agy-plugin-cc"],
-      fallback: { cmd: "codex", args: ["plugin", "marketplace", "upgrade", "agy-plugin-cc"] }
+      args: ["plugin", "marketplace", "add", "Vit129/agent-bridge"],
+      fallback: { cmd: "codex", args: ["plugin", "marketplace", "upgrade", "agent-bridge"] }
     },
     {
       cmd: "codex",
-      args: ["plugin", "add", "agy@agy-plugin-cc"]
+      args: ["plugin", "add", "agy@agent-bridge"]
     }
   ]);
 
@@ -137,10 +137,10 @@ test("runInstallPlan uses fallback on failure and continues after target failure
 
   assert.deepEqual(calls, [
     "claude plugin marketplace add /repo",
-    "claude plugin marketplace update agy-plugin-cc",
-    "claude plugin install agy@agy-plugin-cc",
-    "codex plugin marketplace add Vit129/agy-plugin-cc",
-    "codex plugin add agy@agy-plugin-cc",
+    "claude plugin marketplace update agent-bridge",
+    "claude plugin install agy@agent-bridge",
+    "codex plugin marketplace add Vit129/agent-bridge",
+    "codex plugin add agy@agent-bridge",
     "agy plugin install /repo/plugins/cc-for-agy"
   ]);
 

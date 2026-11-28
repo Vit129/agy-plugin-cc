@@ -1,8 +1,8 @@
-# agy-plugin-cc — Agent Instructions
+# agent-bridge — Agent Instructions
 
 ## Agent Memory
 
-Per-project memory lives centrally in `~/Git/Personal/unified-memory-vault/memory-vault/agy-plugin-cc/` (never in this repo). Resolve path via `python3 ~/.claude/scripts/lib/memory_root.py .` or search via `python3 ~/.claude/scripts/recall.py "<query>"`.
+Per-project memory lives in the central memory vault. Resolve its path via `python3 ~/.claude/scripts/lib/memory_root.py .` or search via `python3 ~/.claude/scripts/recall.py "<query>"`.
 
 ## Global-First Rule
 

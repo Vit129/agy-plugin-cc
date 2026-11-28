@@ -11,8 +11,8 @@ export const TARGETS = [
   { id: "agy", label: "agy", bin: "agy" }
 ];
 
-const REPO_SLUG = "Vit129/agy-plugin-cc";
-const MARKETPLACE_NAME = "agy-plugin-cc";
+const REPO_SLUG = "Vit129/agent-bridge";
+const MARKETPLACE_NAME = "agent-bridge";
 const PLUGIN_REF = `agy@${MARKETPLACE_NAME}`;
 
 export function getUsage() {
@@ -25,7 +25,7 @@ export function getUsage() {
     "Options:",
     "  --claude    Install/update plugin for Claude Code",
     "  --codex     Install/update plugin for Codex",
-    "  --agy       Install/update cc-for-agy plugin for agy",
+    "  --agy       Install/update agent-bridge plugin for agy",
     "  --all       Select all targets (Claude Code, Codex, agy)",
     "  --dry-run   Print planned commands without executing them",
     "  -h, --help  Show this help message"

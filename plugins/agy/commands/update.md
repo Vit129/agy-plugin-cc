@@ -1,5 +1,5 @@
 ---
-description: Check whether a newer agy-plugin-cc is available on GitHub and pull it after confirmation (git-clone installs)
+description: Check whether a newer agent-bridge is available on GitHub and pull it after confirmation (git-clone installs)
 argument-hint: '[--pull|--dismiss]'
 allowed-tools: Bash(node:*), AskUserQuestion
 ---

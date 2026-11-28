@@ -7,12 +7,12 @@ import { isWorkingTreeDirty } from "./git.mjs";
 import { runCommand } from "./process.mjs";
 
 // Bump alongside version.json at the repo root whenever a feature ships.
-export const CURRENT_VERSION = 16;
+export const CURRENT_VERSION = 17;
 
-const REPO = "Vit129/agy-plugin-cc";
+const REPO = "Vit129/agent-bridge";
 const VERSION_URL = `https://raw.githubusercontent.com/${REPO}/main/version.json`;
 const FETCH_TIMEOUT_MS = 2500;
-const CONFIG_DIR = path.join(os.homedir(), ".config", "agy-plugin-cc");
+const CONFIG_DIR = path.join(os.homedir(), ".config", "agent-bridge");
 const DISMISS_FILE = path.join(CONFIG_DIR, "update-dismissed");
 
 function findGitRoot(startDir) {
@@ -120,7 +120,7 @@ export function formatUpdateNotice(report) {
   }
   const versionLabel = `v${report.currentVersion} -> v${report.remoteVersion}`;
   if (report.dirty) {
-    return `agy-plugin-cc git update available (${versionLabel}): working tree has uncommitted changes, pull manually later.`;
+    return `agent-bridge git update available (${versionLabel}): working tree has uncommitted changes, pull manually later.`;
   }
-  return `agy-plugin-cc git update available (${versionLabel}, ${report.updated}): ${report.summary}. Run /agy:update (Claude) or $agy update (Codex) to review and pull.`;
+  return `agent-bridge git update available (${versionLabel}, ${report.updated}): ${report.summary}. Run /agy:update (Claude) or $agy update (Codex) to review and pull.`;
 }

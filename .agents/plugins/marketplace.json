@@ -1,7 +1,7 @@
 {
-  "name": "agy-plugin-cc",
+  "name": "agent-bridge",
   "interface": {
-    "displayName": "Agy Plugin CC"
+    "displayName": "Agent Bridge"
   },
   "plugins": [
     {
