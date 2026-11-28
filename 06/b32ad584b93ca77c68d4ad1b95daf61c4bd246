@@ -1,0 +1,19 @@
+.agy-plugin/marketplace.json
+  s_c05b716a2358fb::t_0144709f453f17 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "06b32ad584b93ca77c68d4ad1b95daf61c4bd246",
+  "prompts": {},
+  "sessions": {
+    "s_c05b716a2358fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a22206-6bbd-7482-ba61-b22d220c0032",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
