@@ -1,3 +1,5 @@
+import { availableResetCredits, creditExpiryLabel } from './reset-credits.mjs';
+
 const labels = { healthy: 'Healthy', watch: 'Watch', low: 'Low', critical: 'Critical', unknown: 'Unavailable' };
 const states = { live: 'Live', aging: 'Stale', reset_assumed: 'Awaiting fresh quota', exhausted: 'Cooldown reported', unknown: 'Unavailable' };
 const severity = { watch: 1, low: 2, critical: 3 };
@@ -9,6 +11,9 @@ const localClock = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeS
 const notificationError = document.querySelector('#alert-details');
 const form = document.querySelector('#quota-settings');
 const providerSwitches = [...form.querySelectorAll('[data-monitor-provider]')];
+const accountSettings = form.querySelector('.account-settings');
+const accountGroups = [...accountSettings.querySelectorAll('[data-account-provider]')];
+const accountTemplate = form.querySelector('#account-row-template');
 const dialog = document.querySelector('.settings-dialog');
 const modelButtons = [...document.querySelectorAll('[data-model-days]')];
 let settings;
@@ -49,6 +54,27 @@ function renderSchedule(schedule, checks) {
 
 function displayQuotaPercent(remaining) {
   return Math.floor(remaining);
+}
+
+function renderResetCredits(quota) {
+  const panel = document.querySelector('#reset-credits');
+  const now = Date.now();
+  const rows = quota.flatMap(row => {
+    const summary = row.rateLimitResetCredits;
+    const available = availableResetCredits(summary, now).sort((first, second) =>
+      (first.expiresAt ?? Infinity) - (second.expiresAt ?? Infinity));
+    if (summary?.credits === null && summary.availableCount > 0) {
+      return [`<li><span>${escapeHTML(row.label)}</span><span>${summary.availableCount} available · expiry details unavailable</span></li>`];
+    }
+    return available.map(credit => {
+      const account = row.accountId ? `${escapeHTML(row.label)} · ` : '';
+      const label = creditExpiryLabel(credit.expiresAt, now);
+      const expiry = credit.expiresAt === null ? label : `<time datetime="${new Date(credit.expiresAt * 1000).toISOString()}">${escapeHTML(label)}</time>`;
+      return `<li><span>${account}${escapeHTML(credit.title || 'Rate limit reset')}</span><span>${expiry}</span></li>`;
+    });
+  });
+  panel.hidden = rows.length === 0;
+  panel.querySelector('ul').innerHTML = rows.join('');
 }
 
 function renderQuota(data) {
@@ -93,6 +119,7 @@ function renderQuota(data) {
   document.querySelector('#estimate-note').textContent = quota.length
     ? `Estimates assume ${settings.cost}% of quota per session. Enabled providers refresh every ${settings.refreshMinutes} min.`
     : 'Enable a provider in Settings to show its quota.';
+  renderResetCredits(quota);
   renderSchedule(schedule, checks);
 }
 
@@ -118,7 +145,8 @@ async function loadModels(days) {
     output.innerHTML = models.map(model => {
       const time = model.avgMs === null ? '—' : model.avgMs < 1000 ? `${Math.round(model.avgMs)}ms` : `${(model.avgMs / 1000).toFixed(1)}s`;
       const ok = model.okPct === null ? '—' : `${model.okPct}%`;
-      return `<tr class="${model.provider}"><th scope="row"><span class="model-label"><span class="dot" aria-hidden="true"></span>${escapeHTML(model.model)}</span></th><td class="model-numeric">${model.calls}</td><td class="model-numeric">${ok}</td><td><span class="model-tokens"><span>${compact.format(model.tokens)}</span><span class="rail" aria-hidden="true"><span style="width: ${model.tokens / highest * 100}%"></span></span></span></td><td class="model-numeric">${time}</td></tr>`;
+      const account = model.label ? `<small class="model-account">${escapeHTML(model.label)}</small>` : '';
+      return `<tr class="${model.provider}"><th scope="row"><span class="model-label"><span class="dot" aria-hidden="true"></span>${escapeHTML(model.model)}</span>${account}</th><td class="model-numeric">${model.calls}</td><td class="model-numeric">${ok}</td><td><span class="model-tokens"><span>${compact.format(model.tokens)}</span><span class="rail" aria-hidden="true"><span style="width: ${model.tokens / highest * 100}%"></span></span></span></td><td class="model-numeric">${time}</td></tr>`;
     }).join('') || '<tr><td class="no-models" colspan="5">No model usage found in this range.</td></tr>';
   } catch {
     if (current === modelRequest) output.innerHTML = '<tr><td class="no-models" colspan="5">Could not read local model usage.</td></tr>';
@@ -132,10 +160,40 @@ for (const button of modelButtons) {
   });
 }
 
+function addAccount(group, account = { id: crypto.randomUUID(), label: '', home: '' }) {
+  const row = accountTemplate.content.firstElementChild.cloneNode(true);
+  row.dataset.accountId = account.id;
+  const label = row.querySelector('[data-account-label]');
+  const home = row.querySelector('[data-account-home]');
+  const provider = group.dataset.accountProvider;
+  label.value = account.label;
+  home.value = account.home;
+  label.dataset.testid = `txt_${provider}AccountLabel_monitorPage`;
+  home.dataset.testid = `txt_${provider}AccountHome_monitorPage`;
+  row.querySelector('[data-remove-account]').dataset.testid = `btn_remove${provider[0].toUpperCase()}${provider.slice(1)}Account_monitorPage`;
+  group.querySelector('.account-rows').append(row);
+  return label;
+}
+
+accountSettings.addEventListener('click', event => {
+  const button = event.target.closest('button');
+  if (!button) return;
+  const group = button.closest('[data-account-provider]');
+  if (button.hasAttribute('data-add-account')) addAccount(group).focus();
+  if (button.hasAttribute('data-remove-account')) {
+    button.closest('.account-row').remove();
+    group.querySelector('[data-add-account]').focus();
+  }
+});
+
 document.querySelector('#open-settings').addEventListener('click', () => {
   if (!settings) return;
   for (const field of form.querySelectorAll('input[type="number"]')) field.value = settings[field.name];
   for (const input of providerSwitches) input.checked = settings.providers[input.dataset.monitorProvider];
+  for (const group of accountGroups) {
+    group.querySelector('.account-rows').replaceChildren();
+    for (const account of settings.accounts?.[group.dataset.accountProvider] ?? []) addAccount(group, account);
+  }
   form.querySelector('.form-error').textContent = '';
   dialog.showModal();
 });
@@ -158,6 +216,14 @@ form.addEventListener('submit', async event => {
   if (savingSettings) return;
   const values = Object.fromEntries([...new FormData(form)].map(([key, value]) => [key, Number(value)]));
   values.providers = Object.fromEntries(providerSwitches.map(input => [input.dataset.monitorProvider, input.checked]));
+  values.accounts = Object.fromEntries(accountGroups.map(group => [
+    group.dataset.accountProvider,
+    [...group.querySelectorAll('.account-row')].map(row => ({
+      id: row.dataset.accountId,
+      label: row.querySelector('[data-account-label]').value,
+      home: row.querySelector('[data-account-home]').value,
+    })),
+  ]));
   const submitButton = form.querySelector('[type=submit]');
   savingSettings = true;
   submitButton.disabled = true;

@@ -6,17 +6,20 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { chooseRoute } from '../../plugins/agy/scripts/lib/quota-route.mjs';
 import { readAllQuota, writeNativeQuota } from '../../plugins/agy/scripts/lib/quota-state.mjs';
-import { defaultSettings, enabledProviders, loadSettings, planQuotaAlerts, validSettings } from './quota.mjs';
+import { accountEnvironment, accountsForProvider, normalizeAccounts } from './accounts.mjs';
+import { defaultSettings, enabledProviders, loadSettings, planQuotaAlerts, providerLabel, validSettings } from './quota.mjs';
 import { createLiveQuotaReader } from './live-quota.mjs';
+import { creditReminderPrefix, planResetCreditAlerts } from './reset-credits.mjs';
 import { aggregateCalls, readModelCalls } from './usage.mjs';
 import { readState, stateDirectory, writeState } from './state.mjs';
 
 export const defaultPort = 43127;
 const run = promisify(execFile);
 const assets = {
-  '/': ['index.html', 'text/html; charset=utf-8'],
-  '/dashboard.mjs': ['dashboard.mjs', 'text/javascript; charset=utf-8'],
-  '/styles.css': ['styles.css', 'text/css; charset=utf-8'],
+  '/': ['ui/index.html', 'text/html; charset=utf-8'],
+  '/dashboard.mjs': ['ui/dashboard.mjs', 'text/javascript; charset=utf-8'],
+  '/styles.css': ['ui/styles.css', 'text/css; charset=utf-8'],
+  '/reset-credits.mjs': ['reset-credits.mjs', 'text/javascript; charset=utf-8'],
 };
 
 async function notifyMacOS(alert) {
@@ -35,7 +38,7 @@ export function quotaSummary(rows) {
   if (!rows.length) return 'No quota data yet.';
   return rows.map(row => {
     const known = row.windows.filter(window => Number.isFinite(window.remaining)).map(window => `${window.short} ${percent(window.remaining)}`);
-    return `${row.label.split(' · ')[0]} ${known.join(' · ') || 'no data'}`;
+    return `${row.accountId ? row.label : row.label.split(' · ')[0]} ${known.join(' · ') || 'no data'}`;
   }).join(' | ');
 }
 
@@ -55,14 +58,16 @@ function sendJSON(response, status, object) {
 
 async function parseSettings(request) {
   if (request.headers['content-type']?.split(';')[0] !== 'application/json') return null;
+  request.setEncoding('utf8');
   let text = '';
   for await (const part of request) {
     text += part;
-    if (Buffer.byteLength(text) > 2048) return null;
+    if (Buffer.byteLength(text) > 65_536) return null;
   }
   try {
     const parsed = JSON.parse(text);
     if (!validSettings(parsed)) return null;
+    if (Object.hasOwn(parsed, 'accounts')) parsed.accounts = normalizeAccounts(parsed.accounts);
     return Object.fromEntries(Object.keys(defaultSettings).filter(key => Object.hasOwn(parsed, key)).map(key => [key, parsed[key]]));
   } catch {
     return null;
@@ -101,16 +106,20 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         agyToClaude: { requested: 'claude', ...chooseRoute(shared, { ...settings, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }) },
       };
       const active = enabledProviders(settings);
-      const enabledObservations = Object.fromEntries(Object.entries(observed).filter(([key]) => active.includes(key.split(':', 1)[0])));
-      const next = planQuotaAlerts(quota, enabledObservations, { baseline: Boolean(settingsUpdate), now: time });
+      const enabledObservations = Object.fromEntries(Object.entries(observed).filter(([key]) =>
+        key.startsWith(creditReminderPrefix) || active.includes(key.split(':', 1)[0])));
+      const thresholds = planQuotaAlerts(quota, enabledObservations, { baseline: Boolean(settingsUpdate), now: time });
+      const next = planResetCreditAlerts(quota, thresholds.state, time);
+      next.alerts.unshift(...thresholds.alerts);
       const previous = observed;
       if (next.alerts.length) notificationError = null;
       for (const alert of next.alerts) {
         try {
-          await notify({ ...alert, message: alertMessage(alert, routes) });
+          await notify({ ...alert, message: alert.message ?? alertMessage(alert, routes) });
         } catch (error) {
           notificationError = error.message;
-          next.state[alert.key] = previous[alert.key];
+          if (Object.hasOwn(previous, alert.key)) next.state[alert.key] = previous[alert.key];
+          else delete next.state[alert.key];
           process.stderr.write(`Agent Usage · notification: ${error.message}\n`);
         }
       }
@@ -125,7 +134,10 @@ export async function startServer({ port = defaultPort, env = process.env, notif
           const isCurrent = at === latest && time - at < 5 * 60 * 1000;
           checks[at] = isCurrent && quota.length ? {
             checkedAt: time,
-            windows: quota.map(row => ({ provider: row.provider, state: row.windows[0].state, resetsAt: row.windows[0].resetsAt })),
+            windows: quota.map(row => ({
+              provider: row.provider, ...(row.accountId ? { accountId: row.accountId } : {}),
+              state: row.windows[0].state, resetsAt: row.windows[0].resetsAt,
+            })),
           } : isCurrent ? { skippedAt: time } : { missedAt: time };
         }
         writeState(directory, 'reset-checks.json', checks);
@@ -140,7 +152,8 @@ export async function startServer({ port = defaultPort, env = process.env, notif
           process.stderr.write(`Agent Usage · scheduled notification: ${error.message}\n`);
         }
       }
-      return { quota, settings, schedule, checks, notificationError, routes };
+      const rows = quota.map(({ creditsObservedAt, ...row }) => row);
+      return { quota: rows, settings, schedule, checks, notificationError, routes };
     });
     refreshQueue = action.catch(error => process.stderr.write(`Agent Usage · refresh: ${error.message}\n`));
     return action;
@@ -148,10 +161,18 @@ export async function startServer({ port = defaultPort, env = process.env, notif
 
   function getModels(days) {
     const providers = enabledProviders(settings);
-    const key = providers.join(',');
+    const profiles = providers.flatMap(provider => accountsForProvider(settings, provider).map(account => ({ provider, account })));
+    const key = JSON.stringify(profiles);
     const time = now();
     if (!loadingModels || loadingModels.key !== key || time - loadingModels.at > 60_000) {
-      const promise = readModelCalls({ env, now: time, providers }).catch(error => {
+      const promise = Promise.all(profiles.map(async ({ provider, account }) => {
+        const calls = await readModelCalls({ env: accountEnvironment(provider, account, env), now: time, providers: [provider] });
+        if (!account) return calls;
+        return calls.map(call => ({
+          ...call, id: JSON.stringify([account.id, call.id]),
+          accountId: account.id, label: providerLabel(provider, account),
+        }));
+      })).then(results => results.flat()).catch(error => {
         if (loadingModels?.promise === promise) loadingModels = null;
         throw error;
       });
@@ -188,7 +209,7 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         sendJSON(response, 200, { sent: true });
       } else if (request.method === 'GET' && assets[url.pathname]) {
         const [file, contentType] = assets[url.pathname];
-        const bytes = await readFile(new URL(`./ui/${file}`, import.meta.url));
+        const bytes = await readFile(new URL(`./${file}`, import.meta.url));
         response.writeHead(200, { 'Content-Type': contentType });
         response.end(bytes);
       } else {

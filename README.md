@@ -312,7 +312,7 @@ Skills are split by host so one edit reaches both: `plugins/agy/skills/` holds s
 
 ## Development and delivery
 
-`npm start` and `make start` run the package preview gate with syntax checks, unit tests, and `npm pack --dry-run`. Use a separate test Claude Code profile to verify the plugin lifecycle. Start the optional local quota dashboard with `npm run dashboard`. See the [Agent Usage instructions](apps/agent-usage/README.md) for data sources, notifications, and scheduled checks. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
+`npm start` and `make start` run the package preview gate with syntax checks, unit tests, and `npm pack --dry-run`. Use a separate test Claude Code profile to verify the plugin lifecycle. Start the optional local quota dashboard with `npm run dashboard` or build its macOS menu bar companion with `npm run menubar:build`. The [Agent Usage instructions](apps/agent-usage/README.md) cover CLI accounts, Codex reset-credit reminders, and scheduled checks. The release script updates every semver/build surface, commits the candidate, and runs `npm run release:check` on that exact commit before it tags or pushes. CI runs the same gate on pull requests and pushes to `main`.
 
 ## Architecture
 

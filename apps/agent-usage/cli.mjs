@@ -74,7 +74,13 @@ try {
       const check = await fetch(`${origin}/api/quota`, { signal: AbortSignal.timeout(20_000) });
       if (!check.ok) throw new Error(`Quota check failed: HTTP ${check.status}`);
       const { quota } = await check.json();
-      console.log(JSON.stringify({ at: new Date().toISOString(), windows: quota.map(row => ({ provider: row.provider, windows: row.windows.map(({ short, state, resetsAt }) => ({ short, state, resetsAt })) })) }));
+      console.log(JSON.stringify({
+        at: new Date().toISOString(),
+        windows: quota.map(row => ({
+          provider: row.provider, ...(row.accountId ? { accountId: row.accountId } : {}),
+          windows: row.windows.map(({ short, state, resetsAt }) => ({ short, state, resetsAt })),
+        })),
+      }));
       break;
     }
     default:

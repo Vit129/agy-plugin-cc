@@ -1,10 +1,11 @@
 import { readProviderQuota } from '../../plugins/agy/scripts/lib/quota-state.mjs';
 import { defaultRouteThresholds } from '../../plugins/agy/scripts/lib/quota-route.mjs';
 import { readState } from './state.mjs';
+import { accountsForProvider, normalizeAccounts } from './accounts.mjs';
 
 const numericDefaults = { watch: 80, ...defaultRouteThresholds, cost: 5, target: 6, refreshMinutes: 4 };
 const providerDefaults = Object.freeze({ claude: true, agy: true, copilot: true, codex: false });
-export const defaultSettings = Object.freeze({ ...numericDefaults, providers: providerDefaults });
+export const defaultSettings = Object.freeze({ ...numericDefaults, providers: providerDefaults, accounts: Object.freeze({}) });
 const severity = { unknown: -1, healthy: 0, watch: 1, low: 2, critical: 3 };
 const cachedProviders = ['claude', 'agy'];
 const providers = [
@@ -13,6 +14,11 @@ const providers = [
   { provider: 'copilot', pool: 'premium', label: 'GitHub Copilot', windowKeys: ['monthly'] },
   { provider: 'codex', pool: 'default', label: 'OpenAI Codex' },
 ];
+
+export function providerLabel(provider, account) {
+  const label = providers.find(description => description.provider === provider).label;
+  return account ? `${label} · ${account.label}` : label;
+}
 
 export function enabledProviders(settings) {
   return Object.keys(providerDefaults).filter(provider => (settings.providers?.[provider] ?? providerDefaults[provider]));
@@ -24,13 +30,14 @@ export function validSettings(candidate) {
   if (selected !== undefined && (!selected || Array.isArray(selected) ||
     Object.keys(selected).length !== Object.keys(providerDefaults).length ||
     !Object.keys(providerDefaults).every(provider => typeof selected[provider] === 'boolean'))) return false;
+  if (normalizeAccounts(candidate.accounts) === null) return false;
   const { watch, low, critical, cost, target, refreshMinutes } = candidate;
   return critical < low && low < watch && cost > 0 && target > 0 && refreshMinutes >= 1 && refreshMinutes <= 60;
 }
 
 export function loadSettings(directory) {
   const saved = { ...defaultSettings, ...readState(directory, 'settings.json', {}) };
-  return validSettings(saved) ? saved : defaultSettings;
+  return validSettings(saved) ? { ...saved, accounts: normalizeAccounts(saved.accounts) } : defaultSettings;
 }
 
 export function forecastResetChecks(anchorMs, count) {
@@ -51,25 +58,31 @@ export function estimateCapacity(windows, settings) {
   return Math.floor(Math.min(...windows.map(window => window.remaining)) / settings.cost);
 }
 
-export function buildQuotaRows(quota, settings) {
+export function buildQuotaRows(quota, settings, { includeRouteFallback = false } = {}) {
   const enabled = enabledProviders(settings);
-  return providers.filter(description => enabled.includes(description.provider)).map(description => {
-    const source = quota[description.provider];
-    const pool = source?.pools?.[description.pool];
-    const windows = (description.windowKeys ?? ['5h', '7d']).map(short => {
-      const window = pool?.[short];
-      const state = window?.state ?? 'unknown';
-      const reported = window?.effectiveRemainingPct;
-      const remaining = ['live', 'aging'].includes(state) && Number.isFinite(reported) && reported >= 0 && reported <= 100 ? reported : null;
-      return { short, state, remaining, resetsAt: window?.resetsAt ?? null, level: levelFor(remaining, settings) };
+  return providers.filter(description => enabled.includes(description.provider)).flatMap(description => {
+    const accounts = [...accountsForProvider(settings, description.provider)];
+    if (includeRouteFallback && accounts[0] && cachedProviders.includes(description.provider)) accounts.push(null);
+    return accounts.map(account => {
+      const source = account ? null : quota[description.provider];
+      const pool = source?.pools?.[description.pool];
+      const windows = (description.windowKeys ?? ['5h', '7d']).map(short => {
+        const window = pool?.[short];
+        const state = window?.state ?? 'unknown';
+        const reported = window?.effectiveRemainingPct;
+        const remaining = ['live', 'aging'].includes(state) && Number.isFinite(reported) && reported >= 0 && reported <= 100 ? reported : null;
+        return { short, state, remaining, resetsAt: window?.resetsAt ?? null, level: levelFor(remaining, settings) };
+      });
+      const identity = account ? { accountId: account.id, label: providerLabel(description.provider, account) } : {};
+      return { ...description, ...identity, windows, capturedAt: source?.capturedAt ?? null, capacity: estimateCapacity(windows, settings) };
     });
-    return { ...description, windows, capturedAt: source?.capturedAt ?? null, capacity: estimateCapacity(windows, settings) };
   });
 }
 
 export function readQuota(settings, options = {}) {
   const cached = enabledProviders(settings).filter(provider => cachedProviders.includes(provider));
-  return buildQuotaRows(Object.fromEntries(cached.map(provider => [provider, readProviderQuota(provider, { ...options, statusLineOnly: true })])), settings);
+  const quota = Object.fromEntries(cached.map(provider => [provider, readProviderQuota(provider, { ...options, statusLineOnly: true })]));
+  return buildQuotaRows(quota, settings, options);
 }
 
 export function planQuotaAlerts(rows, previous, { baseline = false, now = Date.now() } = {}) {
@@ -79,7 +92,8 @@ export function planQuotaAlerts(rows, previous, { baseline = false, now = Date.n
     for (const window of row.windows) {
       const cycle = window.cycle ?? window.resetsAt;
       if (window.state !== 'live' || cycle == null || window.level === 'unknown') continue;
-      const key = `${row.provider}:${row.pool}:${window.short}`;
+      const scope = row.accountId ? `${row.provider}:${row.accountId}` : row.provider;
+      const key = `${scope}:${row.pool}:${window.short}`;
       const prior = state[key];
       const rank = severity[window.level];
       const priorCycle = prior?.cycle ?? prior?.resetsAt;

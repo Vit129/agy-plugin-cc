@@ -36,6 +36,8 @@
 
 The companions use the same pure Auto-Route policy with fresh cached 5h/7d values and Agent Usage thresholds. Claude-side routing runs before agy discovery or job creation. The dashboard reads both directions from the shared cache. The CLI probe reports Claude panel parsing failures as explicit row errors and logs changes to the failure reason.
 
+Named profiles scope native samples, transcript reads, and alerts by provider and account. Only the inherited CLI environment feeds the shared Auto-Route cache. The serialized refresh checks the upstream Codex credit status at reminder boundaries and saves delivery markers in the local alerts file. The AppKit status item polls the same loopback quota API as the dashboard.
+
 The Zsh integration and the Claude Code and Antigravity plugin startup hooks check the saved provider switch through `agent-usage on-provider-start` before starting the server. Manual startup and scheduled checks use their own entry points.
 
 ## Verification Invariants

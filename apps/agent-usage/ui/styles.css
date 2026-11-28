@@ -117,7 +117,7 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .plan-row { padding: 13px 18px; }
 .plan-row + .plan-row { border-top: 1px solid var(--line); }
 .plan-provider .provider { white-space: normal; }
-.plan-provider h3 { font-size: 14px; line-height: 1.15; }
+.plan-provider h3 { font-size: 14px; line-height: 1.15; overflow-wrap: anywhere; }
 .plan-provider small { color: var(--muted); display: block; margin-top: 4px; font-size: 11px; }
 .window { min-width: 0; }
 .window-head { display: flex; align-items: center; justify-content: space-between; gap: 4px 7px; flex-wrap: wrap; margin-bottom: 5px; }
@@ -141,6 +141,7 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .model-table thead th { font-size: 11px; }
 .model-table tbody th { font-weight: 650; font-size: 12px; overflow-wrap: anywhere; }
 .model-label { display: flex; align-items: center; gap: 7px; }
+.model-account { display: block; margin-inline-start: 14px; color: var(--muted); font-weight: 500; }
 .model-label .dot { color: var(--meter-color); }
 .claude { --meter-color: var(--claude-meter); }
 .agy { --meter-color: var(--agy-meter); }
@@ -156,9 +157,9 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .settings-dialog::backdrop { background: #08080ab8; }
 .settings-dialog form { display: grid; gap: 14px; }
 .settings-dialog h2 { margin: 0; }
-.settings-dialog h3, .provider-settings legend { font-size: 15px; font-weight: 700; }
-.provider-settings { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
-.provider-settings legend { padding: 0; }
+.settings-dialog h3, .settings-dialog legend { font-size: 15px; font-weight: 700; }
+.provider-settings, .account-settings { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
+.settings-dialog legend { padding: 0; }
 .provider-settings label { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 38px; border-bottom: 1px solid var(--line); cursor: pointer; }
 .provider-settings input { appearance: none; display: grid; align-items: center; width: 42px; height: 24px; margin: 0; padding: 0 3px; border: 1px solid var(--muted); border-radius: 20px; background: var(--track); cursor: pointer; }
 .provider-settings input::before { content: ""; width: 16px; height: 16px; border-radius: 50%; background: var(--muted); }
@@ -166,8 +167,12 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .provider-settings input:checked::before { transform: translateX(18px); background: var(--bg); }
 .provider-settings input:focus-visible { outline-color: var(--ink); }
 .settings-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
-.settings-fields label { color: var(--muted); font-size: 13px; font-weight: 650; }
-.settings-fields input { display: block; width: 100%; margin-top: 3px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); padding: 6px 8px; }
+.settings-fields label, .account-row label { color: var(--muted); font-size: 13px; font-weight: 650; }
+.settings-fields input, .account-row input { display: block; width: 100%; margin-top: 3px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); padding: 6px 8px; }
+.account-settings > div { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
+.account-settings h3 { font-size: 13px; margin-bottom: 6px; }
+.account-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; align-items: end; gap: 6px; margin-bottom: 8px; }
+.account-row .action { min-height: 34px; }
 .settings-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 7px; }
 .form-error { color: var(--critical); font-size: 13px; }
 .form-error:empty { display: none; }
@@ -194,11 +199,19 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
   .model-table th, .model-table td { padding-inline: 7px; }
   .model-tokens { grid-template-columns: max-content minmax(12px, 1fr); column-gap: 4px; min-width: 66px; }
 }
+@media (max-width: 420px) {
+  .account-row { grid-template-columns: minmax(0, 1fr) auto; }
+  .account-row label:first-child { grid-column: 1 / -1; }
+}
 .notice[data-level="unknown"] { color: var(--muted); }
 .level[data-level="unknown"] { --level-text: var(--muted); --level-bg: var(--inset); --level-bar: var(--muted); }
 .schedule-list { list-style: none; margin: 0; padding: 0; }
 .schedule-list li { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 8px 18px; border-top: 1px solid var(--line); }
 .schedule-list time, .schedule-list span { color: var(--muted); font-size: 13px; }
+.reset-credits { border-top: 1px solid var(--line); }
+.reset-credits h3 { padding: 8px 18px; font-size: 14px; }
+.reset-credits li { overflow-wrap: anywhere; }
+.reset-credits li span:first-child { color: var(--ink); }
 .no-models { color: var(--muted); }
 
 .copilot .provider-mark { background: var(--inset); color: var(--ink); }

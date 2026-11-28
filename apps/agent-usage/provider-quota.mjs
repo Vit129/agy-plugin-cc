@@ -63,6 +63,18 @@ export function parseCodexQuota(report, now) {
     if (resetsAt !== null && resetsAt * 1000 <= now) continue;
     windows[key] = { remaining: Math.max(0, 100 - window.usedPercent), resetsAt };
   }
+  const summary = report?.rateLimitResetCredits;
+  if (Number.isSafeInteger(summary?.availableCount) && summary.availableCount >= 0) {
+    const credits = Array.isArray(summary.credits) ? summary.credits
+      .filter(credit => typeof credit?.id === 'string' && credit.id.length &&
+        (credit.expiresAt === null || (Number.isSafeInteger(credit.expiresAt) && credit.expiresAt >= 0 && credit.expiresAt <= 8.64e12)))
+      .map(({ id, resetType, status, grantedAt, expiresAt, title, description }) => ({
+        id, resetType, status, grantedAt, expiresAt,
+        title: typeof title === 'string' ? title : null,
+        description: typeof description === 'string' ? description : null,
+      })) : null;
+    return { captured: now, windows, rateLimitResetCredits: { availableCount: summary.availableCount, credits } };
+  }
   return Object.keys(windows).length ? { captured: now, windows } : null;
 }
 
