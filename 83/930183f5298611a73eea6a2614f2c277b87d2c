@@ -1,0 +1,23 @@
+apps/agent-usage/launch-agents.mjs
+  s_162efa8565b211::t_6eef0737c75009 5,28-36,42,95-107,110-112,116,118-119,123,125,128-129,141,144,169-170,174
+apps/agent-usage/launcher.mjs
+  s_162efa8565b211::t_666e257e8dd066 20
+tests/agent-usage-launcher.test.mjs
+  s_162efa8565b211::t_08535e8201336c 4,10,128-184
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "83930183f5298611a73eea6a2614f2c277b87d2c",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
