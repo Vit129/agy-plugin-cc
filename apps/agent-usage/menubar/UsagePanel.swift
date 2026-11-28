@@ -253,7 +253,7 @@ struct UsagePanel: View {
                 Text("\(window.displayName) \(amount)")
                     .font(detail ? .callout.weight(.semibold) : .caption.weight(.semibold))
                 Spacer(minLength: 8)
-                if detail { Text(reset).font(.caption).foregroundStyle(.secondary) }
+                Text(reset).font(detail ? .caption : .caption2).foregroundStyle(.secondary)
                 if window.state == "aging" {
                     Text("Stale").font(.caption2).foregroundStyle(.secondary)
                 }
