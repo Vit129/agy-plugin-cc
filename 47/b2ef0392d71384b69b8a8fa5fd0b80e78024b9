@@ -1,0 +1,73 @@
+CHANGELOG.md
+  s_6439ebb463378e::t_2979031a7905ef 13,15
+apps/agent-usage/ui/index.html
+  s_6439ebb463378e::t_e9211f58d676bc 77-84,86-87,89-115,117,119-122,125-135,137-183,185-196,198,206-212
+  s_6439ebb463378e::t_2979031a7905ef 88,116,118,123-124,136,184
+ARCHITECTURE.md
+  s_6439ebb463378e::t_2979031a7905ef 37,41
+tests/fixtures/StatusTitleMain.swift
+  s_6439ebb463378e::t_47a7ca79ff30be 13,36-38
+apps/agent-usage/managed-accounts.mjs
+  s_6439ebb463378e::t_1bc2c085b179b7 4,26-29,39-45
+  s_6439ebb463378e::t_1296d837c352fe 46-47
+tests/quota-route.test.mjs
+  s_6439ebb463378e::t_85ae3aace6801c 84-86
+plugins/cc-for-agy/scripts/lib/delegation-route.mjs
+  s_6439ebb463378e::t_e54a1578d967f4 1,10
+tests/agent-usage-menubar.test.mjs
+  s_6439ebb463378e::t_9c769aa58e1ded 29,91,103,110
+  s_6439ebb463378e::t_f6df5d0632dcc2 66,92-102,104-109,111-115
+  s_6439ebb463378e::t_ee10ddcf770ad4 116
+apps/agent-usage/server.mjs
+  s_6439ebb463378e::t_2979031a7905ef 156-157,160
+  s_6439ebb463378e::t_1bc2c085b179b7 2,7,12,32-33,98,147,158-159,161,173-174,176-177,181-183,188,219,237,295-296,305-307,311
+  s_6439ebb463378e::t_e54a1578d967f4 150,152
+tests/agent-usage-accounts.test.mjs
+  s_6439ebb463378e::t_d6504f71e39f9d 315-317,357
+  s_6439ebb463378e::t_236ba7301a1458 358-360
+  s_6439ebb463378e::t_85ae3aace6801c 474-479,512-513
+tests/agent-usage.test.mjs
+  s_6439ebb463378e::t_85ae3aace6801c 84-100,164-192
+apps/agent-usage/menubar/StatusTitle.swift
+  s_6439ebb463378e::t_9016c08eb67739 4-13,20-23,27,29,33-37,41,57-67,75
+  s_6439ebb463378e::t_1f0006d39dd280 40,44
+apps/agent-usage/README.md
+  s_6439ebb463378e::t_2979031a7905ef 9,12,18,25,31,39,44
+apps/agent-usage/menubar/UsageSnapshot.swift
+  s_6439ebb463378e::t_8723d6d35d7a27 64-66,68-69
+  s_6439ebb463378e::t_236ba7301a1458 67,87
+apps/agent-usage/ui/styles.css
+  s_6439ebb463378e::t_bcf4f4299c92b8 158,160-189,191-200,203-209,215-220,222-230
+plugins/agy/scripts/lib/quota-route.mjs
+  s_6439ebb463378e::t_e54a1578d967f4 24,46-47,49
+plugins/cc-for-agy/scripts/lib/quota-route.mjs
+  s_6439ebb463378e::t_e54a1578d967f4 24,46-47,49
+DESIGN.md
+  s_6439ebb463378e::t_2979031a7905ef 18,20
+apps/agent-usage/quota.mjs
+  s_6439ebb463378e::t_abd30c47f10059 9-10,12-13,35-41,100-119,122-134,141-145
+apps/agent-usage/menubar/AgentUsageBar.swift
+  s_6439ebb463378e::t_81a87d7f0338f5 237
+  s_6439ebb463378e::t_3d4874bc295a3c 9-40,161-164,213,215-216,224-226,228-236,238-242
+apps/agent-usage/ui/dashboard.mjs
+  s_6439ebb463378e::t_236ba7301a1458 124-131
+  s_6439ebb463378e::t_cedb3d13ba8647 14-16,19,24-26,193-200,210,234,251,261-268,308-310,318-357,360-361,363-365,368,371,373,375,377,393-401,405-410,412-418,427-428,435-436,438,455
+plugins/agy/scripts/features/route.mjs
+  s_6439ebb463378e::t_e54a1578d967f4 2,9,70-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "47b2ef0392d71384b69b8a8fa5fd0b80e78024b9",
+  "prompts": {},
+  "sessions": {
+    "s_6439ebb463378e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a2223e-69e5-7e70-823d-ebf6bcebca34",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
