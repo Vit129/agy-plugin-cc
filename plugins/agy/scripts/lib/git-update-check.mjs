@@ -7,7 +7,7 @@ import { isWorkingTreeDirty } from "./git.mjs";
 import { runCommand } from "./process.mjs";
 
 // Bump alongside version.json at the repo root whenever a feature ships.
-export const CURRENT_VERSION = 19;
+export const CURRENT_VERSION = 20;
 
 const REPO = "Vit129/agent-bridge";
 const VERSION_URL = `https://raw.githubusercontent.com/${REPO}/main/version.json`;
