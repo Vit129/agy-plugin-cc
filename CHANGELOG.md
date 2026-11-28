@@ -6,6 +6,8 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-28
+
 ### Added
 - Agent Usage tracks Claude Code Full reset expiries per account, reads the local CLI status cache, and reminds users before an unused credit expires.
 
