@@ -1,0 +1,47 @@
+apps/agent-usage/ui/styles.css
+  s_162efa8565b211::t_3f1d51a41f3504 41-43,78-79,180
+tests/agent-usage-menu.test.mjs
+  s_162efa8565b211::t_1966c1fb2758f6 14,26
+tests/agent-usage.test.mjs
+  s_162efa8565b211::t_7d1f56ee5ce90a 462
+tests/architecture-guard.test.mjs
+  s_162efa8565b211::t_981f16e6840366 1-84
+tests/auto-model.test.mjs
+  s_162efa8565b211::t_c78ea9f5042638 6
+tests/cc-for-agy-claude-companion.test.mjs
+  s_162efa8565b211::t_9829e1cbcfdd5d 13,35,56,129,152
+tests/cc-for-agy-handoff-and-jobs.test.mjs
+  s_162efa8565b211::t_5c76b85be7b5f2 31,49,122,148
+tests/cc-for-agy-quota-route.test.mjs
+  s_162efa8565b211::t_6069941c22f70e 17,28,37,89
+tests/handoff.test.mjs
+  s_162efa8565b211::t_069c3b7439c07a 33,40,45,55,65,76,87,96,137,150
+tests/install.test.mjs
+  s_162efa8565b211::t_36fd044472ae24 14,42,73,148,171,212
+tests/lib.test.mjs
+  s_162efa8565b211::t_06770b41302a9d 23,34,40,46,67,75,83,94,105,112,119,127,177,185,195
+tests/quota-state.test.mjs
+  s_162efa8565b211::t_c7c7a681aa216b 21,30,85,127
+tests/release-version.test.mjs
+  s_162efa8565b211::t_d3c2c8605fa582 7
+tests/skills-layout.test.mjs
+  s_162efa8565b211::t_34abb84360400a 42,50,58
+tests/usage.test.mjs
+  s_162efa8565b211::t_fef346cb2be6d3 18,26,33,39,48,83,92,101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "0320710cd7ac98f72e51a6991c749dba87a22a5e",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
