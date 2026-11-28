@@ -21,19 +21,28 @@ const planLabels = new Map(Object.entries({
   ultra: 'Ultra', team: 'Team', business: 'Business', enterprise: 'Enterprise', edu: 'Edu',
 }));
 
-function claudeIdentity(account) {
+function claudeIdentity(config) {
+  const account = config?.oauthAccount;
   const login = email(account?.emailAddress);
   const organization = account?.organizationType;
   const tier = typeof organization === 'string' && organization.startsWith('claude_') ? organization.slice(7) : undefined;
-  return { login, plan: planLabels.get(account?.seatTier) ?? planLabels.get(tier) };
+  const accountUuid = typeof account?.accountUuid === 'string' ? account.accountUuid : undefined;
+  return {
+    login, plan: planLabels.get(account?.seatTier) ?? planLabels.get(tier),
+    accountUuid, resetCache: config?.unusedLimitResetStatusCache,
+  };
 }
 
 async function readAccountIdentity(provider, home, env) {
   if (provider === 'claude') {
-    const scoped = claudeIdentity((await readConfig(path.join(home, '.claude.json')))?.oauthAccount);
-    if (scoped.login || home !== defaultCliHome(provider, env)) return scoped;
-    const legacy = await readConfig(path.join(home, '..', '.claude.json'));
-    return claudeIdentity(legacy?.oauthAccount);
+    const scoped = claudeIdentity(await readConfig(path.join(home, '.claude.json')));
+    if (home !== defaultCliHome(provider, env)) return scoped;
+    const legacy = claudeIdentity(await readConfig(path.join(home, '..', '.claude.json')));
+    if (!scoped.accountUuid && !scoped.login) return legacy;
+    if (scoped.accountUuid && scoped.accountUuid === legacy.resetCache?.accountUuid && !scoped.resetCache) {
+      return { ...scoped, resetCache: legacy.resetCache };
+    }
+    return scoped;
   }
   if (provider === 'codex') {
     const auth = await readConfig(path.join(home, 'auth.json'));
@@ -83,6 +92,6 @@ export async function discoverAccounts(provider, manual, managed, env) {
   return {
     current: identities.get(currentHome),
     profiles: profiles.map(profile => ({ ...profile, ...identities.get(profile.home) }))
-      .filter(profile => profile.login || profile.kind === 'manual' || profile.kind === 'managed'),
+      .filter(profile => profile.login || profile.accountUuid || profile.kind === 'manual' || profile.kind === 'managed'),
   };
 }

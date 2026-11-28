@@ -1,9 +1,15 @@
 const hour = 3_600_000;
-const expiryClock = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+const expiryDate = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium' });
+const expiryTime = new Intl.DateTimeFormat('en-GB', { timeStyle: 'short', hourCycle: 'h23' });
 export const creditReminderPrefix = 'codex-reset-credit:';
+export const claudeCreditReminderPrefix = 'claude-reset-credit:';
+
+function pendingCredit(credit) {
+  return credit.status === 'available' || (credit.provider === 'claude' && credit.status === 'unknown');
+}
 
 export function availableResetCredits(summary, now) {
-  return (summary?.credits ?? []).filter(credit => credit.status === 'available' &&
+  return (summary?.credits ?? []).filter(credit => pendingCredit(credit) &&
     (credit.expiresAt === null || credit.expiresAt * 1000 > now));
 }
 
@@ -13,11 +19,11 @@ export function creditExpiryLabel(expiresAt, now) {
   const remaining = expires - now;
   const relative = remaining > 24 * hour ? `${Math.ceil(remaining / (24 * hour))}d`
     : remaining >= hour ? `${Math.ceil(remaining / hour)}h` : `${Math.max(1, Math.ceil(remaining / 60_000))}m`;
-  return `expires ${expiryClock.format(expires)} (in ${relative})`;
+  return `expires ${expiryDate.format(expires)} at ${expiryTime.format(expires)} (in ${relative})`;
 }
 
 export function creditStage(credit, now) {
-  if (credit.status !== 'available' || !Number.isFinite(credit.expiresAt)) return null;
+  if (!pendingCredit(credit) || !Number.isFinite(credit.expiresAt)) return null;
   const expiry = credit.expiresAt * 1000;
   if (now >= expiry || now < expiry - 24 * hour) return null;
   const hours = now >= expiry - 2 * hour ? 2 : 24;
@@ -32,12 +38,15 @@ export function planResetCreditAlerts(rows, previous, now) {
     for (const credit of availableResetCredits(row.rateLimitResetCredits, now)) {
       const stage = creditStage(credit, now);
       if (!stage || row.creditsObservedAt < stage.startsAt) continue;
-      const key = creditReminderPrefix + JSON.stringify([row.accountId ?? 'default', credit.id, stage.hours]);
+      const claude = credit.provider === 'claude';
+      const prefix = claude ? claudeCreditReminderPrefix : creditReminderPrefix;
+      const key = prefix + JSON.stringify(claude ? [credit.id, stage.hours] : [row.accountId ?? 'default', credit.id, stage.hours]);
       if (Object.hasOwn(state, key)) continue;
       state[key] = { notifiedAt: now };
-      const label = row.accountId ? row.label : 'Codex';
+      const label = row.accountId || claude ? row.label : 'Codex';
       const title = credit.title || 'Rate limit reset';
-      alerts.push({ key, message: `${label} reset credit "${title}" ${creditExpiryLabel(credit.expiresAt, now)} — not used yet.` });
+      const usage = credit.status === 'unknown' ? 'check if still unused' : 'not used yet';
+      alerts.push({ key, message: `${label} reset credit "${title}" ${creditExpiryLabel(credit.expiresAt, now)} — ${usage}.` });
     }
   }
   return { state, alerts };

@@ -55,7 +55,8 @@ struct UsagePanel: View {
         let rows = snapshot.quota.filter { row in provider.map { row.provider == $0.rawValue } ?? true }
         let windowHeight = provider == nil ? 36 : 70
         // Reserve room for wrapped route reasons and credits; long lists can scroll.
-        let preferred = rows.reduce(251) { height, row in height + 82 + windowHeight * row.windows.count }
+        let footer = snapshot.hasClaudeCredit(at: content.now) ? 284 : 251
+        let preferred = rows.reduce(footer) { height, row in height + 82 + windowHeight * row.windows.count }
         return CGFloat(min(preferred, provider == nil ? 820 : 670))
     }
 
@@ -290,6 +291,11 @@ struct UsagePanel: View {
             let credits = snapshot.creditLabels(at: now, clock: clock)
             ForEach(credits.indices, id: \.self) { index in
                 Text(credits[index]).font(.caption).foregroundStyle(.secondary)
+            }
+            if snapshot.hasClaudeCredit(at: now), let usage = URL(string: "https://claude.ai/settings/usage") {
+                Link("Open claude.ai usage", destination: usage)
+                    .font(.caption)
+                    .accessibilityIdentifier("usage-open-claude-usage")
             }
         }
     }

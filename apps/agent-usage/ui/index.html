@@ -39,8 +39,9 @@
       <p class="plan-note" id="estimate-note"></p>
       <div class="plan-note" id="quota-routes" aria-label="Quota Auto-Route" data-testid="lbl_quotaRoutes_monitorPage"></div>
       <section id="reset-credits" class="reset-credits" aria-labelledby="reset-credits-heading" hidden>
-        <h3 id="reset-credits-heading">Codex reset credits</h3>
+        <h3 id="reset-credits-heading">Reset credits</h3>
         <ul class="schedule-list"></ul>
+        <a class="credit-usage-link" href="https://claude.ai/settings/usage" target="_blank" rel="noopener noreferrer" data-testid="lnk_openClaudeUsage_monitorPage" hidden>Open claude.ai usage</a>
       </section>
     </section>
     <section class="panel model-panel" aria-labelledby="by-model">
@@ -89,6 +90,7 @@
       <div data-account-provider="claude">
         <h3>Claude Code</h3>
         <ul class="detected-accounts" aria-label="Claude Code accounts"></ul>
+        <div id="claude-credit-settings"></div>
         <button class="action" type="button" data-sign-in data-testid="btn_signInClaudeAccount_monitorPage">Sign in another account</button>
         <details class="account-advanced">
           <summary data-testid="btn_advancedClaudeAccounts_monitorPage">Advanced</summary>

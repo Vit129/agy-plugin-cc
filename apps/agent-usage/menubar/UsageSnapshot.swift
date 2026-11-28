@@ -4,9 +4,15 @@ struct Snapshot: Decodable {
     struct Row: Decodable {
         struct ResetCredits: Decodable {
             struct Credit: Decodable {
+                let provider: String?
                 let title: String?
                 let status: String?
                 let expiresAt: TimeInterval?
+
+                func isPending(at now: Date) -> Bool {
+                    (status == "available" || (provider == "claude" && status == "unknown")) &&
+                    (expiresAt.map { $0 > now.timeIntervalSince1970 } ?? true)
+                }
             }
 
             let availableCount: Int?
@@ -76,15 +82,19 @@ struct Snapshot: Decodable {
         return "\(label) · \(status) · \(route.reason)"
     }
 
+    func hasClaudeCredit(at now: Date) -> Bool {
+        quota.contains { row in
+            row.rateLimitResetCredits?.credits?.contains { $0.provider == "claude" && $0.isPending(at: now) } ?? false
+        }
+    }
+
     func creditLabels(at now: Date, clock: QuotaClock) -> [String] {
         let credits = quota.flatMap { row -> [(String, TimeInterval?)] in
             guard let summary = row.rateLimitResetCredits else { return [] }
             if summary.credits == nil, let count = summary.availableCount, count > 0 {
                 return [("\(row.label) · \(count) reset credits available · expiry details unavailable", nil)]
             }
-            return (summary.credits ?? []).filter { credit in
-                credit.status == "available" && (credit.expiresAt.map { $0 > now.timeIntervalSince1970 } ?? true)
-            }.map { credit in
+            return (summary.credits ?? []).filter { $0.isPending(at: now) }.map { credit in
                 let title = credit.title.flatMap { $0.isEmpty ? nil : $0 } ?? "Rate limit reset"
                 let label = "\(row.label) · \(title)"
                 return (credit.expiresAt == nil ? "\(label) · No expiry reported" : label, credit.expiresAt)

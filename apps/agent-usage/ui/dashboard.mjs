@@ -16,9 +16,11 @@ const accountGroups = [...accountSettings.querySelectorAll('[data-account-provid
 const manualGroups = accountGroups.filter(group => group.querySelector('.account-rows'));
 const accountResult = document.querySelector('#account-result');
 const accountTemplate = form.querySelector('#account-row-template');
+const creditSettings = form.querySelector('#claude-credit-settings');
 const dialog = document.querySelector('.settings-dialog');
 const modelButtons = [...document.querySelectorAll('[data-model-days]')];
 let settings;
+let claudeCreditAccounts = [];
 let modelRequest = 0;
 let quotaRequest = 0;
 let savingSettings = false;
@@ -62,6 +64,7 @@ function displayQuotaPercent(remaining) {
 function renderResetCredits(quota) {
   const panel = document.querySelector('#reset-credits');
   const now = Date.now();
+  let showClaudeUsage = false;
   const rows = quota.flatMap(row => {
     const summary = row.rateLimitResetCredits;
     const available = availableResetCredits(summary, now).sort((first, second) =>
@@ -70,18 +73,21 @@ function renderResetCredits(quota) {
       return [`<li><span>${escapeHTML(row.label)}</span><span>${summary.availableCount} available · expiry details unavailable</span></li>`];
     }
     return available.map(credit => {
-      const account = row.accountId ? `${escapeHTML(row.label)} · ` : '';
-      const label = creditExpiryLabel(credit.expiresAt, now);
+      if (credit.provider === 'claude') showClaudeUsage = true;
+      const account = row.accountId || credit.provider === 'claude' ? `${escapeHTML(row.label)} · ` : '';
+      const label = creditExpiryLabel(credit.expiresAt, now).replace(/^expires /, 'Expires ');
       const expiry = credit.expiresAt === null ? label : `<time datetime="${new Date(credit.expiresAt * 1000).toISOString()}">${escapeHTML(label)}</time>`;
-      return `<li><span>${account}${escapeHTML(credit.title || 'Rate limit reset')}</span><span>${expiry}</span></li>`;
+      return `<li><span>${account}${escapeHTML(credit.title || 'Rate limit reset')} · ${expiry}</span></li>`;
     });
   });
   panel.hidden = rows.length === 0;
   panel.querySelector('ul').innerHTML = rows.join('');
+  panel.querySelector('a').hidden = !showClaudeUsage;
 }
 
 function renderQuota(data) {
   settings = data.settings;
+  claudeCreditAccounts = data.claudeFullResetAccounts ?? [];
   const { quota, schedule, checks, routes } = data;
   const active = new Set(data.active?.map(entry => entry.provider));
   renderAccountInventory(data.accounts ?? {});
@@ -220,6 +226,60 @@ function addAccount(group, account = { id: crypto.randomUUID(), label: '', home:
   return label;
 }
 
+function localDateTime(expiresAt) {
+  if (!expiresAt) return '';
+  const date = new Date(expiresAt);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+}
+
+function renderClaudeCreditSettings() {
+  creditSettings.innerHTML = claudeCreditAccounts.map(account => {
+    const id = account.accountUuid;
+    const login = escapeHTML(account.login ?? 'Claude account');
+    const value = localDateTime(account.expiresAt);
+    const status = { available: 'Available', used: 'Used', unknown: 'Status unknown' }[account.status];
+    return `<div class="claude-credit-row" data-credit-account="${id}" data-saved-expiry="${account.expiresAt ?? ''}">
+      <label>Claude full reset expires <small>${login}</small><input type="datetime-local" value="${value}" data-testid="txt_claudeFullResetExpiry-${id}_monitorPage"></label>
+      <button type="button" class="action" data-credit-used data-testid="btn_claudeFullResetUsed-${id}_monitorPage" ${!value || account.used ? 'disabled' : ''}>Used it</button>
+      <small role="status">${value ? status : ''}</small>
+    </div>`;
+  }).join('');
+}
+
+creditSettings.addEventListener('click', async event => {
+  const button = event.target.closest('[data-credit-used]');
+  if (!button || savingSettings) return;
+  const row = button.closest('[data-credit-account]');
+  const account = claudeCreditAccounts.find(item => item.accountUuid === row.dataset.creditAccount);
+  const status = row.querySelector('[role=status]');
+  if (!account?.expiresAt || account.expiresAt !== row.dataset.savedExpiry) {
+    status.textContent = 'Expiry changed. Reopen Settings to view it.';
+    return;
+  }
+  const field = row.querySelector('input');
+  if (field.value !== field.defaultValue) {
+    status.textContent = 'Save the new expiry before marking it used.';
+    return;
+  }
+  savingSettings = true;
+  button.disabled = true;
+  try {
+    ++quotaRequest;
+    const response = await request('/api/settings', {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ claudeFullReset: { [account.accountUuid]: { expiresAt: account.expiresAt, used: true } } }),
+    });
+    renderQuota(response);
+    const current = claudeCreditAccounts.find(item => item.accountUuid === account.accountUuid);
+    status.textContent = current?.status === 'available' ? 'Available · CLI status is current' : 'Used';
+  } catch (error) {
+    status.textContent = error.message;
+    button.disabled = false;
+  } finally {
+    savingSettings = false;
+  }
+});
+
 accountSettings.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
@@ -240,6 +300,7 @@ document.querySelector('#open-settings').addEventListener('click', () => {
     group.querySelector('.account-rows').replaceChildren();
     for (const account of settings.accounts?.[group.dataset.accountProvider] ?? []) addAccount(group, account);
   }
+  renderClaudeCreditSettings();
   accountResult.textContent = '';
   form.querySelector('.form-error').textContent = '';
   dialog.showModal();
@@ -266,6 +327,20 @@ form.addEventListener('submit', async event => {
   event.preventDefault();
   if (savingSettings) return;
   const values = Object.fromEntries([...new FormData(form)].map(([key, value]) => [key, Number(value)]));
+  const claudeFullReset = {};
+  for (const row of creditSettings.querySelectorAll('[data-credit-account]')) {
+    const id = row.dataset.creditAccount;
+    const field = row.querySelector('input');
+    const value = field.value;
+    if (value === field.defaultValue) continue;
+    const date = new Date(value);
+    if (value && (!Number.isFinite(date.getTime()) || localDateTime(date) !== value)) {
+      form.querySelector('.form-error').textContent = 'Enter a valid expiry in your local time.';
+      return;
+    }
+    claudeFullReset[id] = { expiresAt: value ? date.toISOString() : null, used: false };
+  }
+  if (Object.keys(claudeFullReset).length) values.claudeFullReset = claudeFullReset;
   values.providers = Object.fromEntries(providerSwitches.map(input => [input.dataset.monitorProvider, input.checked]));
   values.accounts = Object.fromEntries(manualGroups.map(group => [
     group.dataset.accountProvider,

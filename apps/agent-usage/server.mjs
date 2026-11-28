@@ -8,11 +8,12 @@ import { chooseRoute } from '../../plugins/agy/scripts/lib/quota-route.mjs';
 import { readAllQuota, writeNativeQuota } from '../../plugins/agy/scripts/lib/quota-state.mjs';
 import { accountEnvironment, accountHomeVariables, accountsForProvider, cliHome, normalizeAccounts } from './accounts.mjs';
 import { discoverAccounts } from './account-identity.mjs';
+import { addClaudeFullReset, claudeFullResetAccounts, normalizeClaudeFullResets } from './claude-reset-credit.mjs';
 import { createManagedHome, isManagedId, isManagedProvider, managedHomes, openTerminalLogin, removeManagedHome } from './managed-accounts.mjs';
 import { buildMenuModel } from './menu-model.mjs';
 import { defaultSettings, enabledProviders, loadSettings, planQuotaAlerts, providerLabel, validSettings } from './quota.mjs';
 import { createLiveQuotaReader } from './live-quota.mjs';
-import { creditReminderPrefix, planResetCreditAlerts } from './reset-credits.mjs';
+import { claudeCreditReminderPrefix, creditReminderPrefix, planResetCreditAlerts } from './reset-credits.mjs';
 import { aggregateCalls, readModelCalls, recentProviderActivity } from './usage.mjs';
 import { readState, stateDirectory, writeState } from './state.mjs';
 
@@ -76,6 +77,12 @@ async function parseJSON(request) {
 
 async function parseSettings(request) {
   const parsed = await parseJSON(request);
+  if (!parsed) return null;
+  if (Object.hasOwn(parsed, 'claudeFullReset')) {
+    parsed.claudeFullReset = normalizeClaudeFullResets(parsed.claudeFullReset);
+    if (parsed.claudeFullReset === null) return null;
+    if (Object.keys(parsed).length === 1) return parsed;
+  }
   if (!validSettings(parsed)) return null;
   if (Object.hasOwn(parsed, 'accounts')) parsed.accounts = normalizeAccounts(parsed.accounts);
   return Object.fromEntries(Object.keys(defaultSettings).filter(key => Object.hasOwn(parsed, key)).map(key => [key, parsed[key]]));
@@ -101,9 +108,9 @@ export async function startServer({ port = defaultPort, env = process.env, notif
   let refreshQueue = Promise.resolve();
   let loadingModels;
 
-  async function getAccounts() {
+  async function getAccounts(configured = settings.accounts) {
     return Object.fromEntries(await Promise.all(accountProviders.map(async provider => {
-      const manual = settings.accounts?.[provider] ?? [];
+      const manual = configured?.[provider] ?? [];
       const managed = managedHomes(directory, provider).map(profile => ({ ...profile, label: 'Managed account' }));
       return [provider, await discoverAccounts(provider, manual, managed, env)];
     })));
@@ -133,23 +140,33 @@ export async function startServer({ port = defaultPort, env = process.env, notif
 
   function refresh({ settingsUpdate } = {}) {
     const action = refreshQueue.then(async () => {
+      const accounts = await getAccounts(settingsUpdate?.accounts ?? settings.accounts);
       if (settingsUpdate) {
-        const updated = { ...settings, ...settingsUpdate };
+        const { claudeFullReset, ...quotaUpdate } = settingsUpdate;
+        const signedIn = new Set(accounts.claude.profiles.map(profile => profile.accountUuid));
+        if (Object.keys(claudeFullReset ?? {}).some(uuid => !signedIn.has(uuid))) return null;
+        const updated = {
+          ...settings, ...quotaUpdate, claudeFullReset: { ...settings.claudeFullReset, ...claudeFullReset },
+        };
         writeState(directory, 'settings.json', updated);
         settings = updated;
       }
-      const accounts = await getAccounts();
       const effectiveSettings = quotaSettings(accounts);
       const providers = enabledProviders(settings);
       quota = await readLiveQuota(effectiveSettings);
       const time = now();
+      const claudeCredits = claudeFullResetAccounts(accounts.claude.profiles, settings.claudeFullReset, time);
+      const accountForRow = row => row.accountId
+        ? accounts[row.provider].profiles.find(profile => profile.id === row.accountId)
+        : accounts[row.provider].current;
+      quota = addClaudeFullReset(quota, accountForRow, claudeCredits, time);
       const shared = readAllQuota({ env, nowSec: Math.floor(time / 1000) });
       const routes = {
         claudeToAgy: { requested: 'agy', ...chooseRoute(shared, { ...settings, requested: 'agy' }) },
         agyToClaude: { requested: 'claude', ...chooseRoute(shared, { ...settings, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }) },
       };
       const enabledObservations = Object.fromEntries(Object.entries(observed).filter(([key]) =>
-        key.startsWith(creditReminderPrefix) || providers.includes(key.split(':', 1)[0])));
+        key.startsWith(creditReminderPrefix) || key.startsWith(claudeCreditReminderPrefix) || providers.includes(key.split(':', 1)[0])));
       const thresholds = planQuotaAlerts(quota, enabledObservations, { baseline: Boolean(settingsUpdate), now: time });
       const next = planResetCreditAlerts(quota, thresholds.state, time);
       next.alerts.unshift(...thresholds.alerts);
@@ -195,14 +212,19 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         }
       }
       const rows = quota.map(({ creditsObservedAt, ...row }) => {
-        const account = accounts[row.provider];
-        const { login, plan } = (row.accountId ? account.profiles.find(profile => profile.id === row.accountId) : account.current) ?? {};
+        const { login, plan } = accountForRow(row) ?? {};
         return { ...row, login, plan };
       });
       const active = await getActivity(effectiveSettings, providers, time);
       const menu = buildMenuModel(rows, active);
-      const discovered = Object.fromEntries(accountProviders.map(provider => [provider, accounts[provider].profiles]));
-      return { quota: rows, accounts: discovered, active, menu, settings, schedule, checks, notificationError, routes };
+      const discovered = Object.fromEntries(accountProviders.map(provider => [
+        provider, accounts[provider].profiles.map(({ accountUuid, resetCache, ...profile }) => profile),
+      ]));
+      const { claudeFullReset, ...publicSettings } = settings;
+      return {
+        quota: rows, accounts: discovered, claudeFullResetAccounts: [...claudeCredits.values()], active, menu,
+        settings: publicSettings, schedule, checks, notificationError, routes,
+      };
     });
     refreshQueue = action.catch(error => process.stderr.write(`Agent Usage · refresh: ${error.message}\n`));
     return action;
@@ -244,7 +266,7 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       const url = new URL(request.url, origin);
       if (request.method === 'GET' && url.pathname === '/health') {
         sendJSON(response, 200, { service: 'agent-usage', status: 'ready' });
-      } else if (request.method === 'GET' && url.pathname === '/api/quota') {
+      } else if (request.method === 'GET' && ['/api/quota', '/api/settings'].includes(url.pathname)) {
         sendJSON(response, 200, await refresh());
       } else if (request.method === 'GET' && url.pathname === '/api/models') {
         const days = Number(url.searchParams.get('days') ?? 7);
@@ -253,7 +275,9 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       } else if (request.method === 'PUT' && url.pathname === '/api/settings') {
         const candidate = await parseSettings(request);
         if (!candidate) { sendJSON(response, 400, { error: 'Invalid quota settings.' }); return; }
-        sendJSON(response, 200, await refresh({ settingsUpdate: candidate }));
+        const updated = await refresh({ settingsUpdate: candidate });
+        if (!updated) { sendJSON(response, 400, { error: 'Claude account is no longer signed in.' }); return; }
+        sendJSON(response, 200, updated);
       } else if (request.method === 'POST' && ['/api/accounts/sign-in', '/api/accounts/remove'].includes(url.pathname)) {
         const body = await parseJSON(request);
         const removing = url.pathname === '/api/accounts/remove';

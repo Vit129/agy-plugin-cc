@@ -214,6 +214,189 @@ test('[TC-AGU-21][BE-IT] a failed re-probe keeps the last good reset credits and
   assert.equal(second.creditsObservedAt, first.creditsObservedAt);
 });
 
+const claudeProviders = { ...off, claude: true };
+const claudeAccount = '11111111-1111-4111-8111-111111111111';
+const otherClaudeAccount = '22222222-2222-4222-8222-222222222222';
+const claudeExpiry = '2026-12-11T05:00:00+07:00';
+const claudeExpiryMs = Date.parse(claudeExpiry);
+
+function claudeConfig(home, accountUuid, cache) {
+  return writeFile(path.join(home, '.claude.json'), JSON.stringify({
+    oauthAccount: { accountUuid, emailAddress: 'claude@example.test' },
+    unusedLimitResetStatusCache: cache,
+  }));
+}
+
+function claudeCredit(snapshot, accountId) {
+  return snapshot.quota.find(row => row.provider === 'claude' && row.accountId === accountId)
+    ?.rateLimitResetCredits?.credits?.[0];
+}
+
+test('[TC-AGU-41][BE-IT] validates and saves a timezone-qualified Claude expiry for the detected account', async t => {
+  const app = await fixture(t, { now: () => timestamp, probeQuota: async () => null });
+  await claudeConfig(app.directory, claudeAccount);
+  await app.start();
+  const save = (expiresAt, accountUuid = claudeAccount) => app.save({
+    providers: claudeProviders, claudeFullReset: { [accountUuid]: { expiresAt, used: false } },
+  });
+  for (const invalid of ['2026-12-11T05:00:00', '2026-02-30T05:00:00+07:00', '2026-12-11T24:00:00Z', 'tomorrow', 1796930400000]) {
+    assert.equal((await save(invalid)).status, 400, String(invalid));
+  }
+  assert.equal((await save(claudeExpiry, otherClaudeAccount)).status, 400);
+
+  const saved = await save(claudeExpiry);
+  assert.equal(saved.status, 200);
+  const snapshot = await saved.json();
+  const { provider, title, label, expiresAt, status } = claudeCredit(snapshot);
+  assert.deepEqual({ provider, title, label, expiresAt, status }, {
+    provider: 'claude', title: 'Full reset', label: 'Full reset', expiresAt: claudeExpiryMs / 1000, status: 'unknown',
+  });
+  const response = await app.request('/api/settings');
+  assert.equal(response.status, 200);
+  const [account] = (await response.json()).claudeFullResetAccounts;
+  assert.deepEqual([account.accountUuid, account.login, Date.parse(account.expiresAt), account.used, account.status],
+    [claudeAccount, 'claude@example.test', claudeExpiryMs, false, 'unknown']);
+  assert.equal((await app.save({ providers: claudeProviders, target: 9 })).status, 200);
+  assert.equal(claudeCredit(await app.quota()).expiresAt, expiresAt);
+  assert.equal((await save(null)).status, 200);
+  assert.equal(claudeCredit(await app.quota()), undefined);
+});
+
+test('[TC-AGU-42][BE-IT] uses only fresh Claude cache entries for the signed-in account', async t => {
+  let time = timestamp;
+  const app = await fixture(t, { now: () => time, probeQuota: async () => null });
+  const named = path.join(app.directory, 'named');
+  await mkdir(named);
+  await claudeConfig(app.directory, claudeAccount);
+  await claudeConfig(named, otherClaudeAccount);
+  await app.start();
+  const response = await app.save({
+    providers: claudeProviders,
+    accounts: { claude: [{ id: 'named', label: 'Named', home: named }] },
+    claudeFullReset: {
+      [claudeAccount]: { expiresAt: claudeExpiry, used: false },
+      [otherClaudeAccount]: { expiresAt: claudeExpiry, used: true },
+    },
+  });
+  assert.equal(response.status, 200);
+  const fresh = { accountUuid: otherClaudeAccount, holdsUnusedReset: true, checkedAt: time, validUntil: time + hour };
+  await claudeConfig(named, otherClaudeAccount, fresh);
+  const status = async () => claudeCredit(await app.quota(), 'named').status;
+  assert.equal(await status(), 'available');
+  await claudeConfig(named, otherClaudeAccount, { ...fresh, holdsUnusedReset: false });
+  assert.equal(await status(), 'used');
+  for (const ignored of [
+    { ...fresh, checkedAt: time + 1 },
+    { ...fresh, validUntil: time },
+    { ...fresh, accountUuid: claudeAccount },
+    { ...fresh, holdsUnusedReset: 'true' },
+  ]) {
+    await claudeConfig(named, otherClaudeAccount, ignored);
+    assert.equal(await status(), 'used');
+  }
+  await claudeConfig(named, otherClaudeAccount, fresh);
+  time = fresh.validUntil - 1;
+  assert.equal(await status(), 'available');
+  time = fresh.validUntil;
+  assert.equal(await status(), 'used');
+  await claudeConfig(named, claudeAccount);
+  assert.equal(await status(), 'unknown');
+});
+
+test('[TC-AGU-43][BE-IT] reminds at 24 and 2 hours once and suppresses a used or expired Claude credit', async t => {
+  let time = claudeExpiryMs - 24 * hour - 1;
+  const alerts = [];
+  const app = await fixture(t, {
+    now: () => time, probeQuota: async () => null,
+    notify: async alert => { alerts.push(alert); },
+  });
+  await claudeConfig(app.directory, claudeAccount);
+  await app.start();
+  const save = async (used, expiresAt = claudeExpiry) => {
+    const response = await app.save({ providers: claudeProviders, claudeFullReset: { [claudeAccount]: { expiresAt, used } } });
+    assert.equal(response.status, 200);
+    return response.json();
+  };
+  await save(false);
+  assert.equal(alerts.length, 0);
+  time += 1;
+  await app.quota();
+  assert.equal(alerts.length, 1);
+  assert.match(alerts[0].message, /Full reset.+\(in 24h\)/);
+  await app.close();
+  await app.start();
+  await app.quota();
+  assert.equal(alerts.length, 1);
+  time = claudeExpiryMs - 2 * hour - 1;
+  await app.quota();
+  assert.equal(alerts.length, 1);
+
+  await claudeConfig(app.directory, claudeAccount, {
+    accountUuid: claudeAccount, holdsUnusedReset: false, checkedAt: time, validUntil: time + hour,
+  });
+  time += 1;
+  assert.equal(claudeCredit(await app.quota()).status, 'used');
+  assert.equal(alerts.length, 1);
+  await claudeConfig(app.directory, claudeAccount);
+  const used = await save(true);
+  assert.equal(claudeCredit(used).status, 'used');
+  await app.close();
+  await app.start();
+  assert.equal(claudeCredit(await app.quota()).status, 'used');
+  assert.equal(alerts.length, 1);
+
+  await save(false);
+  assert.equal(alerts.length, 2);
+  assert.match(alerts[1].message, /Full reset.+\(in 2h\)/);
+  await app.quota();
+  assert.equal(alerts.length, 2);
+  time = claudeExpiryMs;
+  await app.quota();
+  assert.equal(alerts.length, 2);
+  await save(false, new Date(time + 24 * hour).toISOString());
+  assert.equal(alerts.length, 3);
+  assert.match(alerts[2].message, /Full reset.+\(in 24h\)/);
+});
+
+test('[TC-AGU-44][BE-IT] keeps manual Claude credits and reminders independent across accounts', async t => {
+  let time = claudeExpiryMs - 24 * hour - 1;
+  const alerts = [];
+  const app = await fixture(t, {
+    now: () => time, probeQuota: async () => null,
+    notify: async alert => { alerts.push(alert); },
+  });
+  const firstHome = path.join(app.directory, 'first');
+  const secondHome = path.join(app.directory, 'second');
+  await Promise.all([mkdir(firstHome), mkdir(secondHome)]);
+  await Promise.all([claudeConfig(firstHome, claudeAccount), claudeConfig(secondHome, otherClaudeAccount)]);
+  const accounts = { claude: [
+    { id: 'first', label: 'First', home: firstHome },
+    { id: 'second', label: 'Second', home: secondHome },
+  ] };
+  await app.start();
+  assert.equal((await app.save({ providers: claudeProviders, accounts })).status, 200);
+  const save = (accountUuid, used) => app.save({
+    providers: claudeProviders, accounts, claudeFullReset: { [accountUuid]: { expiresAt: claudeExpiry, used } },
+  });
+  for (const result of await Promise.all([save(claudeAccount, false), save(otherClaudeAccount, false)])) {
+    assert.equal(result.status, 200);
+  }
+  time += 1;
+  const snapshot = await app.quota();
+  assert.equal(claudeCredit(snapshot, 'first').status, 'unknown');
+  assert.equal(claudeCredit(snapshot, 'second').status, 'unknown');
+  assert.equal(alerts.length, 2);
+  assert.notEqual(alerts[0].key, alerts[1].key);
+  assert.ok(alerts.some(({ message }) => message.includes('First')));
+  assert.ok(alerts.some(({ message }) => message.includes('Second')));
+
+  assert.equal((await save(claudeAccount, true)).status, 200);
+  time = claudeExpiryMs - 2 * hour;
+  await app.quota();
+  assert.equal(alerts.length, 3);
+  assert.match(alerts[2].message, /Second.+\(in 2h\)/);
+});
+
 test('[TC-AGU-22][BE-IT] reads local account identities and ignores invalid credentials', async t => {
   const app = await fixture(t, { probeQuota: async () => null });
   async function identity(home, name, contents) {

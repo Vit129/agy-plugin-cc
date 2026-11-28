@@ -11,7 +11,7 @@ Agent Usage serves a local dashboard for Claude Code, Antigravity, GitHub Copilo
 - The dashboard reads model usage from local CLI transcripts. Only model names and aggregate counters are served, and timing is shown as unavailable when it is missing from the log. Codex counts recorded turns with token usage. The other providers count recorded model calls.
 - Threshold and scheduled-check alerts run in the local server with the dashboard tab closed. Use Test macOS notification in Settings to check delivery permissions.
 
-## Accounts and Codex reset credits
+## Accounts and reset credits
 
 **Settings → Accounts** lists sign-ins found in the current CLI home, the default home when it differs, and Agent Usage's managed homes. The quota rows show the account email or GitHub login when the CLI records it locally. Only the loopback dashboard and menu receive those identities. Agent Usage does not write identities or tokens to its state or logs.
 
@@ -28,6 +28,8 @@ Use **Advanced** to enter a label and an absolute or `~/` path for a manually ma
 
 Codex reset credits appear with their title and local expiry. The server rechecks the credit before notifying at 24 hours and 2 hours if it remains available. Each reminder is saved per account and credit, including across server restarts. If the server was offline, it can send the reminder for the interval still in progress.
 
+For Claude Code, enter **Claude full reset expires** in Settings for the signed-in account. **Open claude.ai usage** opens the provider page where you can find the expiry. Use **Used it** after redeeming the credit. Agent Usage reads Claude Code's local reset status cache when it is fresh and matches the account. A saved expiry with unknown status still triggers reminders to check whether the credit is unused. The local API lists account settings in `GET /api/settings` and accepts account patches as `claudeFullReset: { [accountUuid]: { expiresAt, used } }` in `PUT /api/settings`. Use an ISO timestamp with a timezone or `null` to clear the expiry.
+
 ## macOS menu bar
 
 Run `npm run menubar:build` with the Xcode Command Line Tools installed. It writes `.tmp/menubar/Agent Usage Bar.app`. To install at login, explicitly run `npm run menubar:install`. It copies the app to `~/Applications/Agent Usage Bar.app` and registers `com.vit129.agent-usage-bar` in `~/Library/LaunchAgents` for your GUI session. Quit closes it until the next login or until you open it again.
@@ -40,5 +42,5 @@ For a manual check, open the built app without installing it and use an Agent Us
 
 1. In light and dark appearance, open the menu. Check that provider headings and indented quota rows are readable, email and reset text are secondary, and only the quota percentage has the severity color.
 2. With a recent transcript from one provider and another provider exhausted, verify the title shows the active provider's mark and quota. Check multiple active providers and the dimmed title when idle. Check **Active now** on the corresponding dashboard rows.
-3. Check both Auto-Route decisions, available Codex credits and their expiry, **Open dashboard**, and **Refresh**.
+3. Check both Auto-Route decisions, reset credits and their expiry, the Claude usage link, **Open dashboard**, and **Refresh**.
 4. With the server stopped, verify **—** and **Start Agent Usage**. The start action needs the `~/.local/bin/agent-usage` launcher described above. Select **Quit** to close the app.

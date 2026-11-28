@@ -6,6 +6,9 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- Agent Usage tracks Claude Code Full reset expiries per account, reads the local CLI status cache, and reminds users before an unused credit expires.
+
 ### Changed
 - The Agent Usage menu bar title shows the session and longest quota window for each active provider, with pace colors and local reset times.
 - The Agent Usage popover adds an overview and provider tabs with quota bars, pace markers, projected exhaustion and weekly capacity.

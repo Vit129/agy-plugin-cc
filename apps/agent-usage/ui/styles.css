@@ -169,8 +169,11 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .provider-settings input:checked::before { transform: translateX(18px); background: var(--bg); }
 .provider-settings input:focus-visible { outline-color: var(--ink); }
 .settings-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 12px; }
-.settings-fields label, .account-row label { color: var(--muted); font-size: 13px; font-weight: 650; }
-.settings-fields input, .account-row input { display: block; width: 100%; margin-top: 3px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); padding: 6px 8px; }
+.settings-fields label, .account-row label, .claude-credit-row label { color: var(--muted); font-size: 13px; font-weight: 650; }
+.settings-fields input, .account-row input, .claude-credit-row input { display: block; width: 100%; margin-top: 3px; border: 1px solid var(--line); border-radius: 6px; color: var(--ink); background: var(--bg); padding: 6px 8px; }
+.claude-credit-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 4px 8px; margin-bottom: 8px; }
+.claude-credit-row small { display: block; color: var(--muted); overflow-wrap: anywhere; }
+.claude-credit-row small[role="status"] { grid-column: 1 / -1; }
 .account-settings > div { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }
 .account-settings h3 { font-size: 13px; margin-bottom: 6px; }
 .detected-accounts { list-style: none; margin: 0; padding: 0; }
@@ -222,6 +225,7 @@ h2 { font-size: 20px; letter-spacing: -.038em; line-height: 1.2; }
 .reset-credits h3 { padding: 8px 18px; font-size: 14px; }
 .reset-credits li { overflow-wrap: anywhere; }
 .reset-credits li span:first-child { color: var(--ink); }
+.credit-usage-link:not([hidden]) { display: inline-block; margin: 8px 18px; color: var(--accent); font-size: 13px; }
 .no-models { color: var(--muted); }
 
 .copilot .provider-mark { background: var(--inset); color: var(--ink); }

@@ -2,10 +2,13 @@ import { readProviderQuota } from '../../plugins/agy/scripts/lib/quota-state.mjs
 import { defaultRouteThresholds } from '../../plugins/agy/scripts/lib/quota-route.mjs';
 import { readState } from './state.mjs';
 import { accountsForProvider, normalizeAccounts } from './accounts.mjs';
+import { normalizeClaudeFullResets } from './claude-reset-credit.mjs';
 
 const numericDefaults = { watch: 80, ...defaultRouteThresholds, cost: 5, target: 6, refreshMinutes: 4 };
 const providerDefaults = Object.freeze({ claude: true, agy: true, copilot: true, codex: false });
-export const defaultSettings = Object.freeze({ ...numericDefaults, providers: providerDefaults, accounts: Object.freeze({}) });
+export const defaultSettings = Object.freeze({
+  ...numericDefaults, providers: providerDefaults, accounts: Object.freeze({}), claudeFullReset: Object.freeze({}),
+});
 const severity = { unknown: -1, healthy: 0, watch: 1, low: 2, critical: 3 };
 const cachedProviders = ['claude', 'agy'];
 const providers = [
@@ -37,7 +40,10 @@ export function validSettings(candidate) {
 
 export function loadSettings(directory) {
   const saved = { ...defaultSettings, ...readState(directory, 'settings.json', {}) };
-  return validSettings(saved) ? { ...saved, accounts: normalizeAccounts(saved.accounts) } : defaultSettings;
+  return validSettings(saved) ? {
+    ...saved, accounts: normalizeAccounts(saved.accounts),
+    claudeFullReset: normalizeClaudeFullResets(saved.claudeFullReset) ?? defaultSettings.claudeFullReset,
+  } : defaultSettings;
 }
 
 export function forecastResetChecks(anchorMs, count) {
