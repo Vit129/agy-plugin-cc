@@ -88,16 +88,11 @@ test("buildInstallPlan generates expected commands per target", () => {
     }
   ]);
 
-  assert.deepEqual(plan[1].steps, [
-    {
-      cmd: "codex",
-      args: ["plugin", "marketplace", "add", "Vit129/agent-bridge"],
-      fallback: { cmd: "codex", args: ["plugin", "marketplace", "upgrade", "agent-bridge"] }
-    },
-    {
-      cmd: "codex",
-      args: ["plugin", "add", "agy@agent-bridge"]
-    }
+  assert.deepEqual(plan[1].steps.map(({ cmd, args, fallback }) => [cmd, args.join(" "), fallback?.args.join(" ")]), [
+    ["codex", "plugin marketplace add Vit129/agent-bridge", "plugin marketplace upgrade agent-bridge"],
+    ["codex", "plugin marketplace upgrade agent-bridge", undefined],
+    ["codex", "plugin add agy@agent-bridge", undefined],
+    ["codex", "plugin list", undefined]
   ]);
 
   assert.deepEqual(plan[2].steps, [
@@ -193,6 +188,7 @@ test("runInstallPlan uses fallback on failure and continues after target failure
     "claude plugin marketplace update agent-bridge",
     "claude plugin install agy@agent-bridge",
     "codex plugin marketplace add Vit129/agent-bridge",
+    "codex plugin marketplace upgrade agent-bridge",
     "codex plugin add agy@agent-bridge",
     "agy plugin install /repo/plugins/cc-for-agy"
   ]);
@@ -224,4 +220,36 @@ test("main prints usage and exits 1 in non-TTY without target flags", async () =
 
   assert.equal(code, 1);
   assert.match(logs.join("\n"), /Usage: node scripts\/install\.mjs/);
+});
+
+const codexList = (version, status = "installed, enabled") => [
+  "Marketplace `agent-bridge`",
+  "PLUGIN                STATUS              VERSION  SOURCE",
+  `agy@agent-bridge      ${status}  ${version}    /x/plugins/agy`
+].join("\n");
+
+test("[TC-AGU-86][BE-UT] Codex plan always upgrades the marketplace and verifies the installed version", () => {
+  const [codex] = buildInstallPlan(["codex"], "/tmp/agent-bridge", { version: "2.3.0" });
+  const commands = codex.steps.map((step) => `${step.cmd} ${step.args.join(" ")}`);
+  assert.deepEqual(commands.slice(1), [
+    "codex plugin marketplace upgrade agent-bridge", "codex plugin add agy@agent-bridge", "codex plugin list"
+  ]);
+  assert.ok(commands.indexOf("codex plugin marketplace upgrade agent-bridge") < commands.indexOf("codex plugin add agy@agent-bridge"));
+  const verify = codex.steps.at(-1).verify;
+  assert.deepEqual(verify(codexList("2.3.0")), { ok: true, error: null });
+  assert.match(verify(codexList("2.2.0")).error, /runs agy@agent-bridge 2\.2\.0, expected 2\.3\.0/);
+  assert.match(verify(codexList("", "not installed")).error, /not installed/);
+  assert.match(verify("PLUGIN STATUS").error, /not listed/);
+});
+
+test("[TC-AGU-87][BE-IT] a Codex version mismatch fails the target with the manual upgrade command", () => {
+  const plan = buildInstallPlan(["codex"], "/tmp/agent-bridge", { version: "2.3.0" });
+  const run = (listed) => runInstallPlan(plan, {
+    log: () => {},
+    runCommand: (cmd, args) => ({ ok: true, error: null, output: args[1] === "list" ? codexList(listed) : "" })
+  });
+  assert.equal(run("2.3.0")[0].status, "ok");
+  const [stale] = run("2.2.0");
+  assert.equal(stale.status, "failed");
+  assert.match(stale.error, /codex plugin marketplace upgrade agent-bridge && codex plugin add agy@agent-bridge/);
 });
