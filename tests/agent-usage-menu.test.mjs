@@ -11,7 +11,7 @@ const rows = [
   { provider: 'agy', label: 'Antigravity · Gemini', windows: [window('5h', null, 'unknown')] },
 ];
 
-test('[TC-AGU-25][FE-UT] renders grouped menu text and gives active providers precedence over exhausted ones', () => {
+test('[TC-AGU-56][FE-UT] renders grouped menu text and gives active providers precedence over exhausted ones', () => {
   const model = buildMenuModel(rows, [{ provider: 'claude' }, { provider: 'agy' }]);
   assert.deepEqual(model.status.map(({ provider, amount, dimmed }) => [provider, amount, dimmed]), [
     ['claude', '82%', false], ['agy', '—', false],
@@ -23,7 +23,7 @@ test('[TC-AGU-25][FE-UT] renders grouped menu text and gives active providers pr
   assert.equal(formatMenuGroup(model.groups[1])[0], 'OpenAI Codex · Work');
 });
 
-test('[TC-AGU-26][FE-UT] uses a dimmed lowest provider when idle and the lowest quota across named accounts', () => {
+test('[TC-AGU-57][FE-UT] uses a dimmed lowest provider when idle and the lowest quota across named accounts', () => {
   const active = buildMenuModel([...rows, { provider: 'claude', label: 'Claude Code · Other',
     windows: [window('7d', 63, 'watch')] }], [{ provider: 'claude' }]);
   assert.equal(active.status[0].amount, '63%');

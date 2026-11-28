@@ -1,13 +1,8 @@
 import { providerMark } from './provider-icons.mjs';
-import { availableResetCredits, creditExpiryLabel } from './reset-credits.mjs';
+import { accountKindLabels, creditStatusLabels, format, levelLabels, text } from './ui/strings.mjs';
+import { parseSettingsHash, quotaViewModel } from './view-model.mjs';
 
-const labels = { healthy: 'Healthy', watch: 'Watch', low: 'Low', critical: 'Critical', unknown: 'Unavailable' };
-const states = { live: 'Live', aging: 'Stale', reset_assumed: 'Awaiting fresh quota', exhausted: 'Cooldown reported', unknown: 'Unavailable' };
-const severity = { watch: 1, low: 2, critical: 3 };
-const windows = { '5h': '5-hour window', '7d': '7-day window', monthly: 'Monthly credits' };
 const compact = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 2 });
-const clock = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short' });
-const localClock = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Bangkok' });
 const notificationError = document.querySelector('#alert-details');
 const form = document.querySelector('#quota-settings');
 const providerSwitches = [...form.querySelectorAll('[data-monitor-provider]')];
@@ -46,106 +41,64 @@ async function request(endpoint, options) {
   return payload;
 }
 
-function chip(level, text = labels[level]) {
-  return `<span class="level-label level" data-level="${level}"><span class="dot" aria-hidden="true"></span>${escapeHTML(text)}</span>`;
+function chip(level, label = levelLabels[level]) {
+  return `<span class="level-label level" data-level="${level}"><span class="dot" aria-hidden="true"></span>${escapeHTML(label)}</span>`;
 }
 
-function renderSchedule(schedule, checks) {
+function renderSchedule(rows) {
   const output = document.querySelector('#reset-checks');
-  if (!schedule?.times?.length) {
-    output.innerHTML = '<li><span>No scheduled checks.</span></li>';
+  if (!rows.length) {
+    output.innerHTML = `<li><span>${text.noScheduledChecks}</span></li>`;
     return;
   }
-  output.innerHTML = schedule.times.map(time => {
-    const result = checks[time];
-    let status = 'Scheduled';
-    if (result?.checkedAt) status = result.windows.some(window => window.state === 'live') ? 'Checked · fresh snapshot found' : 'Checked · waiting for fresh quota';
-    if (result?.missedAt) status = 'Missed';
-    if (result?.skippedAt) status = 'Skipped · no providers enabled';
-    return `<li><time datetime="${new Date(time).toISOString()}">${localClock.format(time)} ICT</time><span>${status}</span></li>`;
-  }).join('');
+  output.innerHTML = rows.map(({ iso, time, status }) => `<li><time datetime="${iso}">${time}</time><span>${status}</span></li>`).join('');
 }
 
-function displayQuotaPercent(remaining) {
-  return Math.floor(remaining);
-}
-
-function renderResetCredits(quota) {
+function renderResetCredits({ rows, showClaudeUsage }) {
   const panel = document.querySelector('#reset-credits');
-  const now = Date.now();
-  let showClaudeUsage = false;
-  const rows = quota.flatMap(row => {
-    const summary = row.rateLimitResetCredits;
-    const available = availableResetCredits(summary, now).sort((first, second) =>
-      (first.expiresAt ?? Infinity) - (second.expiresAt ?? Infinity));
-    if (summary?.credits === null && summary.availableCount > 0) {
-      return [`<li><span>${escapeHTML(row.label)}</span><span>${summary.availableCount} available · expiry details unavailable</span></li>`];
-    }
-    return available.map(credit => {
-      if (credit.provider === 'claude') showClaudeUsage = true;
-      const account = row.accountId || credit.provider === 'claude' ? `${escapeHTML(row.label)} · ` : '';
-      const label = creditExpiryLabel(credit.expiresAt, now).replace(/^expires /, 'Expires ');
-      const expiry = credit.expiresAt === null ? label : `<time datetime="${new Date(credit.expiresAt * 1000).toISOString()}">${escapeHTML(label)}</time>`;
-      return `<li><span>${account}${escapeHTML(credit.title || 'Rate limit reset')} · ${expiry}</span></li>`;
-    });
+  const items = rows.map(row => {
+    if (row.kind === 'summary') return `<li><span>${escapeHTML(row.label)}</span><span>${row.text}</span></li>`;
+    const account = row.account ? `${escapeHTML(row.account)} · ` : '';
+    const expiry = row.expiresAtIso === null ? row.expiry : `<time datetime="${row.expiresAtIso}">${escapeHTML(row.expiry)}</time>`;
+    return `<li><span>${account}${escapeHTML(row.title)} · ${expiry}</span></li>`;
   });
-  panel.hidden = rows.length === 0;
-  panel.querySelector('ul').innerHTML = rows.join('');
+  panel.hidden = items.length === 0;
+  panel.querySelector('ul').innerHTML = items.join('');
   panel.querySelector('a').hidden = !showClaudeUsage;
+}
+
+function renderWindow(window) {
+  const bar = window.meter
+    ? `<div class="rail" role="meter" aria-label="${escapeHTML(window.meter.label)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${window.meter.value}"><span style="width: ${window.meter.percent}%"></span></div>`
+    : '<div class="rail" aria-hidden="true"></div>';
+  return `<div class="window level" data-window="${window.short}" data-level="${window.level}"><div class="window-head"><span><span class="mobile-window">${window.mobileName} · </span><strong>${window.amount}</strong></span>${chip(window.level, window.label)}</div>${bar}<p class="reset">${window.resetText}</p></div>`;
+}
+
+function renderRow(row) {
+  const status = row.status.level ? chip(row.status.level, row.status.text) : row.status.text;
+  const login = row.login ? `<small class="account-login">${escapeHTML(row.login)}</small>` : '';
+  const badge = row.active ? `<span class="active-badge">${text.activeNow}</span>` : '';
+  return `<div class="plan-grid plan-row" data-provider="${row.provider}" data-state="${row.state}"><div class="plan-provider ${row.provider}"><h3 class="provider"><span class="provider-mark" aria-hidden="true">${providerMark(row.provider)}</span>${escapeHTML(row.label)}</h3>${login}${badge}<small>${status}</small></div>${row.windows.map(renderWindow).join('')}<div class="capacity" data-target="${row.capacity.target}"><strong>${row.capacity.value}</strong><span>${row.capacity.note}</span></div></div>`;
 }
 
 function renderQuota(data) {
   settings = data.settings;
   claudeCreditAccounts = data.claudeFullResetAccounts ?? [];
-  const { quota, schedule, checks, routes } = data;
-  const active = new Set(data.active?.map(entry => entry.provider));
+  const view = quotaViewModel(data);
   renderAccountInventory(data.accounts ?? {});
-  const alerts = [];
-  document.querySelector('.plan-columns').hidden = quota.length === 0;
-  document.querySelector('.legend').innerHTML = ['watch', 'low', 'critical'].map(level => chip(level, `${labels[level]} ≤${settings[level]}%`)).join('');
-  document.querySelector('#quota-rows').innerHTML = quota.map(row => {
-    const bars = row.windows.map(window => {
-      if (window.state === 'live' && severity[window.level]) alerts.push({ ...window, provider: row.label });
-      const level = window.state === 'live' ? window.level : 'unknown';
-      const label = window.state === 'live' ? labels[level] : states[window.state] || states.unknown;
-      const amount = window.remaining === null ? '—' : `${displayQuotaPercent(window.remaining)}%`;
-      const resetPrefix = window.state === 'reset_assumed' ? 'Last reported reset' : 'Resets';
-      const reset = Number.isFinite(window.resetsAt) && window.resetsAt > 0 ? `${resetPrefix} ${clock.format(window.resetsAt * 1000)}` : 'Reset time unavailable';
-      const bar = window.remaining === null ? '<div class="rail" aria-hidden="true"></div>' : `<div class="rail" role="meter" aria-label="${escapeHTML(row.label)}, ${windows[window.short]} remaining" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${displayQuotaPercent(window.remaining)}"><span style="width: ${window.remaining}%"></span></div>`;
-      return `<div class="window level" data-window="${window.short}" data-level="${level}"><div class="window-head"><span><span class="mobile-window">${window.short === 'monthly' ? 'Monthly' : window.short} · </span><strong>${amount}</strong></span>${chip(level, label)}</div>${bar}<p class="reset">${reset}</p></div>`;
-    }).join('');
-    const captured = Number.isFinite(row.capturedAt) ? `Updated ${clock.format(row.capturedAt * 1000)}` : 'Waiting for a quota snapshot';
-    const target = row.capacity === null ? 'unknown' : row.capacity >= settings.target ? 'met' : 'short';
-    const status = row.state === 'error' ? chip('critical', `Error · ${row.error}`) : captured;
-    const login = row.login ? `<small class="account-login">${escapeHTML(row.login)}</small>` : '';
-    const badge = active.has(row.provider) ? '<span class="active-badge">Active now</span>' : '';
-    return `<div class="plan-grid plan-row" data-provider="${row.provider}" data-state="${row.state ?? 'ready'}"><div class="plan-provider ${row.provider}"><h3 class="provider"><span class="provider-mark" aria-hidden="true">${providerMark(row.provider)}</span>${escapeHTML(row.label)}</h3>${login}${badge}<small>${status}</small></div>${bars}<div class="capacity" data-target="${target}"><strong>${row.capacity ?? '—'}</strong><span>sessions estimated · target ${settings.target}</span></div></div>`;
-  }).join('');
-  const directions = [
-    { label: 'Claude→agy', requested: 'agy', decision: routes.claudeToAgy },
-    { label: 'agy→Claude', requested: 'claude', decision: routes.agyToClaude },
-  ].map(({ label, requested, decision }) => ({
-    label, reason: escapeHTML(decision.reason),
-    status: settings.autoRoute === false ? 'Off' : decision.target === requested ? 'Allowed' : 'Diverted',
-  }));
-  document.querySelector('#settings-route-state').innerHTML = directions.map(({ label, status, reason }) =>
-    `<li><h4>${label} · ${status}</h4><p class="plan-caption">${reason}</p></li>`).join('');
-  document.querySelector('#quota-routes').innerHTML = directions.map(({ label, status, reason }) =>
-    `<div><strong>${label}</strong> · ${status} · ${reason}</div>`).join('');
-  const anyLive = quota.some(row => row.windows.some(window => window.state === 'live'));
-  alerts.sort((first, second) => severity[second.level] - severity[first.level]);
-  document.querySelector('.notice').dataset.level = alerts[0]?.level ?? (anyLive ? 'healthy' : 'unknown');
-  document.querySelector('#alert-title').textContent = quota.length === 0 ? 'No providers enabled'
-    : alerts.length ? `${alerts.length} quota ${alerts.length === 1 ? 'alert' : 'alerts'}`
-    : anyLive ? 'No active quota alerts' : 'Waiting for fresh quota';
-  const remaining = alerts.map(alert => `${alert.provider} ${alert.short} · ${displayQuotaPercent(alert.remaining)}% ${labels[alert.level].toLowerCase()}`);
-  if (data.notificationError) remaining.push('macOS notification delivery failed. See the local server log.');
-  notificationError.textContent = remaining.join('  /  ');
-  document.querySelector('#estimate-note').textContent = quota.length
-    ? `Estimates assume ${settings.cost}% of quota per session. Enabled providers refresh every ${settings.refreshMinutes} min.`
-    : 'Enable a provider in Settings to show its quota.';
-  renderResetCredits(quota);
-  renderSchedule(schedule, checks);
+  document.querySelector('.plan-columns').hidden = !view.hasProviders;
+  document.querySelector('.legend').innerHTML = view.legend.map(({ level, text: label }) => chip(level, label)).join('');
+  document.querySelector('#quota-rows').innerHTML = view.rows.map(renderRow).join('');
+  document.querySelector('#settings-route-state').innerHTML = view.routes.map(({ label, status, reason }) =>
+    `<li><h4>${label} · ${status}</h4><p class="plan-caption">${escapeHTML(reason)}</p></li>`).join('');
+  document.querySelector('#quota-routes').innerHTML = view.routes.map(({ label, status, reason }) =>
+    `<div><strong>${label}</strong> · ${status} · ${escapeHTML(reason)}</div>`).join('');
+  document.querySelector('.notice').dataset.level = view.noticeLevel;
+  document.querySelector('#alert-title').textContent = view.alertTitle;
+  notificationError.textContent = view.alertDetails;
+  document.querySelector('#estimate-note').textContent = view.estimateNote;
+  renderResetCredits(view.credits);
+  renderSchedule(view.schedule);
 }
 
 async function loadQuota() {
@@ -155,14 +108,14 @@ async function loadQuota() {
     const data = await request('/api/quota');
     if (quotaRequest === current) renderQuota(data);
   } catch {
-    if (quotaRequest === current) document.querySelector('#alert-title').textContent = 'Local quota unavailable';
+    if (quotaRequest === current) document.querySelector('#alert-title').textContent = text.localQuotaUnavailable;
   }
 }
 
 async function loadModels(days) {
   const current = ++modelRequest;
   const output = document.querySelector('.model-table tbody');
-  output.innerHTML = '<tr><td class="no-models" colspan="5">Reading local model usage…</td></tr>';
+  output.innerHTML = `<tr><td class="no-models" colspan="5">${text.readingModels}</td></tr>`;
   try {
     const { models } = await request(`/api/models?days=${days}`);
     if (current !== modelRequest) return;
@@ -172,9 +125,9 @@ async function loadModels(days) {
       const ok = model.okPct === null ? '—' : `${model.okPct}%`;
       const account = model.label ? `<small class="model-account">${escapeHTML(model.label)}</small>` : '';
       return `<tr class="${model.provider}"><th scope="row"><span class="model-label"><span class="dot" aria-hidden="true"></span>${escapeHTML(model.model)}</span>${account}</th><td class="model-numeric">${model.calls}</td><td class="model-numeric">${ok}</td><td><span class="model-tokens"><span>${compact.format(model.tokens)}</span><span class="rail" aria-hidden="true"><span style="width: ${model.tokens / highest * 100}%"></span></span></span></td><td class="model-numeric">${time}</td></tr>`;
-    }).join('') || '<tr><td class="no-models" colspan="5">No model usage found in this range.</td></tr>';
+    }).join('') || `<tr><td class="no-models" colspan="5">${text.noModels}</td></tr>`;
   } catch {
-    if (current === modelRequest) output.innerHTML = '<tr><td class="no-models" colspan="5">Could not read local model usage.</td></tr>';
+    if (current === modelRequest) output.innerHTML = `<tr><td class="no-models" colspan="5">${text.modelsFailed}</td></tr>`;
   }
 }
 
@@ -186,7 +139,6 @@ for (const button of modelButtons) {
 }
 
 function renderAccountInventory(accounts) {
-  const kindLabel = { current: 'Current CLI account', default: 'Default folder', manual: 'Configured folder', managed: 'Managed account' };
   for (const group of accountGroups) {
     const provider = group.dataset.accountProvider;
     const profiles = (accounts[provider] ?? []).filter(profile => profile.login || profile.kind === 'managed');
@@ -194,18 +146,18 @@ function renderAccountInventory(accounts) {
     if (inventoryKeys.get(group) === key) continue;
     inventoryKeys.set(group, key);
     const primary = profiles[0];
-    const login = primary ? primary.login ?? 'Waiting for sign-in' : 'No sign-in detected';
+    const login = primary ? primary.login ?? text.waitingForSignIn : text.noSignIn;
     group.querySelector('.account-login').textContent = profiles.length > 1
-      ? `${login} · +${profiles.length - 1} more`
+      ? format.accountMore(login, profiles.length - 1)
       : login;
     const manual = manualGroups.find(group => group.dataset.manualProvider === provider);
     if (!manual) continue;
     manual.querySelector('.detected-accounts').innerHTML = profiles.map(profile => {
-      const login = profile.login ?? 'Waiting for sign-in';
+      const login = profile.login ?? text.waitingForSignIn;
       const remove = profile.kind === 'managed'
-        ? `<button class="action" type="button" data-remove-managed="${profile.id}" aria-label="Remove ${escapeHTML(login)}" data-testid="btn_removeManagedAccount-${profile.id}_monitorPage">Remove</button>`
+        ? `<button class="action" type="button" data-remove-managed="${profile.id}" aria-label="${escapeHTML(format.removeAccount(login))}" data-testid="btn_removeManagedAccount-${profile.id}_monitorPage">${text.remove}</button>`
         : '';
-      return `<li><div><span class="account-login">${escapeHTML(login)}</span><small>${kindLabel[profile.kind]}</small></div>${remove}</li>`;
+      return `<li><div><span class="account-login">${escapeHTML(login)}</span><small>${accountKindLabels[profile.kind]}</small></div>${remove}</li>`;
     }).join('');
   }
 }
@@ -213,14 +165,14 @@ function renderAccountInventory(accounts) {
 async function changeManagedAccount(provider, button) {
   const id = button.dataset.removeManaged;
   const removing = Boolean(id);
-  if (removing && !window.confirm('Remove this managed account and delete its local CLI configuration and session files?')) return;
+  if (removing && !window.confirm(text.confirmRemoveAccount)) return;
   button.disabled = true;
-  accountResult.textContent = removing ? 'Removing managed account…' : 'Opening macOS Terminal…';
+  accountResult.textContent = removing ? text.removingAccount : text.openingTerminal;
   try {
     const endpoint = removing ? '/api/accounts/remove' : '/api/accounts/sign-in';
     const body = removing ? { provider, id, confirm: true } : { provider };
     await request(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    accountResult.textContent = removing ? 'Managed account removed.' : 'Finish signing in in Terminal. The account will appear here when ready.';
+    accountResult.textContent = removing ? text.accountRemoved : text.finishSignIn;
     await loadQuota();
   } catch (error) {
     accountResult.textContent = error.message;
@@ -255,19 +207,19 @@ function renderClaudeCreditSettings() {
     claudeCreditAccounts.length > 0 && claudeCreditAccounts.every(account => account.expiresAt);
   const [primary, ...additional] = claudeCreditAccounts.map(account => {
     const id = account.accountUuid;
-    const login = escapeHTML(account.login ?? 'Claude account');
+    const login = escapeHTML(account.login ?? text.claudeAccount);
     const value = localDateTime(account.expiresAt);
-    const status = { available: 'Available', used: 'Used', unknown: 'Status unknown' }[account.status];
+    const status = creditStatusLabels[account.status];
     return `<div class="claude-credit-row" data-credit-account="${id}" data-saved-expiry="${account.expiresAt ?? ''}">
-      <label>Claude full reset expires <small>${login}</small><input type="datetime-local" value="${value}" data-testid="txt_claudeFullResetExpiry-${id}_monitorPage"></label>
-      <button type="button" class="action" data-credit-used data-testid="btn_claudeFullResetUsed-${id}_monitorPage" ${!value || account.used ? 'disabled' : ''}>Used it</button>
+      <label>${text.claudeFullResetExpires} <small>${login}</small><input type="datetime-local" value="${value}" data-testid="txt_claudeFullResetExpiry-${id}_monitorPage"></label>
+      <button type="button" class="action" data-credit-used data-testid="btn_claudeFullResetUsed-${id}_monitorPage" ${!value || account.used ? 'disabled' : ''}>${text.usedIt}</button>
       <small role="status">${value ? status : ''}</small>
     </div>`;
   });
   creditSettings.innerHTML = primary ?? '';
   if (additional.length) {
     creditSettings.insertAdjacentHTML('beforeend', `<details class="account-advanced">
-      <summary data-testid="btn_additionalClaudeCredits_monitorPage">Other Claude accounts</summary>
+      <summary data-testid="btn_additionalClaudeCredits_monitorPage">${text.otherClaudeAccounts}</summary>
       ${additional.join('')}
     </details>`);
   }
@@ -280,12 +232,12 @@ creditSettings.addEventListener('click', async event => {
   const account = claudeCreditAccounts.find(item => item.accountUuid === row.dataset.creditAccount);
   const status = row.querySelector('[role=status]');
   if (!account?.expiresAt || account.expiresAt !== row.dataset.savedExpiry) {
-    status.textContent = 'Expiry changed. Reopen Settings to view it.';
+    status.textContent = text.expiryChanged;
     return;
   }
   const field = row.querySelector('input');
   if (field.value !== field.defaultValue) {
-    status.textContent = 'Save the new expiry before marking it used.';
+    status.textContent = text.saveExpiryFirst;
     return;
   }
   savingSettings = true;
@@ -298,7 +250,7 @@ creditSettings.addEventListener('click', async event => {
     });
     renderQuota(response);
     const current = claudeCreditAccounts.find(item => item.accountUuid === account.accountUuid);
-    status.textContent = current?.status === 'available' ? 'Available · CLI status is current' : 'Used';
+    status.textContent = current?.status === 'available' ? text.creditStillAvailable : text.used;
   } catch (error) {
     status.textContent = error.message;
     button.disabled = false;
@@ -360,8 +312,8 @@ for (const mirror of settingMirrors) {
   mirror.addEventListener('input', () => { field.value = mirror.value; });
 }
 
-document.querySelector('#open-settings').addEventListener('click', () => {
-  if (!settings) return;
+function openSettings(tab = null) {
+  if (!settings || dialog.open) return;
   for (const field of form.querySelectorAll('input[type="number"][name]')) field.value = settings[field.name];
   for (const mirror of settingMirrors) mirror.value = settings[mirror.dataset.settingMirror];
   for (const input of providerSwitches) input.checked = settings.providers[input.dataset.monitorProvider];
@@ -377,10 +329,26 @@ document.querySelector('#open-settings').addEventListener('click', () => {
   accountResult.textContent = '';
   document.querySelector('#notification-result').textContent = '';
   form.querySelector('.form-error').textContent = '';
-  selectSettingsTab(settingsTabs[0]);
+  const selected = document.getElementById(`settings-tab-${tab ?? 'general'}`);
+  selectSettingsTab(selected);
   dialog.showModal();
-  settingsTabs[0].focus();
+  selected.focus();
+}
+document.querySelector('#open-settings').addEventListener('click', () => openSettings());
+
+// Deep link from the menu bar: #settings, #settings/notifications|general|accounts|auto-route.
+async function applySettingsHash() {
+  const link = parseSettingsHash(location.hash);
+  if (!link) return;
+  await firstQuota;
+  if (dialog.open && link.tab) selectSettingsTab(document.getElementById(`settings-tab-${link.tab}`));
+  else openSettings(link.tab);
+}
+dialog.addEventListener('close', () => {
+  if (parseSettingsHash(location.hash)) history.replaceState(null, '', location.pathname + location.search);
 });
+window.addEventListener('hashchange', () => void applySettingsHash());
+
 document.querySelector('#cancel-settings').addEventListener('click', () => dialog.close());
 const testNotification = document.querySelector('#test-notification');
 testNotification.addEventListener('click', async () => {
@@ -388,9 +356,9 @@ testNotification.addEventListener('click', async () => {
   testNotification.disabled = true;
   try {
     await request('/api/notifications/test', { method: 'POST', headers: { 'Content-Type': 'application/json' } });
-    result.textContent = 'Test sent to macOS Notification Center.';
+    result.textContent = text.testSent;
   } catch {
-    result.textContent = 'Test delivery failed. Check the Agent Usage server log.';
+    result.textContent = text.testFailed;
   } finally {
     testNotification.disabled = false;
   }
@@ -417,7 +385,7 @@ form.addEventListener('submit', async event => {
   const formError = form.querySelector('.form-error');
   if (!(values.critical < values.low && values.low < values.watch)) {
     revealSettingsField(form.elements.namedItem(values.critical >= values.low ? 'critical' : 'watch'));
-    formError.textContent = 'Critical must be below warning, and warning below watch.';
+    formError.textContent = text.thresholdOrder;
     return;
   }
   formError.textContent = '';
@@ -430,7 +398,7 @@ form.addEventListener('submit', async event => {
     const date = new Date(value);
     if (value && (!Number.isFinite(date.getTime()) || localDateTime(date) !== value)) {
       revealSettingsField(field);
-      formError.textContent = 'Enter a valid expiry in your local time.';
+      formError.textContent = text.invalidExpiry;
       return;
     }
     claudeFullReset[id] = { expiresAt: value ? date.toISOString() : null, used: false };
@@ -468,10 +436,11 @@ const theme = document.querySelector('.theme');
 function applyTheme(dark) {
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   theme.setAttribute('aria-pressed', String(dark));
-  theme.textContent = dark ? 'Light mode' : 'Dark mode';
+  theme.textContent = dark ? text.lightMode : text.darkMode;
 }
 theme.addEventListener('click', () => applyTheme(document.documentElement.dataset.theme !== 'dark'));
 applyTheme(true);
-void loadQuota();
+const firstQuota = loadQuota();
 void loadModels(7);
+void applySettingsHash();
 setInterval(loadQuota, 15_000);

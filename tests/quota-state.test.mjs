@@ -18,7 +18,7 @@ function makeTempQuotaDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "ai-quota-test-"));
 }
 
-test("resolveAgyPool and classifyQuotaError classify pools and 429/rate-limit errors", () => {
+test("[TC-QST-01][BE-UT] resolveAgyPool and classifyQuotaError classify pools and 429/rate-limit errors", () => {
   assert.equal(resolveAgyPool("Gemini 4 Neon (High)"), "gemini");
   assert.equal(resolveAgyPool("Gemini 4 Argon"), "argon");
   assert.equal(resolveAgyPool("Claude Sonnet 4.6"), "3p");
@@ -27,7 +27,7 @@ test("resolveAgyPool and classifyQuotaError classify pools and 429/rate-limit er
   assert.equal(classifyQuotaError("SyntaxError: unexpected token"), false);
 });
 
-test("readAllQuota handles live, aging, reset_assumed, and cooldown exhausted states", () => {
+test("[TC-QST-02][BE-UT] readAllQuota handles live, aging, reset_assumed, and cooldown exhausted states", () => {
   const dir = makeTempQuotaDir();
   const env = { AI_QUOTA_DIR: dir };
   const now = 1_800_000_000;
@@ -82,7 +82,7 @@ test("readAllQuota handles live, aging, reset_assumed, and cooldown exhausted st
   }
 });
 
-test("decideRoute routes away from low-headroom or cooled-down pools", () => {
+test("[TC-QST-03][BE-UT] decideRoute routes away from low-headroom or cooled-down pools", () => {
   const dir = makeTempQuotaDir();
   const env = { AI_QUOTA_DIR: dir };
   const now = 1_800_000_000;
@@ -124,7 +124,7 @@ test("decideRoute routes away from low-headroom or cooled-down pools", () => {
   }
 });
 
-test("buildQuotaLines and renderStatusReport surface local quota state", () => {
+test("[TC-QST-04][BE-UT] buildQuotaLines and renderStatusReport surface local quota state", () => {
   const dir = makeTempQuotaDir();
   const env = { AI_QUOTA_DIR: dir };
   const now = 1_800_000_000;

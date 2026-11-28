@@ -39,7 +39,7 @@ function hostSkills(dirs) {
 
 const shared = skillsIn("skills");
 
-test("Claude Code: default skills/ plus manifest paths (which add to the default)", () => {
+test("[TC-SKL-01][BE-IT] Claude Code: default skills/ plus manifest paths (which add to the default)", () => {
   const extra = asList(readJson(".claude-plugin/plugin.json").skills);
   extra.forEach(checkPath);
   const names = hostSkills(["./skills/", ...extra.filter((p) => path.normalize(p) !== "skills/")]);
@@ -47,7 +47,7 @@ test("Claude Code: default skills/ plus manifest paths (which add to the default
   assert.ok(!names.has("agy"), "the Codex `agy` skill must not load in Claude (clashes with /agy:agy)");
 });
 
-test("Codex: manifest skills list replaces the default, so it must list skills/ itself", () => {
+test("[TC-SKL-02][BE-IT] Codex: manifest skills list replaces the default, so it must list skills/ itself", () => {
   const dirs = asList(readJson(".codex-plugin/plugin.json").skills);
   dirs.forEach(checkPath);
   assert.ok(dirs.some((p) => path.normalize(p) === "skills/"), "Codex manifest must list ./skills/");
@@ -55,7 +55,7 @@ test("Codex: manifest skills list replaces the default, so it must list skills/ 
   for (const name of [...shared, "agy", "agy-cli-runtime"]) assert.ok(names.has(name), name);
 });
 
-test("agents only reference skills Claude loads", () => {
+test("[TC-SKL-03][BE-IT] agents only reference skills Claude loads", () => {
   const claude = hostSkills(["./skills/", ...asList(readJson(".claude-plugin/plugin.json").skills)]);
   for (const file of fs.readdirSync(path.join(PLUGIN, "agents"))) {
     const text = fs.readFileSync(path.join(PLUGIN, "agents", file), "utf8");

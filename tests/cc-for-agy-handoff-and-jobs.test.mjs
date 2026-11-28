@@ -28,7 +28,7 @@ function makeTempGitRepo(branch = "feat/test") {
   return dir;
 }
 
-test("handoff helpers detect verify commands, parse test lists, and detect hash changes", () => {
+test("[TC-CFA-06][BE-UT] handoff helpers detect verify commands, parse test lists, and detect hash changes", () => {
   assert.equal(detectVerifyCommand("/repo", (p) => p.endsWith("package.json")), "npm test");
   assert.equal(detectVerifyCommand("/repo", (p) => p.endsWith("pyproject.toml")), "pytest");
   assert.equal(detectVerifyCommand("/repo", () => false), null);
@@ -46,7 +46,7 @@ test("handoff helpers detect verify commands, parse test lists, and detect hash 
   }
 });
 
-test("runHandoffLoop handles PASS, fixup resume->PASS, FAIL, TEST_FILES_MODIFIED, and CLAUDE_FAILED", async () => {
+test("[TC-CFA-07][BE-BL] runHandoffLoop handles PASS, fixup resume->PASS, FAIL, TEST_FILES_MODIFIED, and CLAUDE_FAILED", async () => {
   const baseHashes = { "a.test.mjs": "h1" };
 
   // 1. PASS on first try
@@ -119,7 +119,7 @@ test("runHandoffLoop handles PASS, fixup resume->PASS, FAIL, TEST_FILES_MODIFIED
   assert.equal(claudeFailRes.status, HANDOFF_STATUS.CLAUDE_FAILED);
 });
 
-test("state.mjs manages jobs, dead-PID detection, usage.jsonl, sumUsage, and formatUsage", () => {
+test("[TC-CFA-08][BE-IT] state.mjs manages jobs, dead-PID detection, usage.jsonl, sumUsage, and formatUsage", () => {
   const repo = makeTempGitRepo();
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "cc-data-"));
   const env = { PLUGIN_DATA: dataDir };
@@ -145,7 +145,7 @@ test("state.mjs manages jobs, dead-PID detection, usage.jsonl, sumUsage, and for
   }
 });
 
-test("CLI integration: transfer, handoff guards, and status --json", () => {
+test("[TC-CFA-09][BE-IT] CLI integration: transfer, handoff guards, and status --json", () => {
   const mainRepo = makeTempGitRepo("main");
   const featRepo = makeTempGitRepo("feat/work");
 

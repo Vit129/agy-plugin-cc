@@ -20,7 +20,7 @@ const config = {
   aliasMap: { m: "model" }
 };
 
-test("parseArgs: value, boolean, alias, inline and repeatable options", () => {
+test("[TC-LIB-01][BE-UT] parseArgs: value, boolean, alias, inline and repeatable options", () => {
   const { options, positionals } = parseArgs(
     ["--model", "fast", "--json", "-m", "slow", "--tag=a", "--tag", "b", "hello"],
     config
@@ -31,19 +31,19 @@ test("parseArgs: value, boolean, alias, inline and repeatable options", () => {
   assert.deepEqual(positionals, ["hello"]);
 });
 
-test("parseArgs: -- passes everything through as positionals", () => {
+test("[TC-LIB-02][BE-UT] parseArgs: -- passes everything through as positionals", () => {
   const { options, positionals } = parseArgs(["--json", "--", "--model", "x"], config);
   assert.equal(options.json, true);
   assert.deepEqual(positionals, ["--model", "x"]);
 });
 
-test("parseArgs: boolean --flag=false, unknown flags stay positional, missing value throws", () => {
+test("[TC-LIB-03][BE-UT] parseArgs: boolean --flag=false, unknown flags stay positional, missing value throws", () => {
   assert.equal(parseArgs(["--json=false"], config).options.json, false);
   assert.deepEqual(parseArgs(["--unknown"], config).positionals, ["--unknown"]);
   assert.throws(() => parseArgs(["--model"], config), /Missing value for --model/);
 });
 
-test("splitRawArgumentString: quotes, escapes and whitespace", () => {
+test("[TC-LIB-04][BE-UT] splitRawArgumentString: quotes, escapes and whitespace", () => {
   assert.deepEqual(splitRawArgumentString(`a "b c" 'd e'  f\\ g`), ["a", "b c", "d e", "f g"]);
   assert.deepEqual(splitRawArgumentString("   "), []);
   assert.deepEqual(splitRawArgumentString("trailing\\"), ["trailing\\"]);
@@ -64,7 +64,7 @@ function withTempState(fn) {
   }
 }
 
-test("state: empty workspace yields the default state", () => {
+test("[TC-LIB-05][BE-IT] state: empty workspace yields the default state", () => {
   withTempState((cwd) => {
     const s = state.loadState(cwd);
     assert.deepEqual(s.jobs, []);
@@ -72,7 +72,7 @@ test("state: empty workspace yields the default state", () => {
   });
 });
 
-test("state: state dir lives under the plugin data dir and is stable per workspace", () => {
+test("[TC-LIB-06][BE-IT] state: state dir lives under the plugin data dir and is stable per workspace", () => {
   withTempState((cwd) => {
     const dir = state.resolveStateDir(cwd);
     assert.ok(dir.startsWith(process.env[PLUGIN_DATA_ENV]));
@@ -80,7 +80,7 @@ test("state: state dir lives under the plugin data dir and is stable per workspa
   });
 });
 
-test("state: upsertJob inserts then merges by id, newest first", () => {
+test("[TC-LIB-07][BE-IT] state: upsertJob inserts then merges by id, newest first", () => {
   withTempState((cwd) => {
     state.upsertJob(cwd, { id: "a", status: "running", pid: process.pid });
     state.upsertJob(cwd, { id: "b", status: "running", pid: process.pid });
@@ -91,7 +91,7 @@ test("state: upsertJob inserts then merges by id, newest first", () => {
   });
 });
 
-test("state: listJobs marks and persists a running job whose worker is gone", () => {
+test("[TC-LIB-08][BE-IT] state: listJobs marks and persists a running job whose worker is gone", () => {
   withTempState((cwd) => {
     state.upsertJob(cwd, { id: "stale", status: "running", pid: -1 });
     const job = state.listJobs(cwd)[0];
@@ -102,21 +102,21 @@ test("state: listJobs marks and persists a running job whose worker is gone", ()
   });
 });
 
-test("runCommand: signal termination is a failure and names the signal", () => {
+test("[TC-LIB-09][BE-IT] runCommand: signal termination is a failure and names the signal", () => {
   const result = runCommand("sh", ["-c", "kill -TERM $$"]);
   assert.equal(result.status, 1);
   assert.equal(result.signal, "SIGTERM");
   assert.match(result.stderr, /signal SIGTERM/);
 });
 
-test("state: keeps at most 50 jobs", () => {
+test("[TC-LIB-10][BE-IT] state: keeps at most 50 jobs", () => {
   withTempState((cwd) => {
     for (let i = 0; i < 55; i += 1) state.upsertJob(cwd, { id: `job-${i}` });
     assert.equal(state.listJobs(cwd).length, 50);
   });
 });
 
-test("state: a corrupt state file falls back to defaults", () => {
+test("[TC-LIB-11][BE-IT] state: a corrupt state file falls back to defaults", () => {
   withTempState((cwd) => {
     state.ensureStateDir(cwd);
     fs.writeFileSync(state.resolveStateFile(cwd), "{not json");
@@ -124,7 +124,7 @@ test("state: a corrupt state file falls back to defaults", () => {
   });
 });
 
-test("generateJobId: carries the prefix and is unique", () => {
+test("[TC-LIB-12][BE-UT] generateJobId: carries the prefix and is unique", () => {
   const a = state.generateJobId("review");
   assert.ok(a.startsWith("review-"));
   assert.notEqual(a, state.generateJobId("review"));
@@ -174,7 +174,7 @@ test("[TS-1003] [BE-IT] asynchronous task and synchronous stop-review launch pas
 const { resolveTierModel, TIER_MODELS } = await import("../plugins/agy/scripts/lib/agy.mjs");
 const { digestOutput } = await import("../plugins/agy/scripts/lib/render.mjs");
 
-test("resolveTierModel: maps tiers, passes --model through, rejects conflicts and unknowns", () => {
+test("[TC-LIB-13][BE-UT] resolveTierModel: maps tiers, passes --model through, rejects conflicts and unknowns", () => {
   assert.equal(resolveTierModel("low", null), TIER_MODELS.low);
   assert.equal(resolveTierModel(null, "claude-sonnet-4-6"), "claude-sonnet-4-6");
   assert.equal(resolveTierModel(undefined, undefined), null);
@@ -182,7 +182,7 @@ test("resolveTierModel: maps tiers, passes --model through, rejects conflicts an
   assert.throws(() => resolveTierModel("pro", null), /Unknown --tier "pro"/);
 });
 
-test("digestOutput: short output unchanged, long output truncated with path", () => {
+test("[TC-LIB-14][BE-UT] digestOutput: short output unchanged, long output truncated with path", () => {
   assert.deepEqual(digestOutput("hi", "/f", 10), { text: "hi", truncated: false });
   const result = digestOutput("x".repeat(25), "/tmp/full.md", 10);
   assert.equal(result.truncated, true);
@@ -192,7 +192,7 @@ test("digestOutput: short output unchanged, long output truncated with path", ()
 
 const { detectHost } = await import("../plugins/agy/scripts/features/info.mjs");
 
-test("detectHost: Claude Code shells set CLAUDECODE, anything else is Codex", () => {
+test("[TC-LIB-15][BE-UT] detectHost: Claude Code shells set CLAUDECODE, anything else is Codex", () => {
   assert.equal(detectHost({ CLAUDECODE: "1" }), "claude");
   assert.equal(detectHost({}), "codex");
 });

@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { statSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { test } from 'node:test';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serverCommand, stableNodePath, writeLauncher } from '../apps/agent-usage/launcher.mjs';
-import { launchAgentDefinitions, launchAgentPaths, renderLaunchAgent } from '../apps/agent-usage/launch-agents.mjs';
+import { installLaunchAgents, launchAgentDefinitions, launchAgentPaths, launchAgentPath, realLaunchctl, renderLaunchAgent } from '../apps/agent-usage/launch-agents.mjs';
 import { providerIcons, providerMark } from '../apps/agent-usage/ui/provider-icons.mjs';
 
 test('[TC-AGU-27][BE-UT] prefers a version-independent node path over the running versioned binary', () => {
@@ -124,4 +124,61 @@ test('[TC-AGU-28][BE-IT] writes an executable launcher that execs the node with 
   assert.equal(text, `#!/bin/sh\nexec '${process.execPath}' '${cli.replaceAll("'", "'\\''")}' "$@"\n`);
   assert.equal(statSync(file).mode & 0o777, 0o755);
   assert.equal(execFileSync('/bin/sh', [file, 'a b'], { encoding: 'utf8' }), '["a b"]\n');
+});
+
+test('[TC-AGU-83][BE-UT] builds the LaunchAgent PATH from version-independent directories only', () => {
+  const versioned = ['/Users/u/.volta/tools/image/node/24.22.3/bin', '/opt/homebrew/Cellar/node/26.0.0/bin', '/Users/u/.nvm/versions/node/v20/bin'];
+  const pathEnv = [...versioned, '/Users/u/.local/bin', '/usr/bin'].join(path.delimiter);
+  assert.equal(launchAgentPath({ node: '/Users/u/.volta/bin/node', pathEnv }),
+    ['/Users/u/.volta/bin', '/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin', '/Users/u/.local/bin'].join(path.delimiter));
+  assert.equal(launchAgentPath({ node: versioned[0] + '/node' }), ['/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin'].join(path.delimiter));
+  const definitions = launchAgentDefinitions({
+    paths: launchAgentPaths({ home: '/Users/u', prefix: 'org.example' }), root: '/r', directory: '/s', node: '/Users/u/.volta/bin/node', env: { PATH: pathEnv },
+  });
+  for (const definition of Object.values(definitions)) {
+    assert.doesNotMatch(renderLaunchAgent(definition), /\.volta\/tools\/image|\/Cellar\/|\.nvm\/versions/);
+    assert.match(definition.EnvironmentVariables.PATH, /^\/Users\/u\/\.volta\/bin:/);
+  }
+});
+
+async function withTemporaryHome(t, callback) {
+  const root = fileURLToPath(new URL('../', import.meta.url));
+  await mkdir(path.join(root, '.tmp'), { recursive: true });
+  const home = await mkdtemp(path.join(root, '.tmp', 'launchctl-home-'));
+  const saved = { ...process.env };
+  t.after(async () => {
+    for (const key of ['HOME', 'AGENT_USAGE_STATE_DIR', 'AGENT_USAGE_LABEL_PREFIX', 'PATH']) {
+      if (saved[key] === undefined) delete process.env[key]; else process.env[key] = saved[key];
+    }
+    await rm(home, { recursive: true, force: true });
+  });
+  Object.assign(process.env, {
+    HOME: home, AGENT_USAGE_STATE_DIR: path.join(home, 'state'), AGENT_USAGE_LABEL_PREFIX: 'org.agent-bridge-test',
+    PATH: ['/Users/u/.volta/tools/image/node/24.22.3/bin', '/usr/bin'].join(path.delimiter),
+  });
+  return callback(home);
+}
+
+test('[TC-AGU-84][BE-IT] registers LaunchAgents through an injected runner in a temporary HOME, never real launchctl', {
+  skip: process.platform !== 'darwin',
+}, async t => {
+  await withTemporaryHome(t, async home => {
+    const calls = [];
+    const fake = args => { calls.push(args); return { status: args[0] === 'print' ? 1 : 0, stderr: '' }; };
+    installLaunchAgents(['server', 'reset'], { launchctl: fake });
+    assert.deepEqual(calls.filter(([verb]) => verb === 'bootstrap').map(([, , file]) => path.basename(file)),
+      ['org.agent-bridge-test.agent-usage.plist', 'org.agent-bridge-test.agent-usage-reset.plist']);
+    for (const [verb, target] of calls) {
+      if (verb === 'bootstrap') assert.ok(target.startsWith('gui/'));
+    }
+    const plist = readFileSync(path.join(home, 'Library', 'LaunchAgents', 'org.agent-bridge-test.agent-usage.plist'), 'utf8');
+    assert.match(plist, new RegExp(home.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.doesNotMatch(plist, /\.volta\/tools\/image/);
+  });
+});
+
+test('[TC-AGU-85][BE-UT][Security] the real launchctl runner refuses a temporary HOME before spawning anything', async t => {
+  await withTemporaryHome(t, () => {
+    assert.throws(() => installLaunchAgents(['server'], { launchctl: realLaunchctl }), /Refusing to change real launchd services/);
+  });
 });

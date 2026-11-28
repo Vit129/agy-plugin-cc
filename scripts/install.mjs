@@ -109,7 +109,27 @@ export function parseInstallArgs(argv = []) {
   return { targets, dryRun, help, allowWorktree, usageExplicit: selected.has("usage") };
 }
 
-export function buildTargetPlan(targetId, repoRoot, { allowWorktree = false } = {}) {
+export function readPackageVersion(repoRoot) {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(repoRoot, "package.json"), "utf8")).version ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// `codex plugin list` prints columns separated by 2+ spaces: PLUGIN  STATUS  VERSION  SOURCE.
+export function verifyCodexPluginVersion(output, expected, plugin = PLUGIN_REF) {
+  const line = String(output).split("\n").find((row) => row.startsWith(`${plugin} `));
+  if (!line) return { ok: false, error: `${plugin} is not listed by \`codex plugin list\`.` };
+  const [, status, version] = line.trim().split(/\s{2,}/);
+  if (!status?.startsWith("installed")) return { ok: false, error: `${plugin} is not installed in Codex (${status}).` };
+  if (expected && version !== expected) {
+    return { ok: false, error: `Codex runs ${plugin} ${version || "(unknown version)"}, expected ${expected}. Run: codex plugin marketplace upgrade ${MARKETPLACE_NAME} && codex plugin add ${PLUGIN_REF}` };
+  }
+  return { ok: true, error: null };
+}
+
+export function buildTargetPlan(targetId, repoRoot, { allowWorktree = false, version = readPackageVersion(repoRoot) } = {}) {
   if (targetId === "claude") {
     return [
       {
@@ -132,6 +152,8 @@ export function buildTargetPlan(targetId, repoRoot, { allowWorktree = false } = 
   }
 
   if (targetId === "codex") {
+    // Codex keeps the previously installed plugin unless the marketplace is upgraded before `plugin add`,
+    // so upgrade always runs (not only as a fallback) and the installed version is verified afterwards.
     return [
       {
         cmd: "codex",
@@ -141,9 +163,13 @@ export function buildTargetPlan(targetId, repoRoot, { allowWorktree = false } = 
           args: ["plugin", "marketplace", "upgrade", MARKETPLACE_NAME]
         }
       },
+      { cmd: "codex", args: ["plugin", "marketplace", "upgrade", MARKETPLACE_NAME] },
+      { cmd: "codex", args: ["plugin", "add", PLUGIN_REF] },
       {
         cmd: "codex",
-        args: ["plugin", "add", PLUGIN_REF]
+        args: ["plugin", "list"],
+        capture: true,
+        verify: (output) => verifyCodexPluginVersion(output, version)
       }
     ];
   }
@@ -192,8 +218,12 @@ export function formatCommand(cmd, args) {
     .join(" ");
 }
 
-export function defaultRunCommand(cmd, args) {
+export function defaultRunCommand(cmd, args, { capture = false } = {}) {
   try {
+    if (capture) {
+      const output = execFileSync(cmd, args, { encoding: "utf8", stdio: ["inherit", "pipe", "inherit"] });
+      return { ok: true, error: null, output };
+    }
     execFileSync(cmd, args, { stdio: "inherit" });
     return { ok: true, error: null };
   } catch (err) {
@@ -226,11 +256,12 @@ export function runInstallPlan(plan, { dryRun = false, runCommand = defaultRunCo
 
     for (const step of entry.steps) {
       log(`> ${formatCommand(step.cmd, step.args)}`);
-      let res = runCommand(step.cmd, step.args);
+      let res = runCommand(step.cmd, step.args, step.capture ? { capture: true } : undefined);
       if (!res.ok && step.fallback) {
         log(`> ${formatCommand(step.fallback.cmd, step.fallback.args)}`);
         res = runCommand(step.fallback.cmd, step.fallback.args);
       }
+      if (res.ok && step.verify) res = step.verify(res.output ?? "");
       if (!res.ok) {
         targetOk = false;
         targetError = step.failureMessage || res.error || "Command failed";

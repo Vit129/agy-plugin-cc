@@ -30,19 +30,19 @@ const ok = { exitCode: 0, stdout: "done" };
 const green = { exitCode: 0, output: "" };
 const red = { exitCode: 1, output: "1 failing" };
 
-test("detectVerifyCommand: first known marker wins, unknown repo returns null", () => {
+test("[TC-HND-01][BE-IT] detectVerifyCommand: first known marker wins, unknown repo returns null", () => {
   const has = (names) => (file) => names.includes(path.basename(file));
   assert.equal(detectVerifyCommand("/r", has(["package.json", "go.mod"])), "npm test");
   assert.equal(detectVerifyCommand("/r", has(["Cargo.toml"])), "cargo test");
   assert.equal(detectVerifyCommand("/r", has([])), null);
 });
 
-test("parseTestList: comma lists and repeated flags", () => {
+test("[TC-HND-02][BE-UT] parseTestList: comma lists and repeated flags", () => {
   assert.deepEqual(parseTestList(["a.js, b.js", "c.js"]), ["a.js", "b.js", "c.js"]);
   assert.deepEqual(parseTestList(undefined), []);
 });
 
-test("hashFiles: a deleted file hashes to null", () => {
+test("[TC-HND-03][BE-UT] hashFiles: a deleted file hashes to null", () => {
   const read = (file) => {
     if (file.endsWith("gone.js")) throw new Error("ENOENT");
     return "x";
@@ -52,7 +52,7 @@ test("hashFiles: a deleted file hashes to null", () => {
   assert.equal(hashes["gone.js"], null);
 });
 
-test("runHandoffLoop: green on first run needs no fix-up", async () => {
+test("[TC-HND-04][BE-BL] runHandoffLoop: green on first run needs no fix-up", async () => {
   const runAgy = scripted([ok]);
   const result = await runHandoffLoop({
     prompt: "p", verifyCommand: "t", maxFixups: 1, testHashes: {},
@@ -62,7 +62,7 @@ test("runHandoffLoop: green on first run needs no fix-up", async () => {
   assert.equal(runAgy.calls.length, 1);
 });
 
-test("runHandoffLoop: one fix-up resumes the conversation with the failing output", async () => {
+test("[TC-HND-05][BE-BL] runHandoffLoop: one fix-up resumes the conversation with the failing output", async () => {
   const runAgy = scripted([ok, ok]);
   const result = await runHandoffLoop({
     prompt: "p", verifyCommand: "npm test", maxFixups: 1, testHashes: {},
@@ -73,7 +73,7 @@ test("runHandoffLoop: one fix-up resumes the conversation with the failing outpu
   assert.match(runAgy.calls[1][0], /1 failing/);
 });
 
-test("runHandoffLoop: still red after the allowed fix-ups is FAIL", async () => {
+test("[TC-HND-06][BE-BL] runHandoffLoop: still red after the allowed fix-ups is FAIL", async () => {
   const runAgy = scripted([ok]);
   const result = await runHandoffLoop({
     prompt: "p", verifyCommand: "t", maxFixups: 2, testHashes: {},
@@ -84,7 +84,7 @@ test("runHandoffLoop: still red after the allowed fix-ups is FAIL", async () => 
   assert.equal(runAgy.calls.length, 3);
 });
 
-test("runHandoffLoop: a changed test file wins over a green run", async () => {
+test("[TC-HND-07][BE-BL] runHandoffLoop: a changed test file wins over a green run", async () => {
   const result = await runHandoffLoop({
     prompt: "p", verifyCommand: "t", maxFixups: 0, testHashes: { "a.test.js": "h1" },
     runAgy: scripted([ok]), runVerify: scripted([green]), rehash: () => ({ "a.test.js": "h2" })
@@ -93,7 +93,7 @@ test("runHandoffLoop: a changed test file wins over a green run", async () => {
   assert.deepEqual(result.modifiedTests, ["a.test.js"]);
 });
 
-test("runHandoffLoop: agy failure stops before verification", async () => {
+test("[TC-HND-08][BE-BL] runHandoffLoop: agy failure stops before verification", async () => {
   const runVerify = scripted([green]);
   const result = await runHandoffLoop({
     prompt: "p", verifyCommand: "t", maxFixups: 1, testHashes: {},
@@ -134,7 +134,7 @@ function runCompanion(env, repo, args) {
   });
 }
 
-test("handoff command: fails red, fixes up via --continue, reports PASS", () => {
+test("[TC-HND-09][BE-IT] handoff command: fails red, fixes up via --continue, reports PASS", () => {
   const { root, repo, bin } = makeRepo();
   const env = { ...process.env, AI_QUOTA_DIR: root, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: path.join(root, "data") };
   try {
@@ -147,7 +147,7 @@ test("handoff command: fails red, fixes up via --continue, reports PASS", () => 
   }
 });
 
-test("handoff command: refuses on main and on a dirty tree", () => {
+test("[TC-HND-10][BE-IT] handoff command: refuses on main and on a dirty tree", () => {
   const { root, repo, bin, git } = makeRepo();
   const env = { ...process.env, AI_QUOTA_DIR: root, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: path.join(root, "data") };
   try {

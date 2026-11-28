@@ -11,7 +11,7 @@ import {
   runInstallPlan
 } from "../scripts/install.mjs";
 
-test("findOnPath and detectInstalledClis detect executable binaries on PATH", () => {
+test("[TC-INS-01][BE-UT] findOnPath and detectInstalledClis detect executable binaries on PATH", () => {
   const env = { PATH: ["/usr/local/bin", "/opt/bin"].join(path.delimiter) };
   const files = new Map([
     ["/usr/local/bin/claude", { isFile: () => true, mode: 0o755 }],
@@ -39,7 +39,7 @@ test("findOnPath and detectInstalledClis detect executable binaries on PATH", ()
   assert.equal(detectInstalledClis({ ...deps, platform: "linux" }).usage, false);
 });
 
-test("parseInstallArgs handles target flags, --all, --dry-run, --help, and unknown flags", () => {
+test("[TC-INS-02][BE-UT] parseInstallArgs handles target flags, --all, --dry-run, --help, and unknown flags", () => {
   assert.deepEqual(parseInstallArgs(["--agy", "--claude", "--agy"]), {
     targets: ["claude", "agy"],
     dryRun: false,
@@ -70,7 +70,7 @@ test("parseInstallArgs handles target flags, --all, --dry-run, --help, and unkno
   assert.throws(() => parseInstallArgs(["--bogus"]), /Unknown option: --bogus/);
 });
 
-test("buildInstallPlan generates expected commands per target", () => {
+test("[TC-INS-03][BE-UT] buildInstallPlan generates expected commands per target", () => {
   const repoRoot = "/tmp/agent-bridge";
   const plan = buildInstallPlan(["claude", "codex", "agy", "usage"], repoRoot);
 
@@ -88,16 +88,11 @@ test("buildInstallPlan generates expected commands per target", () => {
     }
   ]);
 
-  assert.deepEqual(plan[1].steps, [
-    {
-      cmd: "codex",
-      args: ["plugin", "marketplace", "add", "Vit129/agent-bridge"],
-      fallback: { cmd: "codex", args: ["plugin", "marketplace", "upgrade", "agent-bridge"] }
-    },
-    {
-      cmd: "codex",
-      args: ["plugin", "add", "agy@agent-bridge"]
-    }
+  assert.deepEqual(plan[1].steps.map(({ cmd, args, fallback }) => [cmd, args.join(" "), fallback?.args.join(" ")]), [
+    ["codex", "plugin marketplace add Vit129/agent-bridge", "plugin marketplace upgrade agent-bridge"],
+    ["codex", "plugin marketplace upgrade agent-bridge", undefined],
+    ["codex", "plugin add agy@agent-bridge", undefined],
+    ["codex", "plugin list", undefined]
   ]);
 
   assert.deepEqual(plan[2].steps, [
@@ -150,7 +145,7 @@ test("[TC-AGU-50][BE-UT] includes Usage on macOS only and leaves dry-run homes u
   assert.match(logs.join("\n"), /menubar:install/);
 });
 
-test("runInstallPlan supports dry-run without invoking commands", () => {
+test("[TC-INS-04][BE-IT] runInstallPlan supports dry-run without invoking commands", () => {
   const plan = buildInstallPlan(["claude", "agy"], "/repo");
   const calls = [];
   const logs = [];
@@ -173,7 +168,7 @@ test("runInstallPlan supports dry-run without invoking commands", () => {
   assert.match(logs.join("\n"), /agy plugin install \/repo\/plugins\/cc-for-agy/);
 });
 
-test("runInstallPlan uses fallback on failure and continues after target failure", () => {
+test("[TC-INS-05][BE-IT] runInstallPlan uses fallback on failure and continues after target failure", () => {
   const plan = buildInstallPlan(["claude", "codex", "agy"], "/repo");
   const calls = [];
 
@@ -193,6 +188,7 @@ test("runInstallPlan uses fallback on failure and continues after target failure
     "claude plugin marketplace update agent-bridge",
     "claude plugin install agy@agent-bridge",
     "codex plugin marketplace add Vit129/agent-bridge",
+    "codex plugin marketplace upgrade agent-bridge",
     "codex plugin add agy@agent-bridge",
     "agy plugin install /repo/plugins/cc-for-agy"
   ]);
@@ -213,7 +209,7 @@ test("runInstallPlan uses fallback on failure and continues after target failure
   assert.match(summary, /Hint: Restart Claude Code to load the plugin\./);
 });
 
-test("main prints usage and exits 1 in non-TTY without target flags", async () => {
+test("[TC-INS-06][BE-IT] main prints usage and exits 1 in non-TTY without target flags", async () => {
   const logs = [];
   const code = await main({
     argv: [],
@@ -224,4 +220,36 @@ test("main prints usage and exits 1 in non-TTY without target flags", async () =
 
   assert.equal(code, 1);
   assert.match(logs.join("\n"), /Usage: node scripts\/install\.mjs/);
+});
+
+const codexList = (version, status = "installed, enabled") => [
+  "Marketplace `agent-bridge`",
+  "PLUGIN                STATUS              VERSION  SOURCE",
+  `agy@agent-bridge      ${status}  ${version}    /x/plugins/agy`
+].join("\n");
+
+test("[TC-AGU-86][BE-UT] Codex plan always upgrades the marketplace and verifies the installed version", () => {
+  const [codex] = buildInstallPlan(["codex"], "/tmp/agent-bridge", { version: "2.3.0" });
+  const commands = codex.steps.map((step) => `${step.cmd} ${step.args.join(" ")}`);
+  assert.deepEqual(commands.slice(1), [
+    "codex plugin marketplace upgrade agent-bridge", "codex plugin add agy@agent-bridge", "codex plugin list"
+  ]);
+  assert.ok(commands.indexOf("codex plugin marketplace upgrade agent-bridge") < commands.indexOf("codex plugin add agy@agent-bridge"));
+  const verify = codex.steps.at(-1).verify;
+  assert.deepEqual(verify(codexList("2.3.0")), { ok: true, error: null });
+  assert.match(verify(codexList("2.2.0")).error, /runs agy@agent-bridge 2\.2\.0, expected 2\.3\.0/);
+  assert.match(verify(codexList("", "not installed")).error, /not installed/);
+  assert.match(verify("PLUGIN STATUS").error, /not listed/);
+});
+
+test("[TC-AGU-87][BE-IT] a Codex version mismatch fails the target with the manual upgrade command", () => {
+  const plan = buildInstallPlan(["codex"], "/tmp/agent-bridge", { version: "2.3.0" });
+  const run = (listed) => runInstallPlan(plan, {
+    log: () => {},
+    runCommand: (cmd, args) => ({ ok: true, error: null, output: args[1] === "list" ? codexList(listed) : "" })
+  });
+  assert.equal(run("2.3.0")[0].status, "ok");
+  const [stale] = run("2.2.0");
+  assert.equal(stale.status, "failed");
+  assert.match(stale.error, /codex plugin marketplace upgrade agent-bridge && codex plugin add agy@agent-bridge/);
 });

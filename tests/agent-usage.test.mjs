@@ -171,8 +171,8 @@ test('[TC-AGU-05][BE-IT] serves local quota, persists notification state and rec
     assert.deepEqual(saved.settings, update);
     assert.equal(saved.quota[0].provider, 'claude', 'title visibility is independent of quota monitoring');
     assert.deepEqual(saved.routes, {
-      claudeToAgy: { requested: 'agy', target: 'agy', reason: 'Auto-Route is off.' },
-      agyToClaude: { requested: 'claude', target: 'claude', reason: 'Auto-Route is off.' },
+      claudeToAgy: { requested: 'agy', target: 'agy', reason: 'Auto-Route is off.', routeStatus: 'Off' },
+      agyToClaude: { requested: 'claude', target: 'claude', reason: 'Auto-Route is off.', routeStatus: 'Off' },
     });
     assert.equal(await readFile(path.join(directory, 'route-off'), 'utf8'), '');
     await close();
@@ -459,7 +459,7 @@ test('[TC-AGU-16][BE-IT] dashboard publishes native quota and shows both cache-o
   }
 });
 
-test('[TC-AGU-NOTIFY] alert text names reset time and route', async () => {
+test('[TC-AGU-95][BE-IT] alert text names reset time and route', async () => {
   const { alertMessage, quotaSummary } = await import('../apps/agent-usage/server.mjs');
   const alert = { provider: 'Antigravity · Gemini', short: '5h', remaining: 12.7, level: 'critical', resetsAt: 1795849408 };
   const diverted = alertMessage(alert, { claudeToAgy: { requested: 'agy', target: 'claude' } });

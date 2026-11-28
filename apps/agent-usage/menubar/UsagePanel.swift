@@ -26,9 +26,11 @@ final class UsagePanelState: ObservableObject {
 }
 
 struct UsagePanel: View {
+    private static let emptyTabIconSize: CGFloat = 13
     @ObservedObject var state: UsagePanelState
     let icons: ProviderIcons
     let openDashboard: () -> Void
+    let openSettings: () -> Void
     let refresh: () -> Void
     let quit: () -> Void
     let startServer: () -> Void
@@ -126,7 +128,7 @@ struct UsagePanel: View {
                             Text(ProviderIcons.monogram(for: provider.rawValue)).font(.caption.weight(.bold))
                         }
                     } else {
-                        Image(systemName: "square.grid.2x2").font(.system(size: 13, weight: .medium))
+                        Image(systemName: "square.grid.2x2").font(.system(size: Self.emptyTabIconSize, weight: .medium))
                     }
                 }
                 .frame(width: 16, height: 16)
@@ -316,6 +318,10 @@ struct UsagePanel: View {
         HStack(spacing: 8) {
             Button("Open dashboard", action: openDashboard)
                 .accessibilityIdentifier("usage-open-dashboard")
+            Button(action: openSettings) {
+                Label("Settings", systemImage: "gearshape")
+            }
+            .accessibilityIdentifier("usage-open-settings")
             Spacer()
             Button("Refresh", action: refresh)
                 .disabled(state.content.fetching)

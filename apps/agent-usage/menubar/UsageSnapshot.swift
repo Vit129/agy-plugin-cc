@@ -41,6 +41,7 @@ struct Snapshot: Decodable {
             let requested: String
             let target: String
             let reason: String
+            let routeStatus: String?
         }
 
         let claudeToAgy, agyToClaude: Decision
@@ -84,7 +85,8 @@ struct Snapshot: Decodable {
     }
 
     private func routeLabel(_ label: String, _ route: Routes.Decision) -> String {
-        let status = settings?.autoRoute == false ? "Off" : route.target == route.requested ? "Allowed" : "Diverted"
+        // Older servers omit routeStatus; recompute the same rule so the panel keeps working.
+        let status = route.routeStatus ?? (settings?.autoRoute == false ? "Off" : route.target == route.requested ? "Allowed" : "Diverted")
         return "\(label) · \(status) · \(route.reason)"
     }
 

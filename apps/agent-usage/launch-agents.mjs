@@ -2,7 +2,7 @@ import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { repoRoot, serverCommand } from './launcher.mjs';
+import { isVersioned, repoRoot, serverCommand } from './launcher.mjs';
 import { stateDirectory } from './state.mjs';
 
 const launchctl = '/bin/launchctl';
@@ -25,11 +25,21 @@ export function launchAgentPaths({ home = os.homedir(), prefix = process.env.AGE
   };
 }
 
+const stablePathDirs = ['/opt/homebrew/bin', '/usr/local/bin', '/usr/bin', '/bin'];
+
+// A LaunchAgent outlives upgrades, so its PATH holds no versioned runtime dir (Cellar, Volta image, nvm, fnm).
+// Order: the stable node's dir, the system dirs, then the caller's other unversioned entries (provider CLIs).
+export function launchAgentPath({ node, pathEnv = '' }) {
+  const dirs = [path.dirname(node), ...stablePathDirs, ...pathEnv.split(path.delimiter)];
+  return [...new Set(dirs.filter(dir => dir && !isVersioned(dir)))].join(path.delimiter);
+}
+
 export function launchAgentDefinitions({ paths, root, directory, node, env, allowWorktree = false }) {
   const cli = path.join(root, 'apps', 'agent-usage', 'cli.mjs');
   const environment = {
     HOME: path.dirname(path.dirname(paths.agents)),
     ...Object.fromEntries(environmentKeys.filter(key => env[key]).map(key => [key, env[key]])),
+    PATH: launchAgentPath({ node, pathEnv: env.PATH }),
   };
   environment.AGENT_USAGE_LABEL_PREFIX = paths.labels.server.slice(0, -'.agent-usage'.length);
   const service = (label, args, log, extra) => ({
@@ -82,26 +92,41 @@ function guiDomain() {
   return `gui/${process.getuid()}`;
 }
 
-function registered(service) {
-  return spawnSync(launchctl, ['print', service], { stdio: 'ignore' }).status === 0;
+// The only place that spawns launchctl. Tests inject a fake runner: (args) => { status, stderr }.
+export const realLaunchctl = args => spawnSync(launchctl, args, { stdio: 'pipe', encoding: 'utf8' });
+
+// A run with a temporary HOME would still register services in the real login session. Refuse it.
+function assertRealHome(runner) {
+  if (runner === realLaunchctl && os.homedir() !== os.userInfo().homedir) {
+    throw new Error(`Refusing to change real launchd services while HOME (${os.homedir()}) is not the account home. Run without a temporary HOME.`);
+  }
 }
 
-export function startInstalledServer() {
+function call(runner, args) {
+  const { status, stderr } = runner(args);
+  if (status !== 0) throw new Error(`launchctl ${args[0]} failed${stderr ? `: ${String(stderr).trim()}` : ''}`);
+}
+
+const registered = (runner, service) => runner(['print', service]).status === 0;
+
+export function startInstalledServer({ launchctl: runner = realLaunchctl } = {}) {
   if (process.platform !== 'darwin') return false;
   const paths = launchAgentPaths();
   if (!existsSync(path.join(paths.agents, `${paths.labels.server}.plist`))) return false;
+  assertRealHome(runner);
   const service = `${guiDomain()}/${paths.labels.server}`;
-  if (!registered(service)) return false;
-  execFileSync(launchctl, ['kickstart', service], { stdio: 'pipe' });
+  if (!registered(runner, service)) return false;
+  call(runner, ['kickstart', service]);
   return true;
 }
 
-function unload(domain, label) {
+function unload(runner, domain, label) {
   const service = `${domain}/${label}`;
-  if (registered(service)) execFileSync(launchctl, ['bootout', service], { stdio: 'pipe' });
+  if (registered(runner, service)) call(runner, ['bootout', service]);
 }
 
-export function installLaunchAgents(roles, { allowWorktree = false } = {}) {
+export function installLaunchAgents(roles, { allowWorktree = false, launchctl: runner = realLaunchctl } = {}) {
+  assertRealHome(runner);
   const domain = guiDomain();
   const paths = launchAgentPaths();
   const directory = stateDirectory();
@@ -113,10 +138,10 @@ export function installLaunchAgents(roles, { allowWorktree = false } = {}) {
   for (const role of roles) {
     const definition = definitions[role];
     const file = path.join(paths.agents, `${definition.Label}.plist`);
-    unload(domain, definition.Label);
+    unload(runner, domain, definition.Label);
     if (role === 'menubar') installApplication(paths.application);
     writeFileSync(file, renderLaunchAgent(definition), { mode: 0o644 });
-    execFileSync(launchctl, ['bootstrap', domain, file], { stdio: 'pipe' });
+    call(runner, ['bootstrap', domain, file]);
     console.log(`Registered ${definition.Label}`);
   }
 }
@@ -141,11 +166,12 @@ function installApplication(destination) {
   }
 }
 
-export function uninstallUsage() {
+export function uninstallUsage({ launchctl: runner = realLaunchctl } = {}) {
+  assertRealHome(runner);
   const domain = guiDomain();
   const paths = launchAgentPaths();
   for (const label of [paths.labels.menubar, paths.labels.reset, paths.labels.server]) {
-    unload(domain, label);
+    unload(runner, domain, label);
     rmSync(path.join(paths.agents, `${label}.plist`), { force: true });
   }
   rmSync(paths.application, { recursive: true, force: true });

@@ -37,6 +37,29 @@ test('[TC-AGU-54][FE-IT] draws bundled templates and falls back when the provide
   assert.equal(aider, 'AI');
 });
 
+test('[TC-AGU-68][FE-UT] builds the settings deep link and reads the server route status with an older-server fallback', {
+  skip: process.platform !== 'darwin' || swift.status !== 0,
+}, t => {
+  const scratch = join(root, '.tmp');
+  mkdirSync(scratch, { recursive: true });
+  const directory = mkdtempSync(join(scratch, 'dashboard-link-test-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const executable = join(directory, 'dashboard-link');
+  execFileSync('swiftc', [
+    '-module-cache-path', join(directory, 'modules'),
+    ...['DashboardLink', 'QuotaPace', 'StatusTitle', 'UsageSnapshot'].map(name => `apps/agent-usage/menubar/${name}.swift`),
+    'tests/fixtures/DashboardLinkMain.swift',
+    '-o', executable,
+  ], { cwd: root, stdio: 'pipe' });
+  const decision = (requested, target, routeStatus) => ({ requested, target, reason: 'r', ...(routeStatus ? { routeStatus } : {}) });
+  const run = snapshot => JSON.parse(execFileSync(executable, { input: JSON.stringify(snapshot), encoding: 'utf8' }));
+  const older = run({ quota: [], routes: { claudeToAgy: decision('agy', 'claude'), agyToClaude: decision('claude', 'claude') }, settings: { autoRoute: false } });
+  assert.deepEqual(older.urls, ['http://127.0.0.1:43127', 'http://127.0.0.1:43127#settings', 'http://127.0.0.1:43127#settings/notifications']);
+  assert.deepEqual(older.routeLabels, ['Claude → agy · Off · r', 'agy → Claude · Off · r']);
+  const sent = run({ quota: [], routes: { claudeToAgy: decision('agy', 'claude', 'Diverted'), agyToClaude: decision('claude', 'claude', 'Allowed') } });
+  assert.deepEqual(sent.routeLabels, ['Claude → agy · Diverted · r', 'agy → Claude · Allowed · r']);
+});
+
 describe('Agent Usage status title', { skip: swift.error?.code === 'ENOENT' && 'swiftc unavailable' }, () => {
   let directory;
   let executable;
