@@ -1,6 +1,6 @@
 {
   "name": "agy",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "description": "Delegate coding tasks to Google's Antigravity (agy) CLI / Antigravity IDE from Codex CLI (Google Agy) with setup checks, one-shot tasks, rescue, review, hooks, job tracking, status, results, and cancellation.",
   "author": {
     "name": "Vit129",

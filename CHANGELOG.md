@@ -6,6 +6,12 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-11-28
+
+### Fixed
+- The dashboard server started by `agent-usage ensure-running` uses the stable node path, not the versioned Homebrew Cellar binary, so it survives node upgrades.
+- The README and architecture notes no longer reference the `terminal-startup.zsh` file, which the repository does not contain.
+
 ## [1.9.0] - 2026-11-28
 
 ### Added
