@@ -13,6 +13,34 @@ executable="$bundle/Contents/MacOS/AgentUsageBar"
 mkdir -p "$(dirname "$executable")"
 cp "$script_dir/Info.plist" "$bundle/Contents/Info.plist"
 swiftc -O -framework AppKit -module-cache-path "$build_dir/modules" "$script_dir/AgentUsageBar.swift" -o "$executable"
+icon_dest="$bundle/Contents/Resources/ProviderIcons"
+mkdir -p "$icon_dest"
+codexbar_resources=''
+for codexbar in "/Applications/CodexBar.app" "$HOME/Applications/CodexBar.app"; do
+  if [[ -d "$codexbar/Contents/Resources" ]]; then
+    codexbar_resources="$codexbar/Contents/Resources"
+    break
+  fi
+done
+for provider in claude agy copilot codex; do
+  icon="$icon_dest/$provider.png"
+  rm -f -- "$icon"
+  if [[ -n "${AGENT_USAGE_ICON_DIR:-}" && -f "$AGENT_USAGE_ICON_DIR/$provider.png" ]]; then
+    if /usr/bin/sips -s format png -Z 32 "$AGENT_USAGE_ICON_DIR/$provider.png" --out "$icon" >/dev/null 2>&1 && [[ -s "$icon" ]]; then
+      continue
+    fi
+    rm -f -- "$icon"
+  fi
+  source_provider="$provider"
+  if [[ "$provider" == agy ]]; then source_provider=antigravity; fi
+  source_icon="$codexbar_resources/ProviderIcon-$source_provider.svg"
+  if [[ -n "$codexbar_resources" && -f "$source_icon" ]]; then
+    if ! /usr/bin/sips -s format png -Z 32 "$source_icon" --out "$icon" >/dev/null 2>&1 || [[ ! -s "$icon" ]]; then
+      rm -f -- "$icon"
+      printf 'Using a letter for %s (local icon conversion failed).\n' "$provider"
+    fi
+  fi
+done
 /usr/bin/plutil -lint "$bundle/Contents/Info.plist"
 printf 'swiftc built %s\n' "$executable"
 

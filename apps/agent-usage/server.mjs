@@ -6,11 +6,14 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { chooseRoute } from '../../plugins/agy/scripts/lib/quota-route.mjs';
 import { readAllQuota, writeNativeQuota } from '../../plugins/agy/scripts/lib/quota-state.mjs';
-import { accountEnvironment, accountsForProvider, normalizeAccounts } from './accounts.mjs';
+import { accountEnvironment, accountHomeVariables, accountsForProvider, cliHome, normalizeAccounts } from './accounts.mjs';
+import { discoverAccounts } from './account-identity.mjs';
+import { createManagedHome, isManagedId, isManagedProvider, managedHomes, openTerminalLogin, removeManagedHome } from './managed-accounts.mjs';
+import { buildMenuModel } from './menu-model.mjs';
 import { defaultSettings, enabledProviders, loadSettings, planQuotaAlerts, providerLabel, validSettings } from './quota.mjs';
 import { createLiveQuotaReader } from './live-quota.mjs';
 import { creditReminderPrefix, planResetCreditAlerts } from './reset-credits.mjs';
-import { aggregateCalls, readModelCalls } from './usage.mjs';
+import { aggregateCalls, readModelCalls, recentProviderActivity } from './usage.mjs';
 import { readState, stateDirectory, writeState } from './state.mjs';
 
 export const defaultPort = 43127;
@@ -56,7 +59,7 @@ function sendJSON(response, status, object) {
   response.end(JSON.stringify(object));
 }
 
-async function parseSettings(request) {
+async function parseJSON(request) {
   if (request.headers['content-type']?.split(';')[0] !== 'application/json') return null;
   request.setEncoding('utf8');
   let text = '';
@@ -65,17 +68,24 @@ async function parseSettings(request) {
     if (Buffer.byteLength(text) > 65_536) return null;
   }
   try {
-    const parsed = JSON.parse(text);
-    if (!validSettings(parsed)) return null;
-    if (Object.hasOwn(parsed, 'accounts')) parsed.accounts = normalizeAccounts(parsed.accounts);
-    return Object.fromEntries(Object.keys(defaultSettings).filter(key => Object.hasOwn(parsed, key)).map(key => [key, parsed[key]]));
+    return JSON.parse(text);
   } catch {
     return null;
   }
 }
 
-export async function startServer({ port = defaultPort, env = process.env, notify = notifyMacOS, now = Date.now, probeQuota } = {}) {
-  const directory = stateDirectory(env);
+async function parseSettings(request) {
+  const parsed = await parseJSON(request);
+  if (!validSettings(parsed)) return null;
+  if (Object.hasOwn(parsed, 'accounts')) parsed.accounts = normalizeAccounts(parsed.accounts);
+  return Object.fromEntries(Object.keys(defaultSettings).filter(key => Object.hasOwn(parsed, key)).map(key => [key, parsed[key]]));
+}
+
+const accountProviders = [...Object.keys(accountHomeVariables), 'agy'];
+
+export async function startServer({ port = defaultPort, env = process.env, notify = notifyMacOS, now = Date.now,
+  probeQuota, openLogin = openTerminalLogin } = {}) {
+  const directory = path.resolve(stateDirectory(env));
   let settings = loadSettings(directory);
   let observed = readState(directory, 'alerts.json', {}) ?? {};
   const readLiveQuota = createLiveQuotaReader({ env, now, probe: probeQuota, publish: writeNativeQuota, log: message => {
@@ -91,6 +101,36 @@ export async function startServer({ port = defaultPort, env = process.env, notif
   let refreshQueue = Promise.resolve();
   let loadingModels;
 
+  async function getAccounts() {
+    return Object.fromEntries(await Promise.all(accountProviders.map(async provider => {
+      const manual = settings.accounts?.[provider] ?? [];
+      const managed = managedHomes(directory, provider).map(profile => ({ ...profile, label: 'Managed account' }));
+      return [provider, await discoverAccounts(provider, manual, managed, env)];
+    })));
+  }
+
+  function quotaSettings(accounts) {
+    const managedAccounts = Object.fromEntries(accountProviders.map(provider => {
+      const manual = settings.accounts?.[provider] ?? [];
+      const excluded = new Set([...manual.map(account => account.home), cliHome(provider, env)]);
+      return [provider, accounts[provider].profiles.filter(profile =>
+        profile.kind === 'managed' && profile.login && !excluded.has(profile.home) &&
+        !manual.some(account => account.id === profile.id))];
+    }));
+    return { ...settings, managedAccounts };
+  }
+
+  async function getActivity(effectiveSettings, providers, time) {
+    const results = await Promise.all(providers.map(async provider => {
+      const namedHomes = accountsForProvider(effectiveSettings, provider).filter(Boolean).map(account => account.home);
+      const homes = new Set([cliHome(provider, env), ...namedHomes]);
+      const timestamps = await Promise.all([...homes].map(home => recentProviderActivity(provider, home, time)));
+      const lastActivity = Math.max(0, ...timestamps.filter(Number.isFinite));
+      return lastActivity ? { provider, lastActivity } : null;
+    }));
+    return results.filter(Boolean).sort((a, b) => b.lastActivity - a.lastActivity);
+  }
+
   function refresh({ settingsUpdate } = {}) {
     const action = refreshQueue.then(async () => {
       if (settingsUpdate) {
@@ -98,16 +138,18 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         writeState(directory, 'settings.json', updated);
         settings = updated;
       }
-      quota = await readLiveQuota(settings);
+      const accounts = await getAccounts();
+      const effectiveSettings = quotaSettings(accounts);
+      const providers = enabledProviders(settings);
+      quota = await readLiveQuota(effectiveSettings);
       const time = now();
       const shared = readAllQuota({ env, nowSec: Math.floor(time / 1000) });
       const routes = {
         claudeToAgy: { requested: 'agy', ...chooseRoute(shared, { ...settings, requested: 'agy' }) },
         agyToClaude: { requested: 'claude', ...chooseRoute(shared, { ...settings, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }) },
       };
-      const active = enabledProviders(settings);
       const enabledObservations = Object.fromEntries(Object.entries(observed).filter(([key]) =>
-        key.startsWith(creditReminderPrefix) || active.includes(key.split(':', 1)[0])));
+        key.startsWith(creditReminderPrefix) || providers.includes(key.split(':', 1)[0])));
       const thresholds = planQuotaAlerts(quota, enabledObservations, { baseline: Boolean(settingsUpdate), now: time });
       const next = planResetCreditAlerts(quota, thresholds.state, time);
       next.alerts.unshift(...thresholds.alerts);
@@ -152,17 +194,25 @@ export async function startServer({ port = defaultPort, env = process.env, notif
           process.stderr.write(`Agent Usage · scheduled notification: ${error.message}\n`);
         }
       }
-      const rows = quota.map(({ creditsObservedAt, ...row }) => row);
-      return { quota: rows, settings, schedule, checks, notificationError, routes };
+      const rows = quota.map(({ creditsObservedAt, ...row }) => {
+        const account = accounts[row.provider];
+        const login = row.accountId ? account.profiles.find(profile => profile.id === row.accountId)?.login : account.currentLogin;
+        return login ? { ...row, login } : row;
+      });
+      const active = await getActivity(effectiveSettings, providers, time);
+      const menu = buildMenuModel(rows, active);
+      const discovered = Object.fromEntries(accountProviders.map(provider => [provider, accounts[provider].profiles]));
+      return { quota: rows, accounts: discovered, active, menu, settings, schedule, checks, notificationError, routes };
     });
     refreshQueue = action.catch(error => process.stderr.write(`Agent Usage · refresh: ${error.message}\n`));
     return action;
   }
 
-  function getModels(days) {
-    const providers = enabledProviders(settings);
-    const profiles = providers.flatMap(provider => accountsForProvider(settings, provider).map(account => ({ provider, account })));
-    const key = JSON.stringify(profiles);
+  async function getModels(days) {
+    const effective = quotaSettings(await getAccounts());
+    const providers = enabledProviders(effective);
+    const profiles = providers.flatMap(provider => accountsForProvider(effective, provider).map(account => ({ provider, account })));
+    const key = JSON.stringify(profiles.map(({ provider, account }) => [provider, account?.id, account?.home, account?.label]));
     const time = now();
     if (!loadingModels || loadingModels.key !== key || time - loadingModels.at > 60_000) {
       const promise = Promise.all(profiles.map(async ({ provider, account }) => {
@@ -204,6 +254,21 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         const candidate = await parseSettings(request);
         if (!candidate) { sendJSON(response, 400, { error: 'Invalid quota settings.' }); return; }
         sendJSON(response, 200, await refresh({ settingsUpdate: candidate }));
+      } else if (request.method === 'POST' && ['/api/accounts/sign-in', '/api/accounts/remove'].includes(url.pathname)) {
+        const body = await parseJSON(request);
+        const removing = url.pathname === '/api/accounts/remove';
+        if (!isManagedProvider(body?.provider) || Object.keys(body).length !== (removing ? 3 : 1) ||
+            (removing && (!isManagedId(body.id) || body.confirm !== true))) {
+          sendJSON(response, 400, { error: 'Invalid account request.' });
+          return;
+        }
+        if (removing) {
+          const removed = removeManagedHome(directory, body.provider, body.id);
+          sendJSON(response, removed ? 200 : 404, removed ? { removed: true } : { error: 'Managed account not found.' });
+        } else {
+          const { status, ...result } = await createManagedHome(directory, body.provider, env, openLogin);
+          sendJSON(response, status, result);
+        }
       } else if (request.method === 'POST' && url.pathname === '/api/notifications/test' && request.headers['content-type'] === 'application/json') {
         await notify({ message: `Test notification · ${quotaSummary(quota)}` });
         sendJSON(response, 200, { sent: true });

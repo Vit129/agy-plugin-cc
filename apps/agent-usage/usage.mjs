@@ -1,8 +1,8 @@
 import fs from 'node:fs';
-import { readdir, stat } from 'node:fs/promises';
-import os from 'node:os';
+import { lstat, readdir, stat } from 'node:fs/promises';
 import path from 'node:path';
 import readline from 'node:readline';
+import { cliHome } from './accounts.mjs';
 
 const DAY_MS = 86_400_000;
 const modelName = /^[A-Za-z0-9][A-Za-z0-9._:/-]{0,119}$/;
@@ -83,6 +83,42 @@ export function aggregateCalls(calls, days, now = Date.now()) {
   })).sort((first, second) => second.tokens - first.tokens);
 }
 
+const sessionFolders = { claude: 'projects', agy: 'brain', copilot: 'session-state', codex: 'sessions' };
+const sessionRoot = (provider, home) => path.join(home, sessionFolders[provider]);
+const agyTranscript = (root, conversation) => path.join(root, conversation, '.system_generated', 'logs', 'transcript.jsonl');
+const copilotTranscript = (root, session) => path.join(root, session, 'events.jsonl');
+const codexTranscript = name => /^rollout-.*\.jsonl$/.test(name);
+
+async function matchingFiles(root, matches, recursive = false) {
+  const entries = await readdir(root, { withFileTypes: true }).catch(() => []);
+  const files = entries.filter(entry => entry.isFile() && matches(entry.name)).map(entry => path.join(root, entry.name));
+  if (!recursive) return files;
+  const nested = await Promise.all(entries.filter(entry => entry.isDirectory()).map(entry =>
+    matchingFiles(path.join(root, entry.name), matches, true)));
+  return files.concat(...nested);
+}
+
+export async function recentProviderActivity(provider, home, now) {
+  const root = sessionRoot(provider, home);
+  let files;
+  if (provider === 'claude' || provider === 'codex') {
+    files = await matchingFiles(root, provider === 'claude' ? name => name.endsWith('.jsonl') : codexTranscript, true);
+  } else {
+    const folders = await directories(root).catch(() => []);
+    files = provider === 'agy' ? folders.map(folder => agyTranscript(root, folder))
+      : folders.map(folder => copilotTranscript(root, folder));
+    if (provider === 'agy') {
+      files.push(...await matchingFiles(path.join(home, 'conversations'), name => name.endsWith('.pb')));
+    }
+  }
+  let latest = 0;
+  await Promise.all(files.map(async file => {
+    const info = await lstat(file).catch(() => undefined);
+    if (info?.isFile() && info.mtimeMs <= now) latest = Math.max(latest, Math.floor(info.mtimeMs));
+  }));
+  return latest && now - latest <= 120_000 ? latest : undefined;
+}
+
 async function directories(root) {
   try {
     return (await readdir(root, { withFileTypes: true })).filter(entry => entry.isDirectory()).map(entry => entry.name);
@@ -114,7 +150,7 @@ async function readCodexCalls(root, since, add) {
     if (error.code === 'ENOENT') return;
     throw error;
   }
-  for (const entry of entries.filter(name => /^rollout-.*\.jsonl$/.test(path.basename(name)))) {
+  for (const entry of entries.filter(name => codexTranscript(path.basename(name)))) {
     let turn;
     let previousTotal;
     await readRecentLines(path.join(root, entry), since, record => {
@@ -143,13 +179,7 @@ async function readCodexCalls(root, since, add) {
 
 export async function readModelCalls({ env = process.env, now = Date.now(), providers = ['claude', 'agy', 'copilot', 'codex'] } = {}) {
   const since = now - 30 * DAY_MS;
-  const userHome = os.homedir();
-  const roots = {
-    claude: path.join(env.CLAUDE_CONFIG_DIR || path.join(userHome, '.claude'), 'projects'),
-    agy: path.join(env.AGY_HOME || path.join(userHome, '.gemini', 'antigravity-cli'), 'brain'),
-    copilot: path.join(env.COPILOT_HOME || path.join(userHome, '.copilot'), 'session-state'),
-    codex: path.join(env.CODEX_HOME || path.join(userHome, '.codex'), 'sessions'),
-  };
+  const roots = Object.fromEntries(providers.map(provider => [provider, sessionRoot(provider, cliHome(provider, env))]));
   const calls = [];
   const add = call => { if (call && call.at >= since) calls.push(call); };
   await Promise.all([
@@ -169,14 +199,14 @@ export async function readModelCalls({ env = process.env, now = Date.now(), prov
     (async () => {
       if (!providers.includes('agy')) return;
       for (const conversation of await directories(roots.agy)) {
-        const transcript = path.join(roots.agy, conversation, '.system_generated', 'logs', 'transcript.jsonl');
+        const transcript = agyTranscript(roots.agy, conversation);
         await readRecentLines(transcript, since, line => add(normalizeAgyCall(line, conversation)));
       }
     })(),
     (async () => {
       if (!providers.includes('copilot')) return;
       for (const session of await directories(roots.copilot)) {
-        const events = path.join(roots.copilot, session, 'events.jsonl');
+        const events = copilotTranscript(roots.copilot, session);
         await readRecentLines(events, since, line => add(normalizeCopilotCall(line)));
       }
     })(),

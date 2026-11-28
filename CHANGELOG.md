@@ -6,6 +6,13 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- Agent Usage detects local account identities and opens Terminal to sign in to additional Claude Code, Codex, and Copilot accounts.
+- The dashboard and menu bar highlight recently active providers based on local transcript writes.
+
+### Fixed
+- The macOS menu groups quota windows under readable provider and account headings and uses provider marks in the status title.
+
 ## [1.8.1] - 2026-11-28
 
 ### Fixed

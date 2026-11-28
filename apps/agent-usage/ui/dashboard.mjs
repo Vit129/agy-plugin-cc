@@ -13,6 +13,8 @@ const form = document.querySelector('#quota-settings');
 const providerSwitches = [...form.querySelectorAll('[data-monitor-provider]')];
 const accountSettings = form.querySelector('.account-settings');
 const accountGroups = [...accountSettings.querySelectorAll('[data-account-provider]')];
+const manualGroups = accountGroups.filter(group => group.querySelector('.account-rows'));
+const accountResult = document.querySelector('#account-result');
 const accountTemplate = form.querySelector('#account-row-template');
 const dialog = document.querySelector('.settings-dialog');
 const modelButtons = [...document.querySelectorAll('[data-model-days]')];
@@ -20,6 +22,7 @@ let settings;
 let modelRequest = 0;
 let quotaRequest = 0;
 let savingSettings = false;
+const inventoryKeys = new WeakMap();
 
 function escapeHTML(text) {
   return String(text).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -80,6 +83,8 @@ function renderResetCredits(quota) {
 function renderQuota(data) {
   settings = data.settings;
   const { quota, schedule, checks, routes } = data;
+  const active = new Set(data.active?.map(entry => entry.provider));
+  renderAccountInventory(data.accounts ?? {});
   const alerts = [];
   document.querySelector('.plan-columns').hidden = quota.length === 0;
   document.querySelector('.legend').innerHTML = ['watch', 'low', 'critical'].map(level => chip(level, `${labels[level]} ≤${settings[level]}%`)).join('');
@@ -97,7 +102,9 @@ function renderQuota(data) {
     const captured = Number.isFinite(row.capturedAt) ? `Updated ${clock.format(row.capturedAt * 1000)}` : 'Waiting for a quota snapshot';
     const target = row.capacity === null ? 'unknown' : row.capacity >= settings.target ? 'met' : 'short';
     const status = row.state === 'error' ? chip('critical', `Error · ${row.error}`) : captured;
-    return `<div class="plan-grid plan-row" data-provider="${row.provider}" data-state="${row.state ?? 'ready'}"><div class="plan-provider ${row.provider}"><h3 class="provider"><span class="provider-mark" aria-hidden="true">${marks[row.provider]}</span>${escapeHTML(row.label)}</h3><small>${status}</small></div>${bars}<div class="capacity" data-target="${target}"><strong>${row.capacity ?? '—'}</strong><span>sessions estimated · target ${settings.target}</span></div></div>`;
+    const login = row.login ? `<small class="account-login">${escapeHTML(row.login)}</small>` : '';
+    const badge = active.has(row.provider) ? '<span class="active-badge">Active now</span>' : '';
+    return `<div class="plan-grid plan-row" data-provider="${row.provider}" data-state="${row.state ?? 'ready'}"><div class="plan-provider ${row.provider}"><h3 class="provider"><span class="provider-mark" aria-hidden="true">${marks[row.provider]}</span>${escapeHTML(row.label)}</h3>${login}${badge}<small>${status}</small></div>${bars}<div class="capacity" data-target="${target}"><strong>${row.capacity ?? '—'}</strong><span>sessions estimated · target ${settings.target}</span></div></div>`;
   }).join('');
   const directions = [
     { label: 'Claude→agy', requested: 'agy', decision: routes.claudeToAgy },
@@ -160,6 +167,44 @@ for (const button of modelButtons) {
   });
 }
 
+function renderAccountInventory(accounts) {
+  const kindLabel = { current: 'Current CLI account', default: 'Default folder', manual: 'Configured folder', managed: 'Managed account' };
+  for (const group of accountGroups) {
+    const provider = group.dataset.accountProvider;
+    const profiles = (accounts[provider] ?? []).filter(profile => profile.login || profile.kind === 'managed');
+    const key = JSON.stringify(profiles.map(({ id, login, kind }) => [id, login, kind]));
+    if (inventoryKeys.get(group) === key) continue;
+    inventoryKeys.set(group, key);
+    group.querySelector('.detected-accounts').innerHTML = profiles.map(profile => {
+      const login = profile.login ?? 'Waiting for sign-in';
+      const remove = profile.kind === 'managed'
+        ? `<button class="action" type="button" data-remove-managed="${profile.id}" aria-label="Remove ${escapeHTML(login)}" data-testid="btn_removeManagedAccount-${profile.id}_monitorPage">Remove</button>`
+        : '';
+      return `<li><div><span class="account-login">${escapeHTML(login)}</span><small>${kindLabel[profile.kind]}</small></div>${remove}</li>`;
+    }).join('');
+  }
+}
+
+async function changeManagedAccount(group, button) {
+  const provider = group.dataset.accountProvider;
+  const id = button.dataset.removeManaged;
+  const removing = Boolean(id);
+  if (removing && !window.confirm('Remove this managed account and delete its local CLI configuration and session files?')) return;
+  button.disabled = true;
+  accountResult.textContent = removing ? 'Removing managed account…' : 'Opening macOS Terminal…';
+  try {
+    const endpoint = removing ? '/api/accounts/remove' : '/api/accounts/sign-in';
+    const body = removing ? { provider, id, confirm: true } : { provider };
+    await request(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    accountResult.textContent = removing ? 'Managed account removed.' : 'Finish signing in in Terminal. The account will appear here when ready.';
+    await loadQuota();
+  } catch (error) {
+    accountResult.textContent = error.message;
+  } finally {
+    button.disabled = false;
+  }
+}
+
 function addAccount(group, account = { id: crypto.randomUUID(), label: '', home: '' }) {
   const row = accountTemplate.content.firstElementChild.cloneNode(true);
   row.dataset.accountId = account.id;
@@ -179,6 +224,7 @@ accountSettings.addEventListener('click', event => {
   const button = event.target.closest('button');
   if (!button) return;
   const group = button.closest('[data-account-provider]');
+  if (button.matches('[data-sign-in], [data-remove-managed]')) void changeManagedAccount(group, button);
   if (button.hasAttribute('data-add-account')) addAccount(group).focus();
   if (button.hasAttribute('data-remove-account')) {
     button.closest('.account-row').remove();
@@ -190,10 +236,11 @@ document.querySelector('#open-settings').addEventListener('click', () => {
   if (!settings) return;
   for (const field of form.querySelectorAll('input[type="number"]')) field.value = settings[field.name];
   for (const input of providerSwitches) input.checked = settings.providers[input.dataset.monitorProvider];
-  for (const group of accountGroups) {
+  for (const group of manualGroups) {
     group.querySelector('.account-rows').replaceChildren();
     for (const account of settings.accounts?.[group.dataset.accountProvider] ?? []) addAccount(group, account);
   }
+  accountResult.textContent = '';
   form.querySelector('.form-error').textContent = '';
   dialog.showModal();
 });
@@ -211,12 +258,16 @@ testNotification.addEventListener('click', async () => {
     testNotification.disabled = false;
   }
 });
+form.addEventListener('invalid', event => {
+  const advanced = event.target.closest('details');
+  if (advanced) advanced.open = true;
+}, true);
 form.addEventListener('submit', async event => {
   event.preventDefault();
   if (savingSettings) return;
   const values = Object.fromEntries([...new FormData(form)].map(([key, value]) => [key, Number(value)]));
   values.providers = Object.fromEntries(providerSwitches.map(input => [input.dataset.monitorProvider, input.checked]));
-  values.accounts = Object.fromEntries(accountGroups.map(group => [
+  values.accounts = Object.fromEntries(manualGroups.map(group => [
     group.dataset.accountProvider,
     [...group.querySelectorAll('.account-row')].map(row => ({
       id: row.dataset.accountId,

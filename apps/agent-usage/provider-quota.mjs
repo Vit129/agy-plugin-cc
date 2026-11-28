@@ -12,7 +12,7 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const maxOutput = 512 * 1024;
 const agyBuckets = { 'gemini-5h': '5h', 'gemini-weekly': '7d' };
 
-function executable(name, env) {
+export function executable(name, env) {
   return env[`AGENT_USAGE_${name.toUpperCase()}_BIN`] || [
     path.join(os.homedir(), '.local', 'bin', name),
     path.join(os.homedir(), '.volta', 'bin', name),

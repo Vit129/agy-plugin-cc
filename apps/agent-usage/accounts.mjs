@@ -5,10 +5,23 @@ export const accountHomeVariables = Object.freeze({
   claude: 'CLAUDE_CONFIG_DIR', copilot: 'COPILOT_HOME', codex: 'CODEX_HOME',
 });
 
+const defaultHomePaths = {
+  claude: '.claude', copilot: '.copilot', codex: '.codex', agy: '.gemini/antigravity-cli',
+};
+
+export function defaultCliHome(provider, env) {
+  return path.resolve(env.HOME || os.homedir(), defaultHomePaths[provider]);
+}
+
+export function cliHome(provider, env) {
+  const variable = provider === 'agy' ? 'AGY_HOME' : accountHomeVariables[provider];
+  return env[variable] ? path.resolve(env[variable]) : defaultCliHome(provider, env);
+}
+
 const authOverrides = {
   claude: ['ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN', 'CLAUDE_CODE_OAUTH_TOKEN', 'CLAUDE_CODE_SESSION_ACCESS_TOKEN'],
   copilot: ['COPILOT_GITHUB_TOKEN', 'GH_TOKEN', 'GITHUB_TOKEN'],
-  codex: ['CODEX_API_KEY', 'OPENAI_API_KEY'],
+  codex: ['CODEX_API_KEY', 'OPENAI_API_KEY', 'CODEX_ACCESS_TOKEN'],
 };
 const accountFields = ['id', 'label', 'home'];
 const controlCharacters = /[\u0000-\u001f\u007f]/;
@@ -46,14 +59,19 @@ export function normalizeAccounts(input = {}) {
 }
 
 export function accountsForProvider(settings, provider) {
-  const accounts = settings.accounts?.[provider];
-  return accounts?.length ? accounts : [null];
+  const manual = settings.accounts?.[provider] ?? [];
+  const managed = settings.managedAccounts?.[provider] ?? [];
+  return [...(manual.length ? manual : [null]), ...managed];
+}
+
+export function accountAuthOverrides(provider) {
+  return authOverrides[provider];
 }
 
 export function accountEnvironment(provider, account, env) {
   if (!account) return env;
   const scoped = { ...env, [accountHomeVariables[provider]]: account.home };
   // Use the profile's saved authentication, which inherited tokens can override.
-  for (const key of authOverrides[provider]) delete scoped[key];
+  for (const key of accountAuthOverrides(provider)) delete scoped[key];
   return scoped;
 }

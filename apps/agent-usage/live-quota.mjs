@@ -1,6 +1,6 @@
 import { estimateCapacity, levelFor, readQuota } from './quota.mjs';
 import { probeNativeQuota } from './provider-quota.mjs';
-import { accountEnvironment } from './accounts.mjs';
+import { accountEnvironment, accountsForProvider } from './accounts.mjs';
 import { creditStage } from './reset-credits.mjs';
 
 export function createLiveQuotaReader({ env = process.env, now = Date.now, probe = probeNativeQuota,
@@ -9,10 +9,10 @@ export function createLiveQuotaReader({ env = process.env, now = Date.now, probe
   return async function readLiveQuota(settings) {
     const rows = readQuota(settings, { env, nowSec: Math.floor(now() / 1000), includeRouteFallback: true });
     const profiles = rows.map(row => {
-      const configured = settings.accounts?.[row.provider];
-      const account = configured?.find(profile => profile.id === row.accountId);
+      const configured = accountsForProvider(settings, row.provider);
+      const account = configured.find(profile => profile?.id === row.accountId);
       return { row, account, key: JSON.stringify([row.provider, row.accountId, account?.home]),
-        display: Boolean(account || !configured?.length) };
+        display: Boolean(account || configured.includes(null)) };
     });
     const keys = new Set(profiles.map(profile => profile.key));
     for (const key of cache.keys()) {

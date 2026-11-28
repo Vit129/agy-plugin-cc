@@ -13,16 +13,18 @@ Agent Usage serves a local dashboard for Claude Code, Antigravity, GitHub Copilo
 
 ## Accounts and Codex reset credits
 
-In **Settings → Accounts**, add a label and the configuration directory of each signed-in profile. Use an absolute path or a path starting with `~/`. A populated list supplies the visible quota rows, local transcript history, and alerts for that provider. An empty list uses the CLI's current environment. Auto-Route always uses the current environment and its shared quota cache.
+**Settings → Accounts** lists sign-ins found in the current CLI home, the default home when it differs, and Agent Usage's managed homes. The quota rows show the account email or GitHub login when the CLI records it locally. Only the loopback dashboard and menu receive those identities. Agent Usage does not write identities or tokens to its state or logs.
 
-| CLI | Configuration directory |
-| --- | --- |
-| Claude Code | `CLAUDE_CONFIG_DIR` |
-| GitHub Copilot | `COPILOT_HOME` |
-| OpenAI Codex | `CODEX_HOME` |
-| Antigravity | One account using the current CLI environment |
+Use **Sign in another account** to open the provider's sign-in in macOS Terminal. Agent Usage creates a private folder at `accounts/<provider>/<id>` under its state directory and sets the CLI home variable for that Terminal command. Complete the browser or device authorization in Terminal. The dashboard polls for the new account every 15 seconds. **Remove** asks before deleting a managed folder and its contents. Antigravity uses one CLI account.
 
-Named profiles use their saved sign-in. Agent Usage removes inherited provider token overrides from their probes so each CLI can resolve that profile's credentials.
+| CLI | Home variable | Local identity | Terminal command |
+| --- | --- | --- | --- |
+| Claude Code | `CLAUDE_CONFIG_DIR` | `.claude.json` → `oauthAccount.emailAddress`. The default also checks `~/.claude.json`. | `claude auth login` |
+| GitHub Copilot | `COPILOT_HOME` | `config.json` → `lastLoggedInUser.login` or the sole `loggedInUsers[].login`. | `copilot login` |
+| OpenAI Codex | `CODEX_HOME` | `auth.json` → `tokens.id_token` payload → `email`. | `codex login` |
+| Antigravity | `AGY_HOME` | `google_accounts.json` → `active`. The default also checks `~/.gemini/google_accounts.json`. | — |
+
+Use **Advanced** to enter a label and an absolute or `~/` path for a manually managed profile. A populated manual list replaces the implicit account for that provider. Signed-in managed accounts are included automatically. Named and managed profiles use their saved sign-in. Agent Usage removes inherited provider token overrides when invoking their CLIs. Auto-Route always uses the inherited CLI environment and shared quota cache.
 
 Codex reset credits appear with their title and local expiry. The server rechecks the credit before notifying at 24 hours and 2 hours if it remains available. Each reminder is saved per account and credit, including across server restarts. If the server was offline, it can send the reminder for the interval still in progress.
 
@@ -30,4 +32,13 @@ Codex reset credits appear with their title and local expiry. The server recheck
 
 Run `npm run menubar:build` with the Xcode Command Line Tools installed. It writes `.tmp/menubar/Agent Usage Bar.app`. To install at login, explicitly run `npm run menubar:install`. It copies the app to `~/Applications/Agent Usage Bar.app` and registers `com.vit129.agent-usage-bar` in `~/Library/LaunchAgents` for your GUI session. Quit closes it until the next login or until you open it again.
 
-For a manual check, open the built app without installing it and use an Agent Usage server on `127.0.0.1:43127`. Verify the colored title matches the lowest known percentage, the menu lists provider/account windows and both Auto-Route decisions, and each available Codex credit shows its expiry. Check **Open dashboard** and **Refresh**. With the server stopped, verify **—** and **Start Agent Usage**. The start action needs the `~/.local/bin/agent-usage` launcher described above. Select **Quit** to close the app.
+The build copies transparent 32 px template PNGs from a local `AGENT_USAGE_ICON_DIR` when available (`claude.png`, `agy.png`, `copilot.png`, `codex.png`). Otherwise it converts the corresponding marks from a locally installed CodexBar app in `/Applications` or `~/Applications` using macOS `sips`. The generated app contains these local assets. Provider marks are represented by letters when a local image is unavailable.
+
+The status title displays each enabled provider with a transcript write in the past two minutes and that provider's lowest remaining quota. When idle it shows the provider with the lowest known quota in a dimmer color. Activity uses file modification times, so it can remain visible briefly after an agent stops. The dashboard shows the same activity as **Active now**.
+
+For a manual check, open the built app without installing it and use an Agent Usage server on `127.0.0.1:43127`.
+
+1. In light and dark appearance, open the menu. Check that provider headings and indented quota rows are readable, email and reset text are secondary, and only the quota percentage has the severity color.
+2. With a recent transcript from one provider and another provider exhausted, verify the title shows the active provider's mark and quota. Check multiple active providers and the dimmed title when idle. Check **Active now** on the corresponding dashboard rows.
+3. Check both Auto-Route decisions, available Codex credits and their expiry, **Open dashboard**, and **Refresh**.
+4. With the server stopped, verify **—** and **Start Agent Usage**. The start action needs the `~/.local/bin/agent-usage` launcher described above. Select **Quit** to close the app.
