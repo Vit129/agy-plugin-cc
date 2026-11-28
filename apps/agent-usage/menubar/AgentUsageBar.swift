@@ -2,14 +2,6 @@ import AppKit
 
 private struct Snapshot: Decodable {
     struct Row: Decodable {
-        struct Window: Decodable {
-            let short: String
-            let remaining: Double?
-            let resetsAt: TimeInterval?
-            let level: String
-            let state: String
-        }
-
         struct ResetCredits: Decodable {
             struct Credit: Decodable {
                 let title: String?
@@ -22,7 +14,7 @@ private struct Snapshot: Decodable {
 
         let provider: String
         let label: String
-        let windows: [Window]
+        let windows: [QuotaWindow]
         let rateLimitResetCredits: ResetCredits?
     }
 
@@ -66,8 +58,7 @@ private struct Snapshot: Decodable {
         init(legacy rows: [Row]) {
             let values = rows.flatMap { row in
                 row.windows.compactMap { window -> (Row, Double)? in
-                    guard let value = window.remaining, (0...100).contains(value) else { return nil }
-                    return (row, value)
+                    window.knownRemaining.map { (row, $0) }
                 }
             }
             status = values.min(by: { $0.1 < $1.1 }).map { row, value in
@@ -75,7 +66,7 @@ private struct Snapshot: Decodable {
             } ?? []
             groups = rows.map { row in
                 Group(label: row.label, secondary: nil, windows: row.windows.map { window in
-                    let value = window.remaining.flatMap { (0...100).contains($0) ? "\(Int($0))%" : nil }
+                    let value = window.knownRemaining.map { "\(Int($0))%" }
                     return Group.Window(label: "\(window.short) · ", amount: value ?? "—", level: window.level,
                                         resetLabel: window.resetsAt == nil ? "Reset time unavailable" : "Resets",
                                         resetsAt: window.resetsAt, suffix: window.state == "aging" ? " · Stale" : nil)
@@ -89,6 +80,12 @@ private struct Snapshot: Decodable {
     let menu: MenuModel?
 }
 
+private final class StatusTitleView: NSStackView {
+    // The status button continues to handle menu clicks across the whole title.
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+}
+
+@main
 private final class StatusBar: NSObject, NSApplicationDelegate {
     private let base = URL(string: "http://127.0.0.1:43127")!
     private let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -108,6 +105,15 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
     private var fetching = false
     private var starting = false
     private var startError: String?
+    private var statusTitleView: StatusTitleView?
+
+    static func main() {
+        let application = NSApplication.shared
+        let statusBar = StatusBar()
+        application.setActivationPolicy(.accessory)
+        application.delegate = statusBar
+        withExtendedLifetime(statusBar) { application.run() }
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         clock.dateStyle = .medium
@@ -147,7 +153,7 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
 
     private func render() {
         let model = snapshot.map { $0.menu ?? Snapshot.MenuModel(legacy: $0.quota) }
-        renderStatus(model?.status ?? [])
+        renderStatus(model?.status ?? [], rows: snapshot?.quota ?? [])
 
         menu.removeAllItems()
         if let snapshot = snapshot, let model = model {
@@ -184,43 +190,80 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         NSAttributedString(string: title, attributes: [.foregroundColor: color])
     }
 
-    private func renderStatus(_ indicators: [Snapshot.MenuModel.Indicator]) {
+    private func renderStatus(_ indicators: [Snapshot.MenuModel.Indicator], rows: [Snapshot.Row]) {
         guard let button = item.button else { return }
+        statusTitleView?.removeFromSuperview()
+        statusTitleView = nil
         guard !indicators.isEmpty else {
+            item.length = NSStatusItem.variableLength
             button.attributedTitle = text("—")
             button.setAccessibilityValue("Quota unavailable")
             return
         }
 
-        let title = NSMutableAttributedString()
-        var accessibility: [String] = []
-        for indicator in indicators {
-            if title.length > 0 { title.append(text("  ")) }
-            let color: NSColor = indicator.dimmed ? .secondaryLabelColor : .labelColor
-            if let icon = icons[indicator.provider] {
-                // Text attachments don't inherit the status button's template image tint.
-                let tinted = NSImage(size: NSSize(width: 14, height: 14), flipped: false) { rect in
-                    guard let context = NSGraphicsContext.current?.cgContext else { return false }
-                    icon.draw(in: rect)
-                    context.saveGState()
-                    context.setBlendMode(.sourceIn)
-                    context.setFillColor(color.cgColor)
-                    context.fill(rect)
-                    context.restoreGState()
-                    return true
-                }
-                let attachment = NSTextAttachment()
-                attachment.attachmentCell = NSTextAttachmentCell(imageCell: tinted)
-                title.append(NSAttributedString(attachment: attachment))
-            } else {
-                title.append(text(glyphs[indicator.provider] ?? "?", color: color))
-            }
-            title.append(text(" \(indicator.amount)", color: color))
-            let quota = indicator.amount == "—" ? "quota unavailable" : "\(indicator.amount) remaining"
-            accessibility.append("\(indicator.label), \(quota)")
+        let windowsByProvider = Dictionary(grouping: rows, by: \.provider)
+        let titles = indicators.map { indicator in
+            let glyph = icons[indicator.provider] == nil ? glyphs[indicator.provider] ?? "?" : nil
+            let windows = windowsByProvider[indicator.provider, default: []].flatMap(\.windows)
+            return StatusTitle(amount: indicator.amount, windows: windows, glyph: glyph)
         }
-        button.attributedTitle = title
+        let stacked = titles.contains { $0.line2 != nil }
+        let primaryFont = stacked ? NSFont.systemFont(ofSize: 11, weight: .medium) : .menuBarFont(ofSize: 0)
+        var accessibility: [String] = []
+        let columns = zip(indicators, titles).map { indicator, title in
+            let primary = statusLabel(title.line1, font: primaryFont)
+            let top = NSStackView()
+            top.orientation = .horizontal
+            top.alignment = .centerY
+            top.spacing = 3
+            if let icon = icons[indicator.provider] {
+                let imageView = NSImageView(image: icon)
+                imageView.contentTintColor = .labelColor
+                imageView.imageScaling = .scaleProportionallyUpOrDown
+                imageView.setAccessibilityElement(false)
+                top.addArrangedSubview(imageView)
+                let size: CGFloat = stacked ? 11 : 14
+                imageView.widthAnchor.constraint(equalToConstant: size).isActive = true
+                imageView.heightAnchor.constraint(equalToConstant: size).isActive = true
+            }
+            top.addArrangedSubview(primary)
+            let column = NSStackView(views: [top])
+            column.orientation = .vertical
+            column.alignment = .centerX
+            column.spacing = -3
+            column.alphaValue = indicator.dimmed ? 0.75 : 1
+            let quota = indicator.amount == "—" ? "quota unavailable" : "\(indicator.amount) remaining"
+            var description = "\(indicator.label), \(quota)"
+            if let reset = title.line2 {
+                column.addArrangedSubview(statusLabel(reset, font: .systemFont(ofSize: 9)))
+                description += ", \(reset)"
+            }
+            accessibility.append(description)
+            return column
+        }
+
+        let content = StatusTitleView(views: columns)
+        content.orientation = .horizontal
+        content.alignment = .top
+        content.spacing = 8
+        content.translatesAutoresizingMaskIntoConstraints = false
+        button.attributedTitle = NSAttributedString()
+        button.addSubview(content)
+        NSLayoutConstraint.activate([
+            content.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+            content.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+        ])
+        item.length = ceil(content.fittingSize.width) + 10
+        statusTitleView = content
         button.setAccessibilityValue(accessibility.joined(separator: "; "))
+    }
+
+    private func statusLabel(_ value: String, font: NSFont) -> NSTextField {
+        let label = NSTextField(labelWithString: value)
+        label.font = font
+        label.textColor = .labelColor
+        label.setAccessibilityElement(false)
+        return label
     }
 
     private func windowTitle(_ window: Snapshot.MenuModel.Group.Window) -> NSAttributedString {
@@ -307,9 +350,3 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         if success { refresh() }
     }
 }
-
-let application = NSApplication.shared
-private let statusBar = StatusBar()
-application.setActivationPolicy(.accessory)
-application.delegate = statusBar
-application.run()

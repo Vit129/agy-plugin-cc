@@ -6,6 +6,9 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+- The Agent Usage menu bar title shows the limiting quota window and its local reset time on a second line when available.
+
 ## [2.0.0] - 2026-11-28
 
 ### Breaking changes
