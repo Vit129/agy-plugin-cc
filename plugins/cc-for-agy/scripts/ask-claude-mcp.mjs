@@ -41,7 +41,7 @@ async function handleRequest(req) {
       result: {
         protocolVersion: "2024-11-05",
         capabilities: { tools: {} },
-        serverInfo: { name: "cc-plugin-agy", version: "1.8.1" }
+        serverInfo: { name: "cc-plugin-agy", version: "1.9.0" }
       }
     });
     return;
