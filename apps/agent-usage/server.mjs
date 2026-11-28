@@ -1,15 +1,15 @@
 import { execFile } from 'node:child_process';
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import { chooseRoute } from '../../plugins/agy/scripts/lib/quota-route.mjs';
+import { chooseRoute, isRouteOffPersisted } from '../../plugins/agy/scripts/lib/quota-route.mjs';
 import { readAllQuota, writeNativeQuota } from '../../plugins/agy/scripts/lib/quota-state.mjs';
 import { accountEnvironment, accountHomeVariables, accountsForProvider, cliHome, normalizeAccounts } from './accounts.mjs';
 import { discoverAccounts } from './account-identity.mjs';
 import { addClaudeFullReset, claudeFullResetAccounts, normalizeClaudeFullResets } from './claude-reset-credit.mjs';
-import { createManagedHome, isManagedId, isManagedProvider, managedHomes, openTerminalLogin, removeManagedHome } from './managed-accounts.mjs';
+import { createManagedHome, isManagedId, isManagedProvider, managedHomes, openAgySignIn, openTerminalLogin, removeManagedHome } from './managed-accounts.mjs';
 import { buildMenuModel } from './menu-model.mjs';
 import { defaultSettings, enabledProviders, loadSettings, planQuotaAlerts, providerLabel, validSettings } from './quota.mjs';
 import { createLiveQuotaReader } from './live-quota.mjs';
@@ -29,7 +29,8 @@ const assets = {
 async function notifyMacOS(alert) {
   if (process.platform !== 'darwin') throw new Error('macOS notifications require macOS.');
   const message = alert.message ?? `${alert.provider} ${alert.short}: ${Math.floor(alert.remaining)}% remaining (${alert.level})`;
-  await run('/usr/bin/osascript', ['-e', 'on run argv\n display notification (item 1 of argv) with title "Agent Usage"\nend run', message], { timeout: 5000 });
+  const sound = alert.sound ? ' sound name "Glass"' : '';
+  await run('/usr/bin/osascript', ['-e', `on run argv\n display notification (item 1 of argv) with title "Agent Usage"${sound}\nend run`, message], { timeout: 5000 });
 }
 
 const percent = value => `${Math.floor(value)}%`;
@@ -94,6 +95,7 @@ export async function startServer({ port = defaultPort, env = process.env, notif
   probeQuota, openLogin = openTerminalLogin } = {}) {
   const directory = path.resolve(stateDirectory(env));
   let settings = loadSettings(directory);
+  const dispatchNotification = alert => notify({ ...alert, ...(settings.notificationSound ? { sound: true } : {}) });
   let observed = readState(directory, 'alerts.json', {}) ?? {};
   const readLiveQuota = createLiveQuotaReader({ env, now, probe: probeQuota, publish: writeNativeQuota, log: message => {
     try {
@@ -142,14 +144,21 @@ export async function startServer({ port = defaultPort, env = process.env, notif
     const action = refreshQueue.then(async () => {
       const accounts = await getAccounts(settingsUpdate?.accounts ?? settings.accounts);
       if (settingsUpdate) {
-        const { claudeFullReset, ...quotaUpdate } = settingsUpdate;
+        const { claudeFullReset, autoRoute, ...quotaUpdate } = settingsUpdate;
         const signedIn = new Set(accounts.claude.profiles.map(profile => profile.accountUuid));
         if (Object.keys(claudeFullReset ?? {}).some(uuid => !signedIn.has(uuid))) return null;
+        const { autoRoute: _routeState, ...storedSettings } = settings;
         const updated = {
-          ...settings, ...quotaUpdate, claudeFullReset: { ...settings.claudeFullReset, ...claudeFullReset },
+          ...storedSettings, ...quotaUpdate, claudeFullReset: { ...settings.claudeFullReset, ...claudeFullReset },
         };
         writeState(directory, 'settings.json', updated);
         settings = updated;
+        const routeWasEnabled = !isRouteOffPersisted(env);
+        if (autoRoute !== undefined && autoRoute !== routeWasEnabled) {
+          const marker = path.join(directory, 'route-off');
+          if (autoRoute) rmSync(marker, { force: true });
+          else writeFileSync(marker, '', { mode: 0o600, flag: 'wx' });
+        }
       }
       const effectiveSettings = quotaSettings(accounts);
       const providers = enabledProviders(settings);
@@ -161,20 +170,22 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         : accounts[row.provider].current;
       quota = addClaudeFullReset(quota, accountForRow, claudeCredits, time);
       const shared = readAllQuota({ env, nowSec: Math.floor(time / 1000) });
+      const autoRoute = !isRouteOffPersisted(env);
+      const routeOptions = { ...settings, enabled: autoRoute };
       const routes = {
-        claudeToAgy: { requested: 'agy', ...chooseRoute(shared, { ...settings, requested: 'agy' }) },
-        agyToClaude: { requested: 'claude', ...chooseRoute(shared, { ...settings, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }) },
+        claudeToAgy: { requested: 'agy', ...chooseRoute(shared, { ...routeOptions, requested: 'agy' }) },
+        agyToClaude: { requested: 'claude', ...chooseRoute(shared, { ...routeOptions, requested: 'claude', agyPool: shared.agy.activePool || 'gemini' }) },
       };
       const enabledObservations = Object.fromEntries(Object.entries(observed).filter(([key]) =>
         key.startsWith(creditReminderPrefix) || key.startsWith(claudeCreditReminderPrefix) || providers.includes(key.split(':', 1)[0])));
-      const thresholds = planQuotaAlerts(quota, enabledObservations, { baseline: Boolean(settingsUpdate), now: time });
-      const next = planResetCreditAlerts(quota, thresholds.state, time);
-      next.alerts.unshift(...thresholds.alerts);
+      const quotaAlerts = planQuotaAlerts(quota, enabledObservations, { ...settings, baseline: Boolean(settingsUpdate), now: time });
+      const next = settings.resetCreditReminders ? planResetCreditAlerts(quota, quotaAlerts.state, time) : { state: quotaAlerts.state, alerts: [] };
+      next.alerts.unshift(...quotaAlerts.alerts);
       const previous = observed;
       if (next.alerts.length) notificationError = null;
       for (const alert of next.alerts) {
         try {
-          await notify({ ...alert, message: alert.message ?? alertMessage(alert, routes) });
+          await dispatchNotification({ ...alert, message: alert.message ?? alertMessage(alert, routes) });
         } catch (error) {
           notificationError = error.message;
           if (Object.hasOwn(previous, alert.key)) next.state[alert.key] = previous[alert.key];
@@ -205,7 +216,7 @@ export async function startServer({ port = defaultPort, env = process.env, notif
         if (!checks[at]?.checkedAt) continue;
         try {
           const formatted = new Date(at).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-          await notify({ message: `Scheduled quota check at ${formatted}. ${quotaSummary(quota)}` });
+          await dispatchNotification({ message: `Scheduled quota check at ${formatted}. ${quotaSummary(quota)}` });
         } catch (error) {
           notificationError = error.message;
           process.stderr.write(`Agent Usage · scheduled notification: ${error.message}\n`);
@@ -223,7 +234,7 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       const { claudeFullReset, ...publicSettings } = settings;
       return {
         quota: rows, accounts: discovered, claudeFullResetAccounts: [...claudeCredits.values()], active, menu,
-        settings: publicSettings, schedule, checks, notificationError, routes,
+        settings: { ...publicSettings, autoRoute }, schedule, checks, notificationError, routes,
       };
     });
     refreshQueue = action.catch(error => process.stderr.write(`Agent Usage · refresh: ${error.message}\n`));
@@ -281,7 +292,8 @@ export async function startServer({ port = defaultPort, env = process.env, notif
       } else if (request.method === 'POST' && ['/api/accounts/sign-in', '/api/accounts/remove'].includes(url.pathname)) {
         const body = await parseJSON(request);
         const removing = url.pathname === '/api/accounts/remove';
-        if (!isManagedProvider(body?.provider) || Object.keys(body).length !== (removing ? 3 : 1) ||
+        const agySignIn = !removing && body?.provider === 'agy';
+        if ((!agySignIn && !isManagedProvider(body?.provider)) || Object.keys(body).length !== (removing ? 3 : 1) ||
             (removing && (!isManagedId(body.id) || body.confirm !== true))) {
           sendJSON(response, 400, { error: 'Invalid account request.' });
           return;
@@ -290,11 +302,13 @@ export async function startServer({ port = defaultPort, env = process.env, notif
           const removed = removeManagedHome(directory, body.provider, body.id);
           sendJSON(response, removed ? 200 : 404, removed ? { removed: true } : { error: 'Managed account not found.' });
         } else {
-          const { status, ...result } = await createManagedHome(directory, body.provider, env, openLogin);
+          const { status, ...result } = agySignIn
+            ? await openAgySignIn(env, openLogin)
+            : await createManagedHome(directory, body.provider, env, openLogin);
           sendJSON(response, status, result);
         }
       } else if (request.method === 'POST' && url.pathname === '/api/notifications/test' && request.headers['content-type'] === 'application/json') {
-        await notify({ message: `Test notification · ${quotaSummary(quota)}` });
+        await dispatchNotification({ message: `Test notification · ${quotaSummary(quota)}` });
         sendJSON(response, 200, { sent: true });
       } else if (request.method === 'GET' && assets[url.pathname]) {
         const [file, contentType] = assets[url.pathname];

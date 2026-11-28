@@ -81,6 +81,23 @@ test('[TC-AGU-03][BE-BL] sends one alert for the highest crossed level per confi
   assert.equal(planQuotaAlerts(sample({ ...live(79), resetsAt: resetAt + 18_000 }, live(59)), newCycle.state).alerts[0].level, 'watch');
 });
 
+test('[TC-AGU-48][BE-BL] sends an opt-in pace warning once per fresh quota window independently of threshold warnings', () => {
+  const now = resetAt * 1000 - 9_000_000;
+  const options = { now, thresholdWarnings: false, paceWarnings: true };
+  const weekly = { ...live(90), resetsAt: resetAt + 86_400 };
+  const baseline = planQuotaAlerts(sample(live(80), weekly), {}, options);
+  assert.deepEqual(baseline.alerts, []);
+  const stale = planQuotaAlerts(sample({ ...live(49), state: 'aging' }, weekly), baseline.state, options);
+  assert.deepEqual(stale.alerts, []);
+  const atPace = planQuotaAlerts(sample(live(50), weekly), baseline.state, options);
+  assert.deepEqual(atPace.alerts, []);
+  const behind = planQuotaAlerts(sample(live(49), weekly), atPace.state, options);
+  assert.equal(behind.alerts.length, 1);
+  assert.match(behind.alerts[0].message, /running out ahead of reset/);
+  assert.deepEqual(planQuotaAlerts(sample(live(20), weekly), behind.state, options).alerts, []);
+  assert.deepEqual(planQuotaAlerts(sample(live(20), weekly), baseline.state, { ...options, paceWarnings: false }).alerts, []);
+});
+
 test('[TC-AGU-04][BE-BL] counts transcript calls once, filters time windows and keeps unavailable timing unknown', () => {
   const now = Date.parse('2026-11-27T21:00:00+07:00');
   const claude = normalizeClaudeCall({ type: 'assistant', timestamp: new Date(now).toISOString(), requestId: 'test', message: { model: 'claude-test', id: 'msg-test', usage: { input_tokens: 3, cache_read_input_tokens: 10, output_tokens: 2 } } });
@@ -144,6 +161,35 @@ test('[TC-AGU-05][BE-IT] serves local quota, persists notification state and rec
     const notify = await fetch(`${base()}/api/notifications/test`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
     assert.deepEqual(await notify.json(), { sent: true });
     assert.match(events[2].message, /Test notification · Claude Code 5h \d+%/);
+    assert.equal(events[2].sound, undefined);
+    const putSettings = values => fetch(`${base()}/api/settings`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values),
+    });
+    const original = (await quota()).settings;
+    assert.equal((await putSettings({ ...original, autoRoute: 'off' })).status, 400);
+    assert.equal((await putSettings({ ...original, titleProviders: { claude: false } })).status, 400);
+    const update = { ...original, titleProviders: { ...original.titleProviders, claude: false },
+      thresholdWarnings: false, paceWarnings: true, resetCreditReminders: false, notificationSound: true, autoRoute: false };
+    const saved = await putSettings(update).then(response => response.json());
+    assert.deepEqual(saved.settings, update);
+    assert.equal(saved.quota[0].provider, 'claude', 'title visibility is independent of quota monitoring');
+    assert.deepEqual(saved.routes, {
+      claudeToAgy: { requested: 'agy', target: 'agy', reason: 'Auto-Route is off.' },
+      agyToClaude: { requested: 'claude', target: 'claude', reason: 'Auto-Route is off.' },
+    });
+    assert.equal(await readFile(path.join(directory, 'route-off'), 'utf8'), '');
+    await close();
+    server = await startServer(options);
+    assert.deepEqual((await quota()).settings, update);
+    const { titleProviders, thresholdWarnings, paceWarnings, resetCreditReminders, notificationSound, autoRoute, ...legacy } = original;
+    const legacySaved = await putSettings({ ...legacy, target: 8 }).then(response => response.json());
+    assert.deepEqual(legacySaved.settings, { ...update, target: 8 }, 'legacy clients preserve additive preferences');
+    await fetch(`${base()}/api/notifications/test`, { method: 'POST', headers: { 'Content-Type': 'application/json' } });
+    assert.equal(events.at(-1).sound, true);
+    const enabled = await putSettings({ ...legacySaved.settings, autoRoute: true }).then(response => response.json());
+    assert.equal(enabled.settings.autoRoute, true);
+    assert.notEqual(enabled.routes.claudeToAgy.reason, 'Auto-Route is off.');
+    await assert.rejects(readFile(path.join(directory, 'route-off')), { code: 'ENOENT' });
   } finally {
     await close();
     await rm(root, { recursive: true, force: true });

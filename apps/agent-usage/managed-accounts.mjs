@@ -1,6 +1,7 @@
 import { execFile } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { lstatSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { accountAuthOverrides, accountHomeVariables } from './accounts.mjs';
@@ -22,8 +23,10 @@ export function isManagedId(id) {
 
 export async function openTerminalLogin({ provider, home, variable, args, env }) {
   if (process.platform !== 'darwin') throw new Error('Terminal is unavailable.');
-  const envArgs = accountAuthOverrides(provider).flatMap(key => ['-u', key]);
-  const argv = ['/usr/bin/env', ...envArgs, `${variable}=${home}`, executable(provider, env), ...args];
+  const envArgs = (accountAuthOverrides(provider) ?? []).flatMap(key => ['-u', key]);
+  if (variable) envArgs.push(`${variable}=${home}`);
+  if (provider === 'agy' && env.AGY_HOME) envArgs.push(`AGY_HOME=${path.resolve(env.AGY_HOME)}`);
+  const argv = ['/usr/bin/env', ...envArgs, executable(provider, env), ...args];
   const command = `cd ${shellQuote(home)} && ${argv.map(shellQuote).join(' ')}`;
   await run('/usr/bin/osascript', ['-e', `on run argv
     tell application "Terminal"
@@ -31,6 +34,15 @@ export async function openTerminalLogin({ provider, home, variable, args, env })
       do script ("/bin/sh -c " & quoted form of (item 1 of argv))
     end tell
   end run`, command], { timeout: 15_000 });
+}
+
+export async function openAgySignIn(env, openLogin) {
+  try {
+    await openLogin({ provider: 'agy', home: env.HOME || homedir(), args: [], env });
+    return { status: 200, opened: true };
+  } catch {
+    return { status: 503, error: 'Could not open the CLI sign-in in macOS Terminal.' };
+  }
 }
 
 function providerDirectory(directory, provider, create = false) {

@@ -61,6 +61,12 @@ struct Snapshot: Decodable {
 
     struct Settings: Decodable {
         let cost: Double?
+        let low: Double?
+        let critical: Double?
+        let titleProviders: [String: Bool]?
+        let autoRoute: Bool?
+
+        var titleThresholds: StatusTitle.Thresholds { .init(warning: low, critical: critical) }
     }
 
     let quota: [Row]
@@ -78,7 +84,7 @@ struct Snapshot: Decodable {
     }
 
     private func routeLabel(_ label: String, _ route: Routes.Decision) -> String {
-        let status = route.target == route.requested ? "Allowed" : "Diverted"
+        let status = settings?.autoRoute == false ? "Off" : route.target == route.requested ? "Allowed" : "Diverted"
         return "\(label) · \(status) · \(route.reason)"
     }
 

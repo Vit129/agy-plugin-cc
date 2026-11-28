@@ -21,7 +21,7 @@ export function loadRouteThresholds(env = process.env) {
   return defaultRouteThresholds;
 }
 
-// Persistent off-switch: `touch "$(state dir)/route-off"` disables hook routing without relaunching agy.
+// Settings can set this marker to disable routing without relaunching either CLI.
 export function isRouteOffPersisted(env = process.env) {
   return fs.existsSync(path.join(resolveAgentUsageState(env), "route-off"));
 }
@@ -43,8 +43,10 @@ function bottleneck(pool) {
 
 // Also shipped by the companion plugin for the other host. Keep the policy identical.
 export function chooseRoute({ claude, agy }, {
-  requested = "agy", agyPool = "gemini", critical = defaultRouteThresholds.critical, low = defaultRouteThresholds.low
+  requested = "agy", agyPool = "gemini", critical = defaultRouteThresholds.critical, low = defaultRouteThresholds.low,
+  enabled = true
 } = {}) {
+  if (!enabled) return { target: requested, reason: "Auto-Route is off." };
   const alternate = requested === "agy" ? "claude" : "agy";
   const quota = { claude: bottleneck(claude?.pools?.default), agy: bottleneck(agy?.pools?.[agyPool]) };
   const destination = quota[requested];

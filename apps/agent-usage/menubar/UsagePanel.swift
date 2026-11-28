@@ -11,20 +11,6 @@ extension UsageProvider {
     }
 }
 
-extension QuotaPace.Tone {
-    var titleColor: NSColor {
-        NSColor(name: nil) { appearance in
-            let dark = appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            switch self {
-            case .onPace: return dark ? .systemGreen : NSColor(srgbRed: 0.06, green: 0.40, blue: 0.18, alpha: 1)
-            case .close: return dark ? .systemOrange : NSColor(srgbRed: 0.63, green: 0.29, blue: 0.04, alpha: 1)
-            case .behind: return dark ? .systemRed : NSColor(srgbRed: 0.71, green: 0.14, blue: 0.18, alpha: 1)
-            case .unknown: return .labelColor
-            }
-        }
-    }
-}
-
 final class UsagePanelState: ObservableObject {
     struct Content {
         var snapshot: Snapshot?

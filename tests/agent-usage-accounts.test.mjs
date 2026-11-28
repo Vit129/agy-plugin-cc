@@ -312,8 +312,9 @@ test('[TC-AGU-43][BE-IT] reminds at 24 and 2 hours once and suppresses a used or
   });
   await claudeConfig(app.directory, claudeAccount);
   await app.start();
-  const save = async (used, expiresAt = claudeExpiry) => {
-    const response = await app.save({ providers: claudeProviders, claudeFullReset: { [claudeAccount]: { expiresAt, used } } });
+  const save = async (used, expiresAt = claudeExpiry, resetCreditReminders = true) => {
+    const response = await app.save({ providers: claudeProviders, resetCreditReminders,
+      claudeFullReset: { [claudeAccount]: { expiresAt, used } } });
     assert.equal(response.status, 200);
     return response.json();
   };
@@ -353,7 +354,10 @@ test('[TC-AGU-43][BE-IT] reminds at 24 and 2 hours once and suppresses a used or
   time = claudeExpiryMs;
   await app.quota();
   assert.equal(alerts.length, 2);
-  await save(false, new Date(time + 24 * hour).toISOString());
+  await save(false, new Date(time + 24 * hour).toISOString(), false);
+  assert.equal(alerts.length, 2);
+  assert.equal(claudeCredit(await app.quota()).status, 'unknown');
+  await app.save({ providers: claudeProviders, resetCreditReminders: true });
   assert.equal(alerts.length, 3);
   assert.match(alerts[2].message, /Full reset.+\(in 24h\)/);
 });
@@ -467,6 +471,12 @@ test('[TC-AGU-23][BE-IT] launches provider login in private managed homes and di
     assert.equal(launches.at(-1).variable, variable);
     assert.deepEqual(launches.at(-1).args, args);
   }
+  const agy = await app.post('/api/accounts/sign-in', { provider: 'agy' });
+  assert.equal(agy.status, 200);
+  assert.deepEqual(await agy.json(), { opened: true });
+  assert.equal(launches.at(-1).provider, 'agy');
+  assert.deepEqual(launches.at(-1).args, []);
+  await assert.rejects(stat(path.join(app.directory, 'accounts', 'agy')), { code: 'ENOENT' });
   const { home } = launches[0];
   const pending = await app.quota();
   assert.deepEqual(pending.quota.map(row => row.accountId), [undefined]);
@@ -499,7 +509,8 @@ test('[TC-AGU-24][BE-IT] account mutations validate origin, method, provider and
     assert.equal((await app.post(endpoint, { provider: 'claude' }, { Origin: 'https://other.example.test' })).status, 403);
     assert.equal((await app.post(endpoint, { provider: 'claude' }, { 'Content-Type': 'text/plain' })).status, 400);
   }
-  assert.equal((await app.post(signIn, { provider: 'agy' })).status, 400);
+  assert.equal((await app.post(signIn, { provider: 'agy', home: app.directory })).status, 400);
+  assert.equal((await app.post(remove, { provider: 'agy', id: '12345678-1234-4123-8123-123456789abc', confirm: true })).status, 400);
   assert.equal((await app.post(signIn, { provider: 'claude', home: app.directory })).status, 400);
   assert.equal((await app.post(remove, { provider: 'claude', id: '../escape', confirm: true })).status, 400);
   const { id } = await app.post(signIn, { provider: 'claude' }).then(response => response.json());

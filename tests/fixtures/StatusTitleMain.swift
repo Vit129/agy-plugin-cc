@@ -10,6 +10,7 @@ enum StatusTitleMain {
         let window: QuotaWindow?
         let session: QuotaWindow?
         let cost: Double?
+        let settings: Snapshot.Settings?
         let timeZone: String
     }
 
@@ -32,7 +33,9 @@ enum StatusTitleMain {
             }
             return
         }
-        let titles = StatusTitle.select(rows: input.rows, active: input.active, now: input.now, calendar: calendar)
+        let titles = StatusTitle.select(rows: input.rows, active: input.active, now: input.now, calendar: calendar,
+                                        thresholds: input.settings?.titleThresholds ?? .init(),
+                                        titleProviders: input.settings?.titleProviders ?? [:])
         let fit = StatusTitle.fit(titles, maxWidth: input.width, spacing: 8) { title, compact in
             [title.session, title.longest].compactMap { $0?.text(compact: compact).count }.max().map {
                 Double(12 + $0 * 6)

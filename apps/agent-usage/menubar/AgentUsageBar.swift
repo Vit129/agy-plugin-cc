@@ -6,6 +6,38 @@ private final class StatusTitleView: NSStackView {
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }
 
+private final class StatusPercentBadge: NSView {
+    private let fill: NSColor
+
+    init(label: NSTextField, fill: NSColor) {
+        self.fill = fill
+        super.init(frame: .zero)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 3),
+            label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -3),
+            label.topAnchor.constraint(equalTo: topAnchor),
+            label.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let capsule = bounds.insetBy(dx: 0, dy: 1)
+        let radius = capsule.height / 2
+        fill.setFill()
+        NSBezierPath(roundedRect: capsule, xRadius: radius, yRadius: radius).fill()
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        needsDisplay = true
+    }
+}
+
 @main
 private final class StatusBar: NSObject, NSApplicationDelegate {
     private let base = URL(string: "http://127.0.0.1:43127")!
@@ -126,7 +158,10 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         }.joined(separator: "\n\n")
         button.toolTip = details.isEmpty ? "Agent Usage" : details
 
-        let titles = StatusTitle.select(rows: rows.map(\.titleSource), active: active, now: now, calendar: calendar)
+        let settings = snapshot?.settings
+        let titles = StatusTitle.select(rows: rows.map(\.titleSource), active: active, now: now, calendar: calendar,
+                                        thresholds: settings?.titleThresholds ?? .init(),
+                                        titleProviders: settings?.titleProviders ?? [:])
         guard !titles.isEmpty else {
             item.length = NSStatusItem.variableLength
             button.title = "—"
@@ -175,10 +210,10 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
             top.addArrangedSubview(statusLabel(UsageProvider(rawValue: title.provider)?.glyph ?? "?", font: primaryFont))
         }
         if let session = title.session {
-            top.addArrangedSubview(statusLabel(session.text(compact: compact), font: primaryFont, line: session))
+            top.addArrangedSubview(statusLine(session, compact: compact, font: primaryFont))
         }
-        let longest = title.longest
-        let bottom = statusLabel(longest?.text(compact: compact) ?? " ", font: secondaryFont, line: longest)
+        let bottom = title.longest.map { statusLine($0, compact: compact, font: secondaryFont) }
+            ?? statusLabel(" ", font: secondaryFont)
         let column = NSStackView(views: [top, bottom])
         column.orientation = .vertical
         column.alignment = .centerX
@@ -186,13 +221,25 @@ private final class StatusBar: NSObject, NSApplicationDelegate {
         return column
     }
 
-    private func statusLabel(_ value: String, font: NSFont, line: StatusTitle.Line? = nil) -> NSTextField {
-        let title = NSMutableAttributedString(string: value, attributes: [.font: font, .foregroundColor: NSColor.labelColor])
-        if let line {
-            let range = (value as NSString).range(of: line.amount)
-            title.addAttribute(.foregroundColor, value: line.tone.titleColor, range: range)
+    private func statusLine(_ line: StatusTitle.Line, compact: Bool, font: NSFont) -> NSView {
+        guard let badge = line.badge else {
+            return statusLabel(line.text(compact: compact), font: font)
         }
-        let label = NSTextField(labelWithAttributedString: title)
+        let isCritical = badge == .critical
+        let percent = StatusPercentBadge(label: statusLabel(line.amount, font: font, color: isCritical ? .white : .black),
+                                        fill: isCritical ? .systemRed : .systemYellow)
+        if compact { return percent }
+
+        let row = NSStackView(views: [statusLabel(line.label, font: font), percent])
+        row.orientation = .horizontal
+        row.alignment = .centerY
+        row.spacing = 2
+        if let suffix = line.resetSuffix { row.addArrangedSubview(statusLabel(suffix, font: font)) }
+        return row
+    }
+
+    private func statusLabel(_ value: String, font: NSFont, color: NSColor = .labelColor) -> NSTextField {
+        let label = NSTextField(labelWithAttributedString: .init(string: value, attributes: [.font: font, .foregroundColor: color]))
         label.setAccessibilityElement(false)
         return label
     }

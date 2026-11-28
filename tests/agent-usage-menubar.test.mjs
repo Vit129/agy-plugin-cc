@@ -26,6 +26,7 @@ describe('Agent Usage status title', { skip: swift.error?.code === 'ENOENT' && '
       '-module-cache-path', join(directory, 'modules'),
       'apps/agent-usage/menubar/QuotaPace.swift',
       'apps/agent-usage/menubar/StatusTitle.swift',
+      'apps/agent-usage/menubar/UsageSnapshot.swift',
       'tests/fixtures/StatusTitleMain.swift',
       '-o', executable,
     ], { cwd: root, stdio: 'pipe' });
@@ -62,7 +63,7 @@ describe('Agent Usage status title', { skip: swift.error?.code === 'ENOENT' && '
     });
     assert.equal(titles[0].session.amount, '92%');
     assert.equal(titles[0].session.reset, undefined);
-    assert.equal(titles[0].session.tone, 'unknown');
+    assert.equal(titles[0].session.badge, undefined);
     assert.equal(titles[0].longest.amount, '33%');
   });
 
@@ -85,6 +86,32 @@ describe('Agent Usage status title', { skip: swift.error?.code === 'ENOENT' && '
     const { titles } = model({ active: ['codex'] });
     assert.equal(titles[0].provider, 'codex');
     assert.equal(titles[0].session, undefined);
+  });
+
+  test('[TC-AGU-45][FE-UT] applies strict default badge thresholds independently of pace', () => {
+    const rows = [
+      { provider: 'claude', windows: [window('5h', 60, now + 4.5 * hour), window('7d', 59.9, now + hour)] },
+      { provider: 'codex', windows: [window('5h', 30, null), window('7d', 29.9, null)] },
+      { provider: 'agy', windows: [window('5h', null, null)] },
+    ];
+    const { titles } = model({ rows, active: ['claude', 'codex', 'agy'] });
+    assert.deepEqual(titles.map(title => [title.session?.badge, title.longest?.badge]), [
+      [undefined, 'warning'], ['warning', 'critical'], [undefined, undefined],
+    ]);
+  });
+
+  test('[TC-AGU-46][FE-UT] applies configured warning and critical thresholds', () => {
+    const { titles } = model({ rows: [claude, copilot], active: ['claude', 'copilot'], settings: { low: 95, critical: 25 } });
+    assert.equal(titles[0].session.badge, 'warning');
+    assert.equal(titles[0].longest.badge, 'warning');
+    assert.equal(titles[1].longest.badge, 'critical');
+  });
+
+  test('[TC-AGU-47][FE-UT] excludes unchecked providers from active and idle titles', () => {
+    const input = { rows: [claude, copilot], settings: { titleProviders: { copilot: false } } };
+    assert.deepEqual(model({ ...input, active: ['copilot', 'claude'] }).titles.map(title => title.provider), ['claude']);
+    assert.deepEqual(model({ ...input, active: ['copilot'] }).titles.map(title => title.provider), ['claude']);
+    assert.deepEqual(model({ ...input, settings: { titleProviders: { copilot: false, claude: false } } }).titles, []);
   });
 
   test('[TC-AGU-35][BE-UT] computes expected remaining and reserve for ahead and close windows', () => {

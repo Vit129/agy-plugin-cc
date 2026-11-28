@@ -74,60 +74,128 @@
   </section>
 </main>
 <dialog class="settings-dialog" aria-labelledby="settings-heading" data-testid="dlg_alertSettings_monitorPage">
-  <form id="quota-settings">
-    <h2 id="settings-heading">Settings</h2>
-    <fieldset class="provider-settings">
-      <legend>Providers</legend>
-      <p class="plan-caption">Enabled providers appear in the dashboard and are monitored for quota alerts.</p>
-      <label>Claude Code <input type="checkbox" role="switch" data-monitor-provider="claude" data-testid="chk_claudeProvider_monitorPage"></label>
-      <label>Antigravity <input type="checkbox" role="switch" data-monitor-provider="agy" data-testid="chk_agyProvider_monitorPage"></label>
-      <label>GitHub Copilot <input type="checkbox" role="switch" data-monitor-provider="copilot" data-testid="chk_copilotProvider_monitorPage"></label>
-      <label>OpenAI Codex <input type="checkbox" role="switch" data-monitor-provider="codex" data-testid="chk_codexProvider_monitorPage"></label>
-    </fieldset>
-    <fieldset class="account-settings">
-      <legend>Accounts</legend>
-      <p class="plan-caption">Auto-Route uses your current CLI accounts.</p>
-      <div data-account-provider="claude">
-        <h3>Claude Code</h3>
-        <ul class="detected-accounts" aria-label="Claude Code accounts"></ul>
-        <div id="claude-credit-settings"></div>
-        <button class="action" type="button" data-sign-in data-testid="btn_signInClaudeAccount_monitorPage">Sign in another account</button>
-        <details class="account-advanced">
-          <summary data-testid="btn_advancedClaudeAccounts_monitorPage">Advanced</summary>
-          <p class="plan-caption">Add configuration folders to choose which existing accounts to monitor.</p>
-          <div class="account-rows"></div>
-          <button class="action" type="button" data-add-account data-testid="btn_addClaudeAccount_monitorPage">Add configuration folder</button>
-        </details>
+  <form id="quota-settings" novalidate>
+    <header class="settings-header"><h2 id="settings-heading">Settings</h2></header>
+    <div class="settings-layout">
+      <div class="settings-nav" role="tablist" aria-label="Settings sections" aria-orientation="vertical" data-testid="nav_settings_monitorPage">
+        <button id="settings-tab-general" type="button" role="tab" aria-controls="settings-general" aria-selected="true" tabindex="0" data-testid="tab_settingsGeneral_monitorPage">General</button>
+        <button id="settings-tab-notifications" type="button" role="tab" aria-controls="settings-notifications" aria-selected="false" tabindex="-1" data-testid="tab_settingsNotifications_monitorPage">Notifications</button>
+        <button id="settings-tab-accounts" type="button" role="tab" aria-controls="settings-accounts" aria-selected="false" tabindex="-1" data-testid="tab_settingsAccounts_monitorPage">Accounts</button>
+        <button id="settings-tab-route" type="button" role="tab" aria-controls="settings-route" aria-selected="false" tabindex="-1" data-testid="tab_settingsRoute_monitorPage">Auto-Route</button>
       </div>
-      <div data-account-provider="copilot">
-        <h3>GitHub Copilot</h3>
-        <ul class="detected-accounts" aria-label="GitHub Copilot accounts"></ul>
-        <button class="action" type="button" data-sign-in data-testid="btn_signInCopilotAccount_monitorPage">Sign in another account</button>
-        <details class="account-advanced">
-          <summary data-testid="btn_advancedCopilotAccounts_monitorPage">Advanced</summary>
-          <p class="plan-caption">Add configuration folders to choose which existing accounts to monitor.</p>
-          <div class="account-rows"></div>
-          <button class="action" type="button" data-add-account data-testid="btn_addCopilotAccount_monitorPage">Add configuration folder</button>
-        </details>
+      <div class="settings-content">
+        <section class="settings-section" id="settings-general" role="tabpanel" aria-labelledby="settings-tab-general" tabindex="0">
+          <header><h3>General</h3><p class="plan-caption">Set refresh and menu bar preferences.</p></header>
+          <label class="setting-row setting-number">Refresh interval <span><input name="refreshMinutes" type="number" min="1" max="60" step="1" required aria-label="Refresh interval in minutes" data-testid="txt_refreshMinutes_monitorPage"> min</span></label>
+          <fieldset class="title-providers">
+            <legend>Menu bar title</legend>
+            <div class="title-provider-list">
+              <label class="title-provider claude"><input type="checkbox" data-title-provider="claude" data-testid="chk_claudeTitleProvider_monitorPage"><span class="provider-mark" aria-hidden="true">C</span>Claude Code</label>
+              <label class="title-provider agy"><input type="checkbox" data-title-provider="agy" data-testid="chk_agyTitleProvider_monitorPage"><span class="provider-mark" aria-hidden="true">A</span>Antigravity</label>
+              <label class="title-provider copilot"><input type="checkbox" data-title-provider="copilot" data-testid="chk_copilotTitleProvider_monitorPage"><span class="provider-mark" aria-hidden="true">G</span>GitHub Copilot</label>
+              <label class="title-provider codex"><input type="checkbox" data-title-provider="codex" data-testid="chk_codexTitleProvider_monitorPage"><span class="provider-mark" aria-hidden="true">O</span>OpenAI Codex</label>
+            </div>
+          </fieldset>
+          <details class="settings-advanced">
+            <summary data-testid="btn_advancedGeneralSettings_monitorPage">Advanced</summary>
+            <fieldset class="provider-settings">
+              <legend>Monitored providers</legend>
+              <p class="plan-caption">Enabled providers appear in the dashboard and are checked for alerts.</p>
+              <label class="setting-row">Claude Code<input class="switch" type="checkbox" role="switch" data-monitor-provider="claude" data-testid="chk_claudeProvider_monitorPage"></label>
+              <label class="setting-row">Antigravity<input class="switch" type="checkbox" role="switch" data-monitor-provider="agy" data-testid="chk_agyProvider_monitorPage"></label>
+              <label class="setting-row">GitHub Copilot<input class="switch" type="checkbox" role="switch" data-monitor-provider="copilot" data-testid="chk_copilotProvider_monitorPage"></label>
+              <label class="setting-row">OpenAI Codex<input class="switch" type="checkbox" role="switch" data-monitor-provider="codex" data-testid="chk_codexProvider_monitorPage"></label>
+            </fieldset>
+            <div class="settings-fields">
+              <label>Quota per session (%)<input name="cost" type="number" min="1" max="100" step="1" required data-testid="txt_sessionCost_monitorPage"></label>
+              <label>Target sessions per provider<input name="target" type="number" min="1" max="100" step="1" required data-testid="txt_sessionTarget_monitorPage"></label>
+            </div>
+          </details>
+        </section>
+        <section class="settings-section" id="settings-notifications" role="tabpanel" aria-labelledby="settings-tab-notifications" tabindex="0" hidden>
+          <header><h3>Notifications</h3><p class="plan-caption">Choose which alerts macOS delivers.</p></header>
+          <div class="setting-group">
+            <label class="setting-row"><span>Threshold warnings<small>Alert at each quota threshold.</small></span><input class="switch" data-setting-toggle="thresholdWarnings" type="checkbox" role="switch" aria-label="Threshold warnings" data-testid="chk_thresholdWarnings_monitorPage"></label>
+            <div class="settings-fields">
+              <label>Warning (%)<input name="low" type="number" min="1" max="99" step="1" required data-testid="txt_lowThreshold_monitorPage"></label>
+              <label>Critical (%)<input name="critical" type="number" min="0" max="98" step="1" required data-testid="txt_criticalThreshold_monitorPage"></label>
+            </div>
+            <label class="setting-row"><span>Pace warnings<small>Alert if quota may run out before reset.</small></span><input class="switch" data-setting-toggle="paceWarnings" type="checkbox" role="switch" aria-label="Pace warnings" data-testid="chk_paceWarnings_monitorPage"></label>
+            <label class="setting-row"><span>Reset-credit expiry reminders<small>Remind me 24h and 2h before expiry.</small></span><input class="switch" data-setting-toggle="resetCreditReminders" type="checkbox" role="switch" aria-label="Reset-credit expiry reminders" data-testid="chk_resetCreditReminders_monitorPage"></label>
+            <label class="setting-row"><span>Sound<small>Play a sound with notifications.</small></span><input class="switch" data-setting-toggle="notificationSound" type="checkbox" role="switch" aria-label="Sound" data-testid="chk_notificationSound_monitorPage"></label>
+          </div>
+          <div id="claude-credit-settings"></div>
+          <details class="settings-advanced">
+            <summary data-testid="btn_advancedNotificationSettings_monitorPage">Advanced</summary>
+            <label class="setting-row setting-number">Watch threshold <span><input name="watch" type="number" min="2" max="100" step="1" required aria-label="Watch threshold percentage" data-testid="txt_watchThreshold_monitorPage"> %</span></label>
+            <button type="button" class="action" id="test-notification" data-testid="btn_testNotification_monitorPage">Test macOS notification</button>
+            <p id="notification-result" class="plan-caption" role="status"></p>
+          </details>
+        </section>
+        <section class="settings-section account-settings" id="settings-accounts" role="tabpanel" aria-labelledby="settings-tab-accounts" tabindex="0" hidden>
+          <header><h3>Accounts</h3><p class="plan-caption">View CLI accounts or sign in via Terminal.</p></header>
+          <div class="account-list">
+            <div class="account-provider claude" data-account-provider="claude">
+              <span class="provider-mark" aria-hidden="true">C</span>
+              <div class="account-identity"><h4>Claude Code</h4><p class="plan-caption account-login">No sign-in detected</p></div>
+              <button class="action" type="button" data-sign-in aria-label="Sign in to Claude Code" data-testid="btn_signInClaudeAccount_monitorPage">Sign in</button>
+            </div>
+            <div class="account-provider agy" data-account-provider="agy">
+              <span class="provider-mark" aria-hidden="true">A</span>
+              <div class="account-identity"><h4>Antigravity</h4><p class="plan-caption account-login">No sign-in detected</p></div>
+              <button class="action" type="button" data-sign-in aria-label="Sign in to Antigravity" data-testid="btn_signInAgyAccount_monitorPage">Sign in</button>
+            </div>
+            <div class="account-provider copilot" data-account-provider="copilot">
+              <span class="provider-mark" aria-hidden="true">G</span>
+              <div class="account-identity"><h4>GitHub Copilot</h4><p class="plan-caption account-login">No sign-in detected</p></div>
+              <button class="action" type="button" data-sign-in aria-label="Sign in to GitHub Copilot" data-testid="btn_signInCopilotAccount_monitorPage">Sign in</button>
+            </div>
+            <div class="account-provider codex" data-account-provider="codex">
+              <span class="provider-mark" aria-hidden="true">O</span>
+              <div class="account-identity"><h4>OpenAI Codex</h4><p class="plan-caption account-login">No sign-in detected</p></div>
+              <button class="action" type="button" data-sign-in aria-label="Sign in to OpenAI Codex" data-testid="btn_signInCodexAccount_monitorPage">Sign in</button>
+            </div>
+          </div>
+          <p class="plan-caption" id="account-result" role="status"></p>
+          <details class="settings-advanced">
+            <summary data-testid="btn_advancedAccounts_monitorPage">Advanced</summary>
+            <p class="plan-caption">Manage CLI accounts and add configuration folders.</p>
+            <details class="account-advanced" data-manual-provider="claude">
+              <summary data-testid="btn_advancedClaudeAccounts_monitorPage">Claude Code</summary>
+              <ul class="detected-accounts" aria-label="Claude Code accounts"></ul>
+              <div class="account-rows"></div>
+              <button class="action" type="button" data-add-account data-testid="btn_addClaudeAccount_monitorPage">Add configuration folder</button>
+            </details>
+            <details class="account-advanced" data-manual-provider="copilot">
+              <summary data-testid="btn_advancedCopilotAccounts_monitorPage">GitHub Copilot</summary>
+              <ul class="detected-accounts" aria-label="GitHub Copilot accounts"></ul>
+              <div class="account-rows"></div>
+              <button class="action" type="button" data-add-account data-testid="btn_addCopilotAccount_monitorPage">Add configuration folder</button>
+            </details>
+            <details class="account-advanced" data-manual-provider="codex">
+              <summary data-testid="btn_advancedCodexAccounts_monitorPage">OpenAI Codex</summary>
+              <ul class="detected-accounts" aria-label="OpenAI Codex accounts"></ul>
+              <div class="account-rows"></div>
+              <button class="action" type="button" data-add-account data-testid="btn_addCodexAccount_monitorPage">Add configuration folder</button>
+            </details>
+          </details>
+        </section>
+        <section class="settings-section" id="settings-route" role="tabpanel" aria-labelledby="settings-tab-route" tabindex="0" hidden>
+          <header><h3>Auto-Route</h3><p class="plan-caption">Route work based on available quota.</p></header>
+          <div class="setting-group">
+            <label class="setting-row"><span>Auto-Route<small>Use the latest quota from both providers.</small></span><input class="switch" data-setting-toggle="autoRoute" type="checkbox" role="switch" aria-label="Auto-Route" data-testid="chk_autoRoute_monitorPage"></label>
+            <div class="settings-fields">
+              <label>Critical (%)<input data-setting-mirror="critical" type="number" min="0" max="98" step="1" required data-testid="txt_routeCriticalThreshold_monitorPage"></label>
+              <label>Low (%)<input data-setting-mirror="low" type="number" min="1" max="99" step="1" required data-testid="txt_routeLowThreshold_monitorPage"></label>
+            </div>
+          </div>
+          <div class="route-state">
+            <h4>Current route state</h4>
+            <ul id="settings-route-state" data-testid="lbl_settingsRouteState_monitorPage"></ul>
+          </div>
+        </section>
       </div>
-      <div data-account-provider="codex">
-        <h3>OpenAI Codex</h3>
-        <ul class="detected-accounts" aria-label="OpenAI Codex accounts"></ul>
-        <button class="action" type="button" data-sign-in data-testid="btn_signInCodexAccount_monitorPage">Sign in another account</button>
-        <details class="account-advanced">
-          <summary data-testid="btn_advancedCodexAccounts_monitorPage">Advanced</summary>
-          <p class="plan-caption">Add configuration folders to choose which existing accounts to monitor.</p>
-          <div class="account-rows"></div>
-          <button class="action" type="button" data-add-account data-testid="btn_addCodexAccount_monitorPage">Add configuration folder</button>
-        </details>
-      </div>
-      <div data-account-provider="agy">
-        <h3>Antigravity</h3>
-        <ul class="detected-accounts" aria-label="Antigravity account"></ul>
-        <p class="plan-caption">Antigravity uses one account from the current CLI environment.</p>
-      </div>
-      <p class="plan-caption" id="account-result" role="status"></p>
-    </fieldset>
+    </div>
     <template id="account-row-template">
       <div class="account-row">
         <label>Label<input type="text" data-account-label maxlength="80" required></label>
@@ -135,23 +203,13 @@
         <button class="action" type="button" data-remove-account>Remove</button>
       </div>
     </template>
-    <h3>Quota alerts</h3>
-    <p class="plan-caption">Trigger an alert when the remaining quota reaches or falls below each level.</p>
-    <div class="settings-fields">
-      <label>Yellow · Watch (%)<input name="watch" type="number" min="2" max="100" step="1" required data-testid="txt_watchThreshold_monitorPage"></label>
-      <label>Orange · Low (%)<input name="low" type="number" min="1" max="99" step="1" required data-testid="txt_lowThreshold_monitorPage"></label>
-      <label>Red · Critical (%)<input name="critical" type="number" min="0" max="98" step="1" required data-testid="txt_criticalThreshold_monitorPage"></label>
-      <label>Expected quota per session (%)<input name="cost" type="number" min="1" max="100" step="1" required data-testid="txt_sessionCost_monitorPage"></label>
-      <label>Refresh enabled providers every (min)<input name="refreshMinutes" type="number" min="1" max="60" step="1" required data-testid="txt_refreshMinutes_monitorPage"></label>
-      <label>Target sessions per provider<input name="target" type="number" min="1" max="100" step="1" required data-testid="txt_sessionTarget_monitorPage"></label>
-    </div>
-    <p class="form-error" role="alert"></p>
-    <button type="button" class="action" id="test-notification" data-testid="btn_testNotification_monitorPage">Test macOS notification</button>
-    <p id="notification-result" class="plan-caption" role="status"></p>
-    <div class="settings-actions">
-      <button class="action" type="button" id="cancel-settings" data-testid="btn_cancelAlertSettings_monitorPage">Cancel</button>
-      <button class="action primary" type="submit" data-testid="btn_saveAlertSettings_monitorPage">Save settings</button>
-    </div>
+    <footer class="settings-footer">
+      <p class="form-error" role="alert"></p>
+      <div class="settings-actions">
+        <button class="action" type="button" id="cancel-settings" data-testid="btn_cancelAlertSettings_monitorPage">Cancel</button>
+        <button class="action primary" type="submit" data-testid="btn_saveAlertSettings_monitorPage">Save settings</button>
+      </div>
+    </footer>
   </form>
 </dialog>
 <script type="module" src="/dashboard.mjs"></script>
