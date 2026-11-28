@@ -1,0 +1,19 @@
+scripts/install.mjs
+  s_673a52416b7659::t_093409e29c32e2 1-398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "734fa9a4735c8215695df8bef0cef1957ab79ca4",
+  "prompts": {},
+  "sessions": {
+    "s_673a52416b7659": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a220a2-a7e1-75c0-9c4b-d250cd39b337",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
