@@ -6,6 +6,11 @@ All notable changes to agy-plugin-cc are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- Agent Usage tracks named Claude Code, GitHub Copilot, and Codex profiles with separate quota rows, model usage, and alerts.
+- Agent Usage shows available Codex reset-credit expiries and reminds the user at 24 hours and 2 hours.
+- An optional native macOS menu bar app shows Agent Usage quota, routes, and expiry times.
+
 ## [1.7.0] - 2026-11-28
 
 ### Added

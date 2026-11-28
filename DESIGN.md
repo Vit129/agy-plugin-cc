@@ -15,4 +15,6 @@ The product is a plugin for two hosts, Claude Code and OpenAI Codex CLI, with an
 
 Agent Usage shows quota remaining and reset times for each provider, estimated session capacity, and model totals for 7 or 30 days. Colors and labels distinguish threshold severity and unavailable or stale values. The Claude row shows its probe error reason when a quota read fails. Plan usage lists the allowed or diverted decision and reason for each delegation direction.
 
-Settings lists one switch per provider. Saving applies the switches to CLI-triggered dashboard startup, quota polling, alerts, and model history on the same dashboard. When all switches are off, the quota view points to Settings.
+Settings lists one switch per provider and account rows with labels and configuration folders for supported CLIs. Saving applies the switches to CLI-triggered dashboard startup, quota polling, alerts, and model history on the same dashboard. When all switches are off, the quota view points to Settings. Available Codex reset credits appear below the route decisions with local expiry times.
+
+The macOS status item shows a colored indicator and the lowest remaining percentage. Its menu lists each quota window, both route decisions, and upcoming credit expiries. When the server is unavailable, the item shows a dash and offers to start it.
