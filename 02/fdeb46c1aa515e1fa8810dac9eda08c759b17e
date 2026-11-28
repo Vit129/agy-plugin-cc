@@ -1,0 +1,42 @@
+CHANGELOG.md
+  s_162efa8565b211::t_63a082e1de2fab 9-10
+version.json
+  s_162efa8565b211::t_69b7a6eeacf3f2 4
+  s_2cb59572163f84::t_cf74ec4f335182 2
+.claude-plugin/marketplace.json
+  s_162efa8565b211::t_ed18f48df71676 9,15
+.claude-plugin/plugin.json
+  s_162efa8565b211::t_591a12a1b0853e 3
+package.json
+  s_162efa8565b211::t_5b27a5cdf93255 3
+plugins/agy/.claude-plugin/plugin.json
+  s_162efa8565b211::t_10a2d57bc1a4f1 3
+plugins/agy/.codex-plugin/plugin.json
+  s_162efa8565b211::t_7ef33fcefe2862 3
+plugins/agy/scripts/lib/git-update-check.mjs
+  s_162efa8565b211::t_2aef68177d38a4 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "02fdeb46c1aa515e1fa8810dac9eda08c759b17e",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    },
+    "s_2cb59572163f84": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "agent-ad5fb33aca68ac520",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
