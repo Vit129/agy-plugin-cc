@@ -12,6 +12,7 @@ enum StatusTitleMain {
         let cost: Double?
         let settings: Snapshot.Settings?
         let timeZone: String
+        let tabProvider: String?
     }
 
     static func main() throws {
@@ -22,6 +23,10 @@ enum StatusTitleMain {
         calendar.timeZone = TimeZone(identifier: input.timeZone)!
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .secondsSince1970
+        if let provider = input.tabProvider {
+            FileHandle.standardOutput.write(try encoder.encode(StatusTitle.tabFraction(rows: input.rows, provider: provider)))
+            return
+        }
         if let window = input.window {
             if let cost = input.cost {
                 let capacity = QuotaPace.weeklyCapacity(weekly: window, session: input.session, cost: cost, now: input.now)

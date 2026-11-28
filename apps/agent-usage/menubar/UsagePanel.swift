@@ -33,6 +33,7 @@ struct UsagePanel: View {
     let quit: () -> Void
     let startServer: () -> Void
     var selectionChanged: () -> Void = {}
+    @AppStorage("tabLabels") private var tabLabels = true
 
     static let width: CGFloat = 406
 
@@ -82,6 +83,31 @@ struct UsagePanel: View {
             ForEach(UsageProvider.allCases, id: \.self) { tab($0) }
         }
         .accessibilityLabel("Quota views")
+        .contextMenu {
+            Picker("Tabs", selection: $tabLabels) {
+                Text("Icon only").tag(false)
+                Text("Icon with label").tag(true)
+            }
+            .pickerStyle(.inline)
+        }
+    }
+
+    /// Mini usage bar under a provider tab; the overview tab keeps a plain accent line.
+    private func tabBar(_ provider: UsageProvider?, accent: Color, selected: Bool) -> some View {
+        let fraction = provider.flatMap { provider in
+            snapshot.flatMap { StatusTitle.tabFraction(rows: $0.quota.map(\.titleSource), provider: provider.rawValue) }
+        }
+        return GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Capsule().fill(provider == nil ? accent.opacity(selected ? 1 : 0.72) : accent.opacity(0.22))
+                if let fraction {
+                    Capsule().fill(accent).frame(width: geometry.size.width * min(1, max(0, fraction)))
+                }
+            }
+        }
+        .frame(height: selected ? 3 : 2)
+        .padding(.horizontal, 5)
+        .help(fraction.map { "\(Int(($0 * 100).rounded()))% left" } ?? "")
     }
 
     private func tab(_ provider: UsageProvider?) -> some View {
@@ -104,14 +130,14 @@ struct UsagePanel: View {
                     }
                 }
                 .frame(width: 16, height: 16)
-                Text(name)
-                    .font(.caption.weight(selected ? .semibold : .medium))
-                    .lineLimit(1)
-                Capsule()
-                    .fill(accent.opacity(selected ? 1 : 0.72))
-                    .frame(height: selected ? 3 : 2)
-                    .padding(.horizontal, 5)
+                if tabLabels {
+                    Text(name)
+                        .font(.caption.weight(selected ? .semibold : .medium))
+                        .lineLimit(1)
+                }
+                tabBar(provider, accent: accent, selected: selected)
             }
+            .help(tabLabels ? "" : name)
             .foregroundStyle(selected ? .primary : .secondary)
             .padding(.top, 6)
             .padding(.bottom, 4)
@@ -227,7 +253,7 @@ struct UsagePanel: View {
                 Text("\(window.displayName) \(amount)")
                     .font(detail ? .callout.weight(.semibold) : .caption.weight(.semibold))
                 Spacer(minLength: 8)
-                if detail { Text(reset).font(.caption).foregroundStyle(.secondary) }
+                Text(reset).font(detail ? .caption : .caption2).foregroundStyle(.secondary)
                 if window.state == "aging" {
                     Text("Stale").font(.caption2).foregroundStyle(.secondary)
                 }
