@@ -51,7 +51,8 @@ export function createLiveQuotaReader({ env = process.env, now = Date.now, probe
             log(`Agent Usage · ${row.provider} quota cache: ${error.code ?? error.name}`);
           }
         }
-        creditsObservedAt = next?.rateLimitResetCredits ? next.captured : undefined;
+        // A failed probe keeps the last good credit data (and when it was captured) so reminders and the list survive.
+        if (next) creditsObservedAt = next.rateLimitResetCredits ? next.captured : undefined;
         cache.set(key, { sample, attemptedAt, creditsObservedAt, error: errorReason });
       }
       if (row.provider === 'claude' && errorReason) row = { ...row, state: 'error', error: errorReason };
