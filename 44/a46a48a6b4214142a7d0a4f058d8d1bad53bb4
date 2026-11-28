@@ -1,0 +1,43 @@
+THIRD-PARTY-NOTICES.md
+  s_162efa8565b211::t_8a6edec0777f83 1-42
+apps/agent-usage/menubar/AgentUsageBar.swift
+  s_162efa8565b211::t_11b2edcc2388e2 43,49,196,205,250-252,254-256
+apps/agent-usage/menubar/ProviderIcons.swift
+  s_162efa8565b211::t_4989549571217c 1-55
+apps/agent-usage/menubar/SVGPathParser.swift
+  s_162efa8565b211::t_5b1aa0559aa971 1-197
+apps/agent-usage/menubar/UsagePanel.swift
+  s_162efa8565b211::t_f3928a2e50b665 30,123,126
+apps/agent-usage/menubar/build.sh
+  s_162efa8565b211::t_d9bfb252b1df8a 4-18,22,25-26,28-33,39-40
+apps/agent-usage/ui/dashboard.mjs
+  s_162efa8565b211::t_77db59fb315d0c 1,28-30,122,254-255
+apps/agent-usage/ui/index.html
+  s_162efa8565b211::t_5b3181b4b4faba 93-96,127,140,145,150,155
+apps/agent-usage/ui/provider-icons.mjs
+  s_162efa8565b211::t_135d1be7b0037e 1-45
+apps/agent-usage/ui/styles.css
+  s_162efa8565b211::t_eb286430f84fd0 75-76
+tests/agent-usage-accounts.test.mjs
+  s_162efa8565b211::t_d31def6e96e813 220,242
+tests/agent-usage-menubar.test.mjs
+  s_162efa8565b211::t_2c419ab5fb26a9 3,7,17-39
+tests/fixtures/ProviderIconsMain.swift
+  s_162efa8565b211::t_8c75f943122979 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "44a46a48a6b4214142a7d0a4f058d8d1bad53bb4",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
