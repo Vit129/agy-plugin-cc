@@ -1,0 +1,23 @@
+.github/workflows/check.yml
+  s_162efa8565b211::t_a71eb3a398ab19 21-31
+ARCHITECTURE.md
+  s_162efa8565b211::t_5a6d8b8dc80b3f 47-61
+package.json
+  s_162efa8565b211::t_7cfe22177a1b59 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "96f6b8ae06e73ef712c3ab8644eca2dcd5af7b75",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
