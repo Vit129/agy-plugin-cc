@@ -54,6 +54,15 @@ struct StatusTitle: Encodable {
     let session: Line?
     let longest: Line?
 
+    /// Fraction (0...1) for a provider tab's mini bar: the lowest session (5h) remaining across its
+    /// accounts, or its lowest other window when it has no session window (Copilot's monthly).
+    static func tabFraction(rows: [Source], provider: String) -> Double? {
+        let windows = rows.filter { $0.provider == provider }.flatMap(\.windows)
+        let session = windows.filter { $0.short == "5h" }.compactMap(\.knownRemaining)
+        let pool = session.isEmpty ? windows.compactMap(\.knownRemaining) : session
+        return pool.min().map { $0 / 100 }
+    }
+
     static func select(rows: [Source], active: [String], now: Date, calendar: Calendar,
                        thresholds: Thresholds = Thresholds(), titleProviders: [String: Bool] = [:]) -> [StatusTitle] {
         let eligible = rows.filter { titleProviders[$0.provider] != false }

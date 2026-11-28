@@ -114,6 +114,13 @@ describe('Agent Usage status title', { skip: swift.error?.code === 'ENOENT' && '
     assert.deepEqual(model({ ...input, settings: { titleProviders: { copilot: false, claude: false } } }).titles, []);
   });
 
+  test('[TC-AGU-49][FE-UT] tab bar fraction uses the lowest session window, else the monthly window', () => {
+    const second = { provider: 'claude', windows: [window('5h', 40, now + hour), window('7d', 90, now + 48 * hour)] };
+    assert.equal(model({ rows: [claude, second, copilot], tabProvider: 'claude' }), 0.4);
+    assert.equal(model({ rows: [claude, copilot], tabProvider: 'copilot' }), 0.21);
+    assert.equal(model({ rows: [claude], tabProvider: 'codex' }), null);
+  });
+
   test('[TC-AGU-35][BE-UT] computes expected remaining and reserve for ahead and close windows', () => {
     const ahead = model({ window: window('5h', 70, now + 2.5 * hour) });
     assert.equal(ahead.expectedRemaining, 0.5);
