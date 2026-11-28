@@ -1,0 +1,19 @@
+tests/agent-usage-accounts.test.mjs
+  s_162efa8565b211::t_7ea9d99b04e449 8,181-212
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "e4e2a80e3cb7e9ec45914cd0de9829fe66262b9a",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "unknown"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
