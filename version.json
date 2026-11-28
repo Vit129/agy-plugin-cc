@@ -1,5 +1,5 @@
 {
-  "version": 18,
+  "version": 19,
   "updated": "2026-11-28",
-  "summary": "Agent Bridge 2.1.0 adds a tabbed Agent Usage quota panel, two-line menu bar titles, Claude full reset credit tracking and simplified settings."
+  "summary": "Agent Bridge 2.2.0 adds one-command Agent Usage setup with dashboard and menu bar services, vector provider marks, remaining-quota tab underlines and per-window reset times on the overview."
 }

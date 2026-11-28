@@ -1,6 +1,6 @@
 # Agent Bridge for Antigravity
 
-Antigravity (`agy`) native plugin (`v2.1.0`) for symmetric delegation, cold/adversarial code review, test-verified handoff, session transfer, background jobs, and shared 5h/7d quota-aware routing with Claude Code CLI (`claude -p`).
+Antigravity (`agy`) native plugin (`v2.2.0`) for symmetric delegation, cold/adversarial code review, test-verified handoff, session transfer, background jobs, and shared 5h/7d quota-aware routing with Claude Code CLI (`claude -p`).
 
 ## Features
 
