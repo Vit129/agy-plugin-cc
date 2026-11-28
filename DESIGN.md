@@ -13,4 +13,6 @@ The product is a plugin for two hosts, Claude Code and OpenAI Codex CLI, with an
 - Make update checks read-only unless the user explicitly requests a pull (`/agy:update --pull`, `$agy update --pull`).
 - Keep runtime review isolated in a separate test Claude Code profile.
 
-Agent Usage shows quota remaining and reset times for each provider, estimated session capacity, and model totals for 7 or 30 days. Colors and labels distinguish threshold severity and unavailable or stale values.
+Agent Usage shows quota remaining and reset times for each provider, estimated session capacity, and model totals for 7 or 30 days. Colors and labels distinguish threshold severity and unavailable or stale values. The Claude row shows its probe error reason when a quota read fails. Plan usage lists the allowed or diverted decision and reason for each delegation direction.
+
+Settings lists one switch per provider. Saving applies the switches to CLI-triggered dashboard startup, quota polling, alerts, and model history on the same dashboard. When all switches are off, the quota view points to Settings.

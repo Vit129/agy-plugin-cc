@@ -1,4 +1,5 @@
 import { runAgyTask, selectAgyModel } from "../lib/agy.mjs";
+import { applyAgyRoute } from "./route.mjs";
 import { ensureGitRepository, resolveReviewTarget } from "../lib/git.mjs";
 import { renderReviewResult } from "../lib/render.mjs";
 import { buildAgyRunOptions, buildDryRunReport, capOutput, createCompanionJob, enqueueBackgroundTask, ensureAgyAvailable, ensureValidEffort, ensureValidModel, firstMeaningfulLine, interpolateTemplate, loadPromptTemplate, outputCommandResult, parseCommandInput, renderDryRunReport, renderQueuedTaskLaunch, renderStderrBlock, resolveCommandCwd, resolveCommandWorkspace, runForegroundCommand, shorten } from "./shared.mjs";
@@ -82,7 +83,7 @@ export async function executeReviewRun(request) {
 
 export async function handleReviewCommand(argv, config) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["base", "scope", "cwd", "model", "tier", "effort", "project", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["base", "scope", "cwd", "model", "tier", "effort", "project", "add-dir", "log-file", "print-timeout", "route"],
     repeatableOptions: ["add-dir"],
     booleanOptions: ["json", "background", "wait", "new-project", "dangerously-skip-permissions", "dry-run", "deep"]
   });
@@ -93,19 +94,22 @@ export async function handleReviewCommand(argv, config) {
 
   const cwd = resolveCommandCwd(options);
   const workspaceRoot = resolveCommandWorkspace(options);
+  const kind = config.reviewName === "Adversarial Review" ? "adversarial-review" : "review";
   const focusText = positionals.join(" ").trim();
   const agyOptions = buildAgyRunOptions(cwd, options, {});
   if (!agyOptions.model && !options.tier) {
     const picked = selectAgyModel({
-      kind: config.reviewName === "Adversarial Review" ? "adversarial-review" : "review",
+      kind,
       promptLength: focusText.length,
       deep: Boolean(options.deep)
     });
     agyOptions.model = picked.model;
     agyOptions.autoModel = true;
   }
-  ensureValidModel(cwd, agyOptions);
   ensureValidEffort(agyOptions);
+
+  if (applyAgyRoute(workspaceRoot, kind, options, agyOptions.model)) return;
+  ensureValidModel(cwd, agyOptions);
 
   if (options["dry-run"]) {
     const report = buildDryRunReport(cwd, `agy ${config.reviewName}`, agyOptions, [
@@ -119,7 +123,7 @@ export async function handleReviewCommand(argv, config) {
 
   const job = createCompanionJob({
     prefix: "review",
-    kind: config.reviewName === "Adversarial Review" ? "adversarial-review" : "review",
+    kind,
     title: `agy ${config.reviewName}`,
     workspaceRoot,
     jobClass: "review",

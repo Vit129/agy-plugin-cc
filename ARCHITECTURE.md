@@ -32,7 +32,11 @@
 
 ## Agent Usage
 
-`apps/agent-usage/` owns the loopback HTTP server, browser assets, quota alerts, and model usage aggregation. `npm run dashboard` starts or reuses the listener. Both host startup hooks call the same installed launcher. The server reuses the plugin quota reader, reads only metrics from local transcript records for model aggregation, and stores settings and alert state outside the repository. The server can process quota updates with the browser closed. Scheduled checks record fresh or stale evidence separately from provider-reported reset times.
+`apps/agent-usage/` owns the loopback HTTP server, browser assets, quota alerts, and model usage aggregation. `npm run dashboard` starts or reuses the listener. The server reads enabled providers on a shared configurable cadence and skips a CLI probe when all of its status-line windows are live. It publishes Claude and Gemini CLI samples as separate files in the existing shared quota cache and reads only metrics from enabled providers' local transcripts. Provider switches and alert state persist outside the repository. The server can process quota updates with the browser closed. Scheduled checks record fresh or stale evidence separately from provider-reported reset times.
+
+The companions use the same pure Auto-Route policy with fresh cached 5h/7d values and Agent Usage thresholds. Claude-side routing runs before agy discovery or job creation. The dashboard reads both directions from the shared cache. The CLI probe reports Claude panel parsing failures as explicit row errors and logs changes to the failure reason.
+
+The Zsh integration and the Claude Code and Antigravity plugin startup hooks check the saved provider switch through `agent-usage on-provider-start` before starting the server. Manual startup and scheduled checks use their own entry points.
 
 ## Verification Invariants
 

@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { runAgyTask, selectAgyModel } from "../lib/agy.mjs";
+import { applyAgyRoute } from "./route.mjs";
 import { readStdinIfPiped } from "../lib/fs.mjs";
 import { ensureGitRepository, getCurrentBranch, isWorkingTreeDirty } from "../lib/git.mjs";
 import { detectVerifyCommand, hashFiles, parseTestList, renderHandoffReport, runHandoffLoop } from "../lib/handoff.mjs";
@@ -117,7 +118,7 @@ export async function executeHandoffRun(request) {
 
 export async function handleHandoff(argv) {
   const { options, positionals } = parseCommandInput(argv, {
-    valueOptions: ["cwd", "requirement-file", "verify", "tests", "fixups", "model", "tier", "effort", "add-dir", "log-file", "print-timeout"],
+    valueOptions: ["cwd", "requirement-file", "verify", "tests", "fixups", "model", "tier", "effort", "add-dir", "log-file", "print-timeout", "route"],
     repeatableOptions: ["add-dir", "tests"],
     booleanOptions: ["json", "background", "wait", "dry-run"]
   });
@@ -136,8 +137,10 @@ export async function handleHandoff(argv) {
     agyOptions.autoModel = true;
   }
   agyOptions.printTimeout = agyOptions.printTimeout ?? DEFAULT_HANDOFF_PRINT_TIMEOUT;
-  ensureValidModel(cwd, agyOptions);
   ensureValidEffort(agyOptions);
+
+  if (applyAgyRoute(workspaceRoot, "handoff", options, agyOptions.model)) return;
+  ensureValidModel(cwd, agyOptions);
 
   if (options["dry-run"]) {
     const report = buildDryRunReport(cwd, "agy Hand-off", agyOptions, [

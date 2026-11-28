@@ -9,7 +9,9 @@ Domain terms as used in `plugins/agy/scripts/`.
 - **Stop-review gate** — optional hook (`stop-review-gate-hook.mjs`, `config.stopReviewGate`) that runs a review before a session stops.
 - **Session lifecycle hook** — `session-lifecycle-hook.mjs`, runs on SessionStart/SessionEnd and checks for plugin updates.
 - **Host** — Claude Code or Codex; detected from `CLAUDECODE`. Both load the same `plugins/agy` tree through their own manifest.
+- **Monitored provider** — A CLI account whose quota and local model usage Agent Usage tracks when its Settings switch is on.
 - **Hand-off** — a test-gated delegation (`handoff`): agy implements, the companion runs the test command, sends fix-ups, and checks test files were not edited.
-- **Usage ledger** — `usage.jsonl` in the state dir, one line per finished job with agy's token counts.
+- **Usage ledger** — `usage.jsonl` in the state dir records token counts for finished jobs and quota diversions with their reason.
+- **Auto-Route** — a cache-only decision before delegation. It uses the tightest fresh 5h/7d quota for each provider and the Agent Usage Critical and Low thresholds. `--route off` bypasses the decision. Agent Usage displays both directions.
 
 - **Reset check** — a scheduled snapshot read based on a projected five-hour interval. A provider-reported reset is separate from the check time.

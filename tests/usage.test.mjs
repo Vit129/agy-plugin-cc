@@ -52,7 +52,7 @@ test("task command: records usage on the job and in usage.jsonl", () => {
   fs.mkdirSync(bin);
   fs.writeFileSync(path.join(bin, "agy"), `#!/bin/sh\ncat <<'JSON'\n${SUCCESS}\nJSON\n`);
   fs.chmodSync(path.join(bin, "agy"), 0o755);
-  const env = { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: data };
+  const env = { ...process.env, AI_QUOTA_DIR: root, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: data };
   try {
     const run = spawnSync(process.execPath, [COMPANION, "task", "--cwd", root, "say ok"], { cwd: root, encoding: "utf8", env });
     assert.equal(run.status, 0, run.stderr);

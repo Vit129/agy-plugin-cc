@@ -9,9 +9,10 @@ The users are developers running Claude Code or Codex with Antigravity installed
 ## Capabilities
 
 - Delegation: one-shot tasks, rescue, background jobs, resume, `--tier` model levels, test-gated hand-offs, session transfer to agy.
+- Quota Auto-Route: divert critical delegations to a provider with fresh headroom and record the decision.
 - Review: review and adversarial review of the current diff, `--deep`, and an optional stop-time review gate.
 - Web and media through agy: image generation, cited web research, page scraping, screenshot-based design review, document-to-Markdown.
-- Measurement: per-job token usage and a `usage.jsonl` ledger. Agent Usage displays recent recorded model calls, quota reset times, and configurable alerts.
+- Measurement: per-job token usage and a `usage.jsonl` ledger. Agent Usage displays recent recorded model usage, quota reset times, and configurable alerts for enabled providers.
 
 Out of scope by decision: audio/video transcription (the `watch` plugin covers it), multi-round research engines, browser recording, cloud-specific debugging.
 

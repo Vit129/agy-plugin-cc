@@ -1,12 +1,41 @@
-import { decideRoute, readAllQuota } from "../lib/quota-state.mjs";
+import { decideRoute, readAllQuota, resolveAgyPool } from "../lib/quota-state.mjs";
+import { chooseRoute, loadRouteThresholds, parseRouteMode } from "../lib/quota-route.mjs";
+import { resolveStateDir } from "../lib/state.mjs";
+import { appendUsageLog } from "../lib/usage.mjs";
 import { outputResult, parseCommandInput } from "./shared.mjs";
+
+export function applyAgyRoute(workspaceRoot, kind, options, model) {
+  const mode = parseRouteMode(options.route);
+  if (mode === "off" || options["dry-run"] || !process.env.CLAUDECODE) return false;
+  const quota = readAllQuota();
+  const settings = { ...loadRouteThresholds(), agyPool: resolveAgyPool(model) };
+  const decision = chooseRoute(quota, { ...settings, requested: "agy" });
+  if (decision.target === "agy") {
+    const recommendation = chooseRoute(quota, { ...settings, requested: "claude" });
+    if (recommendation.target === "agy") {
+      process.stderr.write(`Auto-route recommends delegating to agy. ${recommendation.reason}\n`);
+    }
+    return false;
+  }
+
+  const event = { kind, status: "diverted", requested: "agy", ...decision };
+  try {
+    appendUsageLog(resolveStateDir(workspaceRoot), { at: new Date().toISOString(), ...event });
+  } catch (error) {
+    process.stderr.write(`Quota diversion ledger: ${error.code ?? error.name}\n`);
+  }
+  const message = `Auto-route diverted to Claude. Run this job in Claude. ${decision.reason}`;
+  outputResult(options.json ? { ...event, message } : `${message}\n`, options.json);
+  process.exitCode = 1;
+  return true;
+}
 
 function formatWindow(w) {
   if (!w || w.state === "unknown") return "unknown";
   return `${w.effectiveRemainingPct}% rem (${w.state})`;
 }
 
-export function renderRouteReport(decision, quota) {
+export function renderRouteReport(decision, quota, recommendation) {
   const lines = [
     "# Quota Route Decision",
     "",
@@ -19,6 +48,7 @@ export function renderRouteReport(decision, quota) {
     `- agy:argon — 7d: ${formatWindow(quota.agy.pools.argon["7d"])}`,
     `- agy:3p — 5h: ${formatWindow(quota.agy.pools["3p"]["5h"])}, 7d: ${formatWindow(quota.agy.pools["3p"]["7d"])}`
   ];
+  if (recommendation?.target === "agy") lines.push(`Auto-route recommends delegating to agy. ${recommendation.reason}`);
   return `${lines.join("\n")}\n`;
 }
 
@@ -37,10 +67,11 @@ export function handleRoute(argv) {
     min7d: Number.isFinite(min7d) ? min7d : undefined
   });
   const quota = readAllQuota();
-  const payload = { ...decision, quota };
+  const recommendation = chooseRoute(quota, { ...loadRouteThresholds(), requested: "claude", agyPool: resolveAgyPool(options.model) });
+  const payload = { ...decision, quota, recommendation };
 
   outputResult(
-    options.json ? payload : renderRouteReport(decision, quota),
+    options.json ? payload : renderRouteReport(decision, quota, recommendation),
     options.json
   );
 }

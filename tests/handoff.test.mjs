@@ -136,7 +136,7 @@ function runCompanion(env, repo, args) {
 
 test("handoff command: fails red, fixes up via --continue, reports PASS", () => {
   const { root, repo, bin } = makeRepo();
-  const env = { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: path.join(root, "data") };
+  const env = { ...process.env, AI_QUOTA_DIR: root, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: path.join(root, "data") };
   try {
     const result = runCompanion(env, repo, ["--verify", "sh a.test.sh", "--tests", "a.test.sh", "make it pass"]);
     assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -149,7 +149,7 @@ test("handoff command: fails red, fixes up via --continue, reports PASS", () => 
 
 test("handoff command: refuses on main and on a dirty tree", () => {
   const { root, repo, bin, git } = makeRepo();
-  const env = { ...process.env, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: path.join(root, "data") };
+  const env = { ...process.env, AI_QUOTA_DIR: root, PATH: `${bin}${path.delimiter}${process.env.PATH}`, CLAUDE_PLUGIN_DATA: path.join(root, "data") };
   try {
     fs.writeFileSync(path.join(repo, "stray.txt"), "x");
     let result = runCompanion(env, repo, ["--verify", "true", "x"]);

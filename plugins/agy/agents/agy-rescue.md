@@ -35,9 +35,10 @@ Forwarding rules:
 - If the user specifies `--tier <low|medium|high>`, forward it as-is (it picks a Gemini Flash level; do not combine it with `--model`).
 - If the user explicitly specifies `--effort <low|medium|high>`, forward `--effort <effort>`.
 - Strip `--model`, `--tier` and `--effort` from the task text you pass through — they are forwarded as separate CLI flags, not part of the prompt.
+- Forward `--route auto|off` as a CLI flag and remove it from the task text.
 - Preserve the user's task text as-is apart from stripping routing flags.
 - Return the stdout of `agy-companion.mjs task` exactly as-is.
-- If the Bash call fails or agy cannot be invoked, return nothing.
+- If the companion returns an Auto-Route diversion, return its message even when Bash reports a nonzero exit. For other Bash failures that prevent agy invocation, return nothing.
 
 Response style:
 
