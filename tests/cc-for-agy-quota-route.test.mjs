@@ -43,7 +43,12 @@ test("[TC-QAR-03][BE-IT] companion and ask_claude refuse the critical destinatio
     ...process.env, CC_PLUGIN_AGY_ACTIVE: "", AI_QUOTA_DIR: dir, AGENT_USAGE_STATE_DIR: dir,
     PLUGIN_DATA: dir, CLAUDE_BIN: binary, CLAUDE_STUB_LOG: calls
   };
-  fs.writeFileSync(binary, '#!/bin/sh\nprintf "called\\n" >> "$CLAUDE_STUB_LOG"\nprintf \'%s\\n\' \'{"result":"ok"}\'\n', { mode: 0o755 });
+  // Drain the prompt before exiting so the child cannot close stdin during the write.
+  fs.writeFileSync(binary, `#!/bin/sh
+printf 'called\\n' >> "$CLAUDE_STUB_LOG"
+/bin/cat >/dev/null || exit 1
+printf '%s\\n' '{"result":"ok"}'
+`, { mode: 0o755 });
   const now = Math.floor(Date.now() / 1000);
   for (const [file, pool, remaining] of [["claude", "default", 16], ["native-agy", "gemini", 94]]) {
     const window = { remaining_pct: remaining, resets_at: now + 600 };
@@ -75,7 +80,8 @@ test("[TC-QAR-03][BE-IT] companion and ask_claude refuse the critical destinatio
   assert.deepEqual(ledger.map(({ kind, status, target }) => [kind, status, target]), [
     ["ask", "diverted", "agy"], ["mcp:ask_claude", "diverted", "agy"]
   ]);
-  assert.equal(run("--route", "off").status, 0);
+  const overridden = run("--route", "off");
+  assert.equal(overridden.status, 0, overridden.stderr);
   assert.equal(ask("off").isError, false);
   assert.equal(fs.readFileSync(calls, "utf8"), "called\ncalled\n");
 });
