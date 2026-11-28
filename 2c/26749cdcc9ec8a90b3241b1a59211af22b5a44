@@ -1,0 +1,63 @@
+plugins/agy/scripts/features/review.mjs
+  s_b3a04804e19838::t_272f06638b7a10 2,86,102,111-113,126
+  s_b3a04804e19838::t_aa91a112c67787 97
+plugins/agy/scripts/features/shared.mjs
+  s_b3a04804e19838::t_211174dbf1d60a 124
+CONTEXT.md
+  s_b3a04804e19838::t_1d2601d8ed2d89 12,14-15
+plugins/agy/commands/rescue.md
+  s_b3a04804e19838::t_275e69c060cc4f 3,15,23
+  s_b3a04804e19838::t_f3a634e2ed0e29 14
+plugins/agy/agents/agy-rescue.md
+  s_b3a04804e19838::t_d3b80aac24ca3d 38,41
+plugins/agy/scripts/features/route.mjs
+  s_b3a04804e19838::t_4bf7ca551dcbe2 1-4,7-27,30-32,38,51,70-71,74
+  s_b3a04804e19838::t_35435f5a3d37c0 28-29
+plugins/agy/scripts/features/handoff.mjs
+  s_b3a04804e19838::t_272f06638b7a10 5,121,142-143
+  s_b3a04804e19838::t_d4de7589073fab 144
+tests/handoff.test.mjs
+  s_b3a04804e19838::t_58be314d351e64 139,152
+tests/quota-route.test.mjs
+  s_b3a04804e19838::t_704f289e443b95 1-2,8-34
+  s_b3a04804e19838::t_754d645ee73975 63,69-71,77,83
+  s_b3a04804e19838::t_58be314d351e64 3-7,36
+  s_b3a04804e19838::t_f4bd759f5aadfa 35,37-62,64-68,72-76,78-82,84-92
+PRODUCT.md
+  s_b3a04804e19838::t_1d2601d8ed2d89 12,15
+plugins/agy/scripts/stop-review-gate-hook.mjs
+  s_b3a04804e19838::t_457a941625d3bd 9,46-47,188
+plugins/agy/scripts/lib/agy.mjs
+  s_b3a04804e19838::t_dafd1b6356da23 217,226-227
+plugins/agy/scripts/agy-companion.mjs
+  s_b3a04804e19838::t_272f06638b7a10 23-26
+README.md
+  s_b3a04804e19838::t_1d2601d8ed2d89 176-181
+tests/usage.test.mjs
+  s_b3a04804e19838::t_58be314d351e64 55
+plugins/agy/scripts/features/task.mjs
+  s_b3a04804e19838::t_272f06638b7a10 4,78,135
+  s_b3a04804e19838::t_6461173d44b6c5 91,129-133
+  s_b3a04804e19838::t_1b9f102587e560 134
+  s_b3a04804e19838::t_72f8dfc5e159b9 136
+ARCHITECTURE.md
+  s_b3a04804e19838::t_1d2601d8ed2d89 35-39
+DESIGN.md
+  s_b3a04804e19838::t_1d2601d8ed2d89 16-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "2c26749cdcc9ec8a90b3241b1a59211af22b5a44",
+  "prompts": {},
+  "sessions": {
+    "s_b3a04804e19838": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a21fea-18ae-7073-b1a0-913d03334c3d",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
