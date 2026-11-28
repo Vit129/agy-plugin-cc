@@ -1,0 +1,33 @@
+.gitignore
+  s_162efa8565b211::t_2eea65592907e9 10-12
+package-lock.json
+  s_162efa8565b211::t_256e465c5a0f46 1-67
+package.json
+  s_162efa8565b211::t_ce18cf3aa0a582 35-37
+playwright.config.mjs
+  s_162efa8565b211::t_76fe12fcefc44c 1-12
+tests/fixtures/agent-usage/fixtureServer.mjs
+  s_162efa8565b211::t_f54b8bb4a4552a 1-38
+tests/fixtures/agent-usage/quotaData.mjs
+  s_162efa8565b211::t_75b430c426558f 1-65
+tests/pages/dashboardPage.mjs
+  s_162efa8565b211::t_2b8fc291f831c8 1-41
+tests/tests-web/dashboard.ui.spec.mjs
+  s_162efa8565b211::t_f98256f4d9809b 1-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "7e6a4ca6d23bf7bcca6b9311d538051ee2dde33b",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
