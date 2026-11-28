@@ -38,6 +38,10 @@
       <div id="quota-rows"></div>
       <p class="plan-note" id="estimate-note"></p>
       <div class="plan-note" id="quota-routes" aria-label="Quota Auto-Route" data-testid="lbl_quotaRoutes_monitorPage"></div>
+      <section id="reset-credits" class="reset-credits" aria-labelledby="reset-credits-heading" hidden>
+        <h3 id="reset-credits-heading">Codex reset credits</h3>
+        <ul class="schedule-list"></ul>
+      </section>
     </section>
     <section class="panel model-panel" aria-labelledby="by-model">
       <div class="section-title">
@@ -79,6 +83,29 @@
       <label>GitHub Copilot <input type="checkbox" role="switch" data-monitor-provider="copilot" data-testid="chk_copilotProvider_monitorPage"></label>
       <label>OpenAI Codex <input type="checkbox" role="switch" data-monitor-provider="codex" data-testid="chk_codexProvider_monitorPage"></label>
     </fieldset>
+    <fieldset class="account-settings">
+      <legend>Accounts</legend>
+      <p class="plan-caption">Add signed-in configuration folders. An empty list uses your current CLI account. Auto-Route always uses the current CLI accounts.</p>
+      <div data-account-provider="claude">
+        <h3>Claude Code</h3><div class="account-rows"></div>
+        <button class="action" type="button" data-add-account data-testid="btn_addClaudeAccount_monitorPage">Add Claude account</button>
+      </div>
+      <div data-account-provider="copilot">
+        <h3>GitHub Copilot</h3><div class="account-rows"></div>
+        <button class="action" type="button" data-add-account data-testid="btn_addCopilotAccount_monitorPage">Add Copilot account</button>
+      </div>
+      <div data-account-provider="codex">
+        <h3>OpenAI Codex</h3><div class="account-rows"></div>
+        <button class="action" type="button" data-add-account data-testid="btn_addCodexAccount_monitorPage">Add Codex account</button>
+      </div>
+    </fieldset>
+    <template id="account-row-template">
+      <div class="account-row">
+        <label>Label<input type="text" data-account-label maxlength="80" required></label>
+        <label>Configuration folder<input type="text" data-account-home placeholder="~/path/to/config" maxlength="4096" required></label>
+        <button class="action" type="button" data-remove-account>Remove</button>
+      </div>
+    </template>
     <h3>Quota alerts</h3>
     <p class="plan-caption">Trigger an alert when the remaining quota reaches or falls below each level.</p>
     <div class="settings-fields">
