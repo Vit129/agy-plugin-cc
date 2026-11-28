@@ -1,0 +1,31 @@
+ARCHITECTURE.md
+  s_162efa8565b211::t_5a2720dc16b4b8 37-38
+CHANGELOG.md
+  s_162efa8565b211::t_c0b548c21b1ada 9-18
+CONTEXT.md
+  s_162efa8565b211::t_24f855156bb4e0 21
+DESIGN.md
+  s_162efa8565b211::t_8bbafe404c9a29 18,20
+PRODUCT.md
+  s_162efa8565b211::t_733e7d6abfc78e 15
+README.md
+  s_162efa8565b211::t_b9529ef88b4714 10-34
+apps/agent-usage/README.md
+  s_162efa8565b211::t_c3d6798a52c9e7 3,10,31,37-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "3b6adfee060a55f33406c89f7e97f44ae825508c",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
