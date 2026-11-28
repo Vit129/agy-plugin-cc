@@ -1,0 +1,27 @@
+.github/workflows/check.yml
+  s_162efa8565b211::t_f227df7cf4d89e 20-33
+apps/agent-usage/launch-agents.mjs
+  s_162efa8565b211::t_446ddbf12e97e2 1-153
+package.json
+  s_162efa8565b211::t_87fef5df0062fb 10-11,25-26
+scripts/install.mjs
+  s_162efa8565b211::t_75a82c90e26691 11-12,18,25,31-33,72-74,83-84,93-94,96-98,108-109,112,160-172,176,184,236,279,372,401,413-420
+tests/install.test.mjs
+  s_162efa8565b211::t_eedd242fd7d79f 36-37,39,46-48,52,54-56,62-67,75,77,109-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "e73845cbc1f84ce29d4c6331a2d72cb20c53925d",
+  "prompts": {},
+  "sessions": {
+    "s_162efa8565b211": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "82c4c7c6-7cc8-46c6-ab2d-fee35b16dcf2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
