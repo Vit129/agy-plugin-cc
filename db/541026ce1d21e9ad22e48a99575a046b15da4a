@@ -1,0 +1,30 @@
+apps/agent-usage/quota.mjs
+  s_f53e8a21a60b38::t_6e0505b410cc42 4,8,33,40,61,63,65-75,77,84-85,95-96
+  s_f53e8a21a60b38::t_39db4046e73f9b 18-22,76
+  s_f53e8a21a60b38::t_affb2db5423695 64
+apps/agent-usage/accounts.mjs
+  s_f53e8a21a60b38::t_6e0505b410cc42 1-59
+apps/agent-usage/live-quota.mjs
+  s_f53e8a21a60b38::t_7eb93b60d66fa5 70
+  s_f53e8a21a60b38::t_affb2db5423695 3-4,10-19,23-24,31-36,40,49,54-55,71-73,77
+apps/agent-usage/usage.mjs
+  s_f53e8a21a60b38::t_affb2db5423695 68-69,80-82
+apps/agent-usage/cli.mjs
+  s_f53e8a21a60b38::t_7eb93b60d66fa5 77-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.7",
+  "base_commit_sha": "db541026ce1d21e9ad22e48a99575a046b15da4a",
+  "prompts": {},
+  "sessions": {
+    "s_f53e8a21a60b38": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a22020-c984-7452-af70-755fcaa9ebaf",
+        "model": "gpt-6.2-sol"
+      },
+      "human_author": "Vit129 <vitosk129@gmail.com>"
+    }
+  }
+}
