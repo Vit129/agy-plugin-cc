@@ -62,7 +62,7 @@ export function buildQuotaRows(quota, settings, { includeRouteFallback = false }
   const enabled = enabledProviders(settings);
   return providers.filter(description => enabled.includes(description.provider)).flatMap(description => {
     const accounts = [...accountsForProvider(settings, description.provider)];
-    if (includeRouteFallback && accounts[0] && cachedProviders.includes(description.provider)) accounts.push(null);
+    if (includeRouteFallback && !accounts.includes(null) && cachedProviders.includes(description.provider)) accounts.push(null);
     return accounts.map(account => {
       const source = account ? null : quota[description.provider];
       const pool = source?.pools?.[description.pool];
